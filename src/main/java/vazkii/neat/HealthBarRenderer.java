@@ -18,6 +18,7 @@ import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.boss.IBossDisplayData;
 import net.minecraft.entity.monster.IMob;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
@@ -36,7 +37,7 @@ public class HealthBarRenderer {
 	public void onRenderWorldLast(RenderWorldLastEvent event) {
 		Minecraft mc = Minecraft.getMinecraft();
 
-		if(!Minecraft.isGuiEnabled()) 
+		if(!NeatConfig.renderInF1 && !Minecraft.isGuiEnabled()) 
 			return;
 
 		EntityLivingBase cameraEntity = mc.renderViewEntity;
@@ -70,7 +71,11 @@ public class HealthBarRenderer {
 		while(entity != null) {
 			processing: {
 				float distance = passedEntity.getDistanceToEntity(viewPoint);
-				if(distance > 24 || !passedEntity.canEntityBeSeen(viewPoint) || entity.isInvisible()) 
+				if(distance > NeatConfig.maxDistance || !passedEntity.canEntityBeSeen(viewPoint) || entity.isInvisible()) 
+					break processing;
+				if(!NeatConfig.showOnBosses && entity instanceof IBossDisplayData)
+					break processing;
+				if(!NeatConfig.showOnPlayers && entity instanceof EntityPlayer)
 					break processing;
 
 				double x = passedEntity.lastTickPosX + (passedEntity.posX - passedEntity.lastTickPosX) * partialTicks;
@@ -87,7 +92,7 @@ public class HealthBarRenderer {
 				float percent = (int) ((health / maxHealth) * 100F);
 				
 				GL11.glPushMatrix();
-				GL11.glTranslatef((float) (x - RenderManager.renderPosX), (float) (y - RenderManager.renderPosY + passedEntity.height + 0.6), (float) (z - RenderManager.renderPosZ));
+				GL11.glTranslatef((float) (x - RenderManager.renderPosX), (float) (y - RenderManager.renderPosY + passedEntity.height + NeatConfig.heightAbove), (float) (z - RenderManager.renderPosZ));
 				GL11.glNormal3f(0.0F, 1.0F, 0.0F);
 				GL11.glRotatef(-RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
 				GL11.glRotatef(RenderManager.instance.playerViewX, 1.0F, 0.0F, 0.0F);
@@ -100,10 +105,10 @@ public class HealthBarRenderer {
 				GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 				Tessellator tessellator = Tessellator.instance;
 
-				float padding = 2;
-				int bgHeight = 6;
-				int barHeight = 4;
-				float size = 25;
+				float padding = NeatConfig.backgroundPadding;
+				int bgHeight = NeatConfig.backgroundHeight;
+				int barHeight = NeatConfig.barHeight;
+				float size = NeatConfig.plateSize;
 
 				int r = 0;
 				int g = 255;
@@ -129,7 +134,7 @@ public class HealthBarRenderer {
 
 				if(entity instanceof IBossDisplayData) {
 					stack = new ItemStack(Items.skull);
-					size = 50;
+					size = NeatConfig.plateSizeBoss;
 					r = 128;
 					g = 0;
 					b = 128;
@@ -137,7 +142,7 @@ public class HealthBarRenderer {
 				
 				int armor = entity.getTotalArmorValue();
 
-				boolean useHue = true;
+				boolean useHue = !NeatConfig.colorByType;
 				if(useHue) {
 					float hue = Math.max(0F, (health / maxHealth) / 3F - 0.07F);
 					Color color = Color.getHSBColor(hue, 1F, 1F);
@@ -158,13 +163,15 @@ public class HealthBarRenderer {
 				float healthSize = size * (health / maxHealth);
 				
 				// Background
-				tessellator.startDrawingQuads();
-				tessellator.setColorRGBA(0, 0, 0, 64);
-				tessellator.addVertex(-size - padding, -bgHeight, 0.0D);
-				tessellator.addVertex(-size - padding, barHeight + padding, 0.0D);
-				tessellator.addVertex(size + padding, barHeight + padding, 0.0D);
-				tessellator.addVertex(size + padding, -bgHeight, 0.0D);
-				tessellator.draw();
+				if(NeatConfig.drawBackground) {
+					tessellator.startDrawingQuads();
+					tessellator.setColorRGBA(0, 0, 0, 64);
+					tessellator.addVertex(-size - padding, -bgHeight, 0.0D);
+					tessellator.addVertex(-size - padding, barHeight + padding, 0.0D);
+					tessellator.addVertex(size + padding, barHeight + padding, 0.0D);
+					tessellator.addVertex(size + padding, -bgHeight, 0.0D);
+					tessellator.draw();
+				}
 
 				// Gray Space
 				tessellator.startDrawingQuads();
@@ -195,7 +202,7 @@ public class HealthBarRenderer {
 				float s1 = 0.75F;
 				GL11.glScalef(s1, s1, s1);
 				
-				int h = 14;
+				int h = NeatConfig.hpTextHeight;
 				String maxHpStr = EnumChatFormatting.BOLD + "" + Math.round(maxHealth * 100.0) / 100.0;
 				String hpStr = "" + Math.round(health * 100.0) / 100.0;
 				String percStr = (int) percent + "%";
@@ -205,36 +212,44 @@ public class HealthBarRenderer {
 				if(hpStr.endsWith(".0"))
 					hpStr = hpStr.substring(0, hpStr.length() - 2);
 				
- 				mc.fontRenderer.drawString(hpStr, 2, h, 0xFFFFFF);
- 				mc.fontRenderer.drawString(maxHpStr, (int) (size / (s * s1) * 2) - 2 - mc.fontRenderer.getStringWidth(maxHpStr), h, 0xFFFFFF);
- 				
- 				mc.fontRenderer.drawString(percStr, (int) (size / (s * s1)) - mc.fontRenderer.getStringWidth(percStr) / 2, h, 0xFFFFFFFF);
+				if(NeatConfig.showCurrentHP)
+					mc.fontRenderer.drawString(hpStr, 2, h, 0xFFFFFF);
+				if(NeatConfig.showMaxHP)
+					mc.fontRenderer.drawString(maxHpStr, (int) (size / (s * s1) * 2) - 2 - mc.fontRenderer.getStringWidth(maxHpStr), h, 0xFFFFFF);
+				if(NeatConfig.showPercentage)
+					mc.fontRenderer.drawString(percStr, (int) (size / (s * s1)) - mc.fontRenderer.getStringWidth(percStr) / 2, h, 0xFFFFFFFF);
  				GL11.glPopMatrix();
  				
  				GL11.glColor4f(1F, 1F, 1F, 1F);
-				if(stack != null) {
-					s1 = 0.5F;
-					GL11.glScalef(s1, s1, s1);
-					GL11.glTranslatef(size / (s * s1) * 2 - 16, 0F, 0F);
-					mc.renderEngine.bindTexture(TextureMap.locationItemsTexture);
-					RenderItem.getInstance().renderIcon(0, 0, stack.getIconIndex(), 16, 16);
+				int off = 0;
+
+				s1 = 0.5F;
+				GL11.glScalef(s1, s1, s1);
+				GL11.glTranslatef(size / (s * s1) * 2 - 16, 0F, 0F);
+				mc.renderEngine.bindTexture(TextureMap.locationItemsTexture);
+				if(stack != null && NeatConfig.showAttributes) {
+					RenderItem.getInstance().renderIcon(off, 0, stack.getIconIndex(), 16, 16);
+					off -= 16;
+				}
+				
+				if(armor > 0 && NeatConfig.showArmor) {
+					int ironArmor = armor % 5;
+					int diamondArmor = armor / 5;
+					if(!NeatConfig.groupArmor) {
+						ironArmor = armor;
+						diamondArmor = 0;
+					}
 					
-					if(armor > 0) {
-						int ironArmor = armor % 5;
-						int diamondArmor = armor / 5;
-						
-						stack = new ItemStack(Items.iron_chestplate);
-						int off = -16;
-						for(int i = 0; i < ironArmor; i++) {
-							RenderItem.getInstance().renderIcon(off, 0, stack.getIconIndex(), 16, 16);
-							off -= 4;
-						}
-						
-						stack = new ItemStack(Items.diamond_chestplate);
-						for(int i = 0; i < diamondArmor; i++) {
-							RenderItem.getInstance().renderIcon(off, 0, stack.getIconIndex(), 16, 16);
-							off -= 4;
-						}
+					stack = new ItemStack(Items.iron_chestplate);
+					for(int i = 0; i < ironArmor; i++) {
+						RenderItem.getInstance().renderIcon(off, 0, stack.getIconIndex(), 16, 16);
+						off -= 4;
+					}
+					
+					stack = new ItemStack(Items.diamond_chestplate);
+					for(int i = 0; i < diamondArmor; i++) {
+						RenderItem.getInstance().renderIcon(off, 0, stack.getIconIndex(), 16, 16);
+						off -= 4;
 					}
 				}
 
