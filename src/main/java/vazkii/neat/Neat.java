@@ -16,7 +16,6 @@ public class Neat {
 
 	@EventHandler
 	public void init(FMLInitializationEvent event) {
-		FMLCommonHandler.instance().bus().register(new DeltaCalculator());
 		MinecraftForge.EVENT_BUS.register(new HealthBarRenderer());
 	}
 }
