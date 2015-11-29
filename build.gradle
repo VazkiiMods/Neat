@@ -11,7 +11,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
     }
 }
 
@@ -22,8 +22,9 @@ repositories {
     }
 }
 
-apply plugin: 'forge'
-//apply plugin: 'curseforge'
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
 
 ext.configFile = file('build.properties')
 
@@ -35,8 +36,9 @@ group = "vazkii.runetune" // http://maven.apache.org/guides/mini/guide-naming-co
 archivesBaseName = config.mod_name
 
 minecraft {
-    version = "${config.mc_version}-${config.forge_version}"
-    assetDir = "eclipse/assets"
+    version = "${config.mc_version}-${config.forge_version}-${config.mc_version}"
+    runDir = "eclipse/assets"
+    mappings = "snapshot_20151129"
 
     //This, does the token replacement.
     //Though, I reccomend this to be replaced with a token such as @VERSION@
