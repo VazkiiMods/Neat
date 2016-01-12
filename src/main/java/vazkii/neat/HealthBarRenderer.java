@@ -5,31 +5,33 @@ import java.util.Set;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.culling.Frustrum;
-import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.resources.model.IBakedModel;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureAttribute;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.boss.IBossDisplayData;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
-import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class HealthBarRenderer {
 
@@ -40,20 +42,20 @@ public class HealthBarRenderer {
 		if(!NeatConfig.renderInF1 && !Minecraft.isGuiEnabled()) 
 			return;
 
-		EntityLivingBase cameraEntity = mc.renderViewEntity;
-		Vec3 renderingVector = cameraEntity.getPosition(event.partialTicks);
-		Frustrum frustrum = new Frustrum();
+		Entity cameraEntity = mc.getRenderViewEntity();
+		BlockPos renderingVector = cameraEntity.getPosition();
+		Frustum frustum = new Frustum();
 
 		double viewX = cameraEntity.lastTickPosX + (cameraEntity.posX - cameraEntity.lastTickPosX) * event.partialTicks;
 		double viewY = cameraEntity.lastTickPosY + (cameraEntity.posY - cameraEntity.lastTickPosY) * event.partialTicks;
 		double viewZ = cameraEntity.lastTickPosZ + (cameraEntity.posZ - cameraEntity.lastTickPosZ) * event.partialTicks;
-		frustrum.setPosition(viewX, viewY, viewZ);
+		frustum.setPosition(viewX, viewY, viewZ);
 
 		WorldClient client = mc.theWorld;
 		Set<Entity> entities = ReflectionHelper.getPrivateValue(WorldClient.class, client, new String[] { "entityList", "field_73032_d", "J" });
 
 		for(Entity entity : entities)
-			if(entity != null && entity instanceof EntityLiving && entity.isInRangeToRender3d(renderingVector.xCoord, renderingVector.yCoord, renderingVector.zCoord) && (entity.ignoreFrustumCheck || frustrum.isBoundingBoxInFrustum(entity.boundingBox)) && entity.isEntityAlive()) 
+			if(entity != null && entity instanceof EntityLiving && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getEntityBoundingBox())) && entity.isEntityAlive()) 
 				renderHealthBar((EntityLiving) entity, event.partialTicks, cameraEntity);
 	}
 
@@ -90,20 +92,22 @@ public class HealthBarRenderer {
 					break processing;
 
 				float percent = (int) ((health / maxHealth) * 100F);
+				RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
 				
-				GL11.glPushMatrix();
-				GL11.glTranslatef((float) (x - RenderManager.renderPosX), (float) (y - RenderManager.renderPosY + passedEntity.height + NeatConfig.heightAbove), (float) (z - RenderManager.renderPosZ));
+				GlStateManager.pushMatrix();
+				GlStateManager.translate((float) (x - renderManager.viewerPosX), (float) (y - renderManager.viewerPosY + passedEntity.height + NeatConfig.heightAbove), (float) (z - renderManager.viewerPosZ));
 				GL11.glNormal3f(0.0F, 1.0F, 0.0F);
-				GL11.glRotatef(-RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
-				GL11.glRotatef(RenderManager.instance.playerViewX, 1.0F, 0.0F, 0.0F);
-				GL11.glScalef(-scale, -scale, scale);
-				GL11.glDisable(GL11.GL_LIGHTING);
-				GL11.glDepthMask(false);
-				GL11.glDisable(GL11.GL_DEPTH_TEST);
-				GL11.glDisable(GL11.GL_TEXTURE_2D);
-				GL11.glEnable(GL11.GL_BLEND);
-				GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-				Tessellator tessellator = Tessellator.instance;
+				GlStateManager.rotate(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
+				GlStateManager.rotate(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
+				GlStateManager.scale(-scale, -scale, scale);
+				GlStateManager.disableLighting();
+				GlStateManager.depthMask(false);
+				GlStateManager.disableDepth();
+				GlStateManager.disableTexture2D();
+				GlStateManager.enableBlend();
+				GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+				Tessellator tessellator = Tessellator.getInstance();
+				WorldRenderer worldRenderer = tessellator.getWorldRenderer();
 
 				float padding = NeatConfig.backgroundPadding;
 				int bgHeight = NeatConfig.backgroundHeight;
@@ -151,56 +155,53 @@ public class HealthBarRenderer {
 					b = color.getBlue();
 				}
 				
-				GL11.glTranslatef(0F, pastTranslate, 0F);
+				GlStateManager.translate(0F, pastTranslate, 0F);
 				
 				float s = 0.5F;
 				String name = StatCollector.translateToLocal("entity." + EntityList.getEntityString(entity) + ".name");
-				if(entity instanceof EntityLiving && ((EntityLiving) entity).hasCustomNameTag())
+				if(entity instanceof EntityLiving && ((EntityLiving) entity).hasCustomName())
 					name = EnumChatFormatting.ITALIC + ((EntityLiving) entity).getCustomNameTag();
-				float namel = mc.fontRenderer.getStringWidth(name) * s;
+				float namel = mc.fontRendererObj.getStringWidth(name) * s;
 				if(namel + 20 > size * 2)
 					size = namel / 2F + 10F;
 				float healthSize = size * (health / maxHealth);
 				
 				// Background
 				if(NeatConfig.drawBackground) {
-					tessellator.startDrawingQuads();
-					tessellator.setColorRGBA(0, 0, 0, 64);
-					tessellator.addVertex(-size - padding, -bgHeight, 0.0D);
-					tessellator.addVertex(-size - padding, barHeight + padding, 0.0D);
-					tessellator.addVertex(size + padding, barHeight + padding, 0.0D);
-					tessellator.addVertex(size + padding, -bgHeight, 0.0D);
+					worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+					worldRenderer.pos(-size - padding, -bgHeight, 0.0D).color(0, 0, 0, 64).endVertex();
+					worldRenderer.pos(-size - padding, barHeight + padding, 0.0D).color(0, 0, 0, 64).endVertex();
+					worldRenderer.pos(size + padding, barHeight + padding, 0.0D).color(0, 0, 0, 64).endVertex();
+					worldRenderer.pos(size + padding, -bgHeight, 0.0D).color(0, 0, 0, 64).endVertex();
 					tessellator.draw();
 				}
 
 				// Gray Space
-				tessellator.startDrawingQuads();
-				tessellator.setColorRGBA(127, 127, 127, 127);
-				tessellator.addVertex(-size, 0, 0.0D);
-				tessellator.addVertex(-size, barHeight, 0.0D);
-				tessellator.addVertex(size, barHeight, 0.0D);
-				tessellator.addVertex(size, 0, 0.0D);
+				worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+				worldRenderer.pos(-size, 0, 0.0D).color(127, 127, 127, 127).endVertex();
+				worldRenderer.pos(-size, barHeight, 0.0D).color(127, 127, 127, 127).endVertex();
+				worldRenderer.pos(size, barHeight, 0.0D).color(127, 127, 127, 127).endVertex();
+				worldRenderer.pos(size, 0, 0.0D).color(127, 127, 127, 127).endVertex();
 				tessellator.draw();
 
 				// Health Bar
-				tessellator.startDrawingQuads();
-				tessellator.setColorRGBA(r, g, b, 127);
-				tessellator.addVertex(-size, 0, 0.0D);
-				tessellator.addVertex(-size, barHeight, 0.0D);
-				tessellator.addVertex(healthSize * 2 - size, barHeight, 0.0D);
-				tessellator.addVertex(healthSize * 2 - size, 0, 0.0D);
+				worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+				worldRenderer.pos(-size, 0, 0.0D).color(r, g, b, 127).endVertex();
+				worldRenderer.pos(-size, barHeight, 0.0D).color(r, g, b, 127).endVertex();
+				worldRenderer.pos(healthSize * 2 - size, barHeight, 0.0D).color(r, g, b, 127).endVertex();
+				worldRenderer.pos(healthSize * 2 - size, 0, 0.0D).color(r, g, b, 127).endVertex();
 				tessellator.draw();
 
-				GL11.glEnable(GL11.GL_TEXTURE_2D);
+				GlStateManager.enableTexture2D();
 				
-				GL11.glPushMatrix();
-				GL11.glTranslatef(-size, -4.5F, 0F);
-				GL11.glScalef(s, s, s);
-				mc.fontRenderer.drawString(name, 0, 0, 0xFFFFFF);
+				GlStateManager.pushMatrix();
+				GlStateManager.translate(-size, -4.5F, 0F);
+				GlStateManager.scale(s, s, s);
+				mc.fontRendererObj.drawString(name, 0, 0, 0xFFFFFF);
 
-				GL11.glPushMatrix();
+				GlStateManager.pushMatrix();
 				float s1 = 0.75F;
-				GL11.glScalef(s1, s1, s1);
+				GlStateManager.scale(s1, s1, s1);
 				
 				int h = NeatConfig.hpTextHeight;
 				String maxHpStr = EnumChatFormatting.BOLD + "" + Math.round(maxHealth * 100.0) / 100.0;
@@ -213,22 +214,22 @@ public class HealthBarRenderer {
 					hpStr = hpStr.substring(0, hpStr.length() - 2);
 				
 				if(NeatConfig.showCurrentHP)
-					mc.fontRenderer.drawString(hpStr, 2, h, 0xFFFFFF);
+					mc.fontRendererObj.drawString(hpStr, 2, h, 0xFFFFFF);
 				if(NeatConfig.showMaxHP)
-					mc.fontRenderer.drawString(maxHpStr, (int) (size / (s * s1) * 2) - 2 - mc.fontRenderer.getStringWidth(maxHpStr), h, 0xFFFFFF);
+					mc.fontRendererObj.drawString(maxHpStr, (int) (size / (s * s1) * 2) - 2 - mc.fontRendererObj.getStringWidth(maxHpStr), h, 0xFFFFFF);
 				if(NeatConfig.showPercentage)
-					mc.fontRenderer.drawString(percStr, (int) (size / (s * s1)) - mc.fontRenderer.getStringWidth(percStr) / 2, h, 0xFFFFFFFF);
- 				GL11.glPopMatrix();
+					mc.fontRendererObj.drawString(percStr, (int) (size / (s * s1)) - mc.fontRendererObj.getStringWidth(percStr) / 2, h, 0xFFFFFFFF);
+ 				GlStateManager.popMatrix();
  				
- 				GL11.glColor4f(1F, 1F, 1F, 1F);
+ 				GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 				int off = 0;
 
 				s1 = 0.5F;
-				GL11.glScalef(s1, s1, s1);
-				GL11.glTranslatef(size / (s * s1) * 2 - 16, 0F, 0F);
-				mc.renderEngine.bindTexture(TextureMap.locationItemsTexture);
+				GlStateManager.scale(s1, s1, s1);
+				GlStateManager.translate(size / (s * s1) * 2 - 16, 0F, 0F);
+				mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture);
 				if(stack != null && NeatConfig.showAttributes) {
-					RenderItem.getInstance().renderIcon(off, 0, stack.getIconIndex(), 16, 16);
+					renderIcon(off, 0, stack, 16, 16);
 					off -= 16;
 				}
 				
@@ -242,24 +243,24 @@ public class HealthBarRenderer {
 					
 					stack = new ItemStack(Items.iron_chestplate);
 					for(int i = 0; i < ironArmor; i++) {
-						RenderItem.getInstance().renderIcon(off, 0, stack.getIconIndex(), 16, 16);
+						renderIcon(off, 0, stack, 16, 16);
 						off -= 4;
 					}
 					
 					stack = new ItemStack(Items.diamond_chestplate);
 					for(int i = 0; i < diamondArmor; i++) {
-						RenderItem.getInstance().renderIcon(off, 0, stack.getIconIndex(), 16, 16);
+						renderIcon(off, 0, stack, 16, 16);
 						off -= 4;
 					}
 				}
 
-				GL11.glPopMatrix();
+				GlStateManager.popMatrix();
 
-				GL11.glEnable(GL11.GL_DEPTH_TEST);
-				GL11.glDepthMask(true);
-				GL11.glEnable(GL11.GL_LIGHTING);
-				GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-				GL11.glPopMatrix();
+				GlStateManager.enableDepth();
+				GlStateManager.depthMask(true);
+				GlStateManager.enableLighting();
+				GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+				GlStateManager.popMatrix();
 				
 				pastTranslate = -(bgHeight + barHeight + padding);
 			}
@@ -270,6 +271,20 @@ public class HealthBarRenderer {
 			else return;
 		}
 	}
-
-
+	
+	private void renderIcon(int vertexX, int vertexY, ItemStack stack, int intU, int intV) {
+		try {
+			IBakedModel iBakedModel = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getItemModel(stack);
+			TextureAtlasSprite textureAtlasSprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(iBakedModel.getParticleTexture().getIconName());
+			Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+			Tessellator tessellator = Tessellator.getInstance();
+			WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+			worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX);
+			worldRenderer.pos((double)(vertexX), 		(double)(vertexY + intV), 	0.0D).tex((double) textureAtlasSprite.getMinU(), (double) textureAtlasSprite.getMaxV()).endVertex();
+			worldRenderer.pos((double)(vertexX + intU), (double)(vertexY + intV),	0.0D).tex((double) textureAtlasSprite.getMaxU(), (double) textureAtlasSprite.getMaxV()).endVertex();
+			worldRenderer.pos((double)(vertexX + intU), (double)(vertexY), 			0.0D).tex((double) textureAtlasSprite.getMaxU(), (double) textureAtlasSprite.getMinV()).endVertex();
+			worldRenderer.pos((double)(vertexX), 		(double)(vertexY), 			0.0D).tex((double) textureAtlasSprite.getMinU(), (double) textureAtlasSprite.getMinV()).endVertex();
+			tessellator.draw();
+		} catch (Exception e) {}
+	}
 }
