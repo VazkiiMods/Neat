@@ -32,7 +32,7 @@ ext.config = parseConfig(configFile)
 //ext.priv = parseConfig(file('private.properties'))
 
 version = "${config.version}-${config.build_number}"
-group = "vazkii.runetune" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+group = "vazkii.neat" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = config.mod_name
 
 minecraft {
@@ -85,7 +85,7 @@ artifacts {
 /**
  * Increments the buildnumber in your config file, and saves it
  */
-task incrementBuildNumber(dependsOn: 'reobf') << {
+task incrementBuildNumber {
     config.build_number = (config.build_number.toString().toInteger()) + 1
     configFile.withWriter {
         config.toProperties().store(it, "")
