@@ -5,7 +5,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
-@Mod(modid = Neat.MOD_ID, name = Neat.MOD_NAME, version = Neat.VERSION)
+@Mod(modid = Neat.MOD_ID, name = Neat.MOD_NAME, version = Neat.VERSION, clientSideOnly = true)
 public class Neat {
 	
 	public static final String MOD_ID = "Neat";
