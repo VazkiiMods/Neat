@@ -256,6 +256,7 @@ public class HealthBarRenderer {
 
 				GlStateManager.popMatrix();
 
+				GlStateManager.disableBlend();
 				GlStateManager.enableDepth();
 				GlStateManager.depthMask(true);
 				GlStateManager.enableLighting();
