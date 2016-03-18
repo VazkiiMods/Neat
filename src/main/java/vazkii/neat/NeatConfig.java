@@ -1,6 +1,9 @@
 package vazkii.neat;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -27,6 +30,8 @@ public class NeatConfig {
 	public static boolean showOnPlayers = true;
 	public static boolean showOnBosses = true;
 
+	public static List<String> blacklist;
+	
 	private static Configuration config;
 	
 	public static void init(File f) {
@@ -53,6 +58,9 @@ public class NeatConfig {
 		showOnPlayers = loadPropBool("Display on Players", showOnPlayers);
 		showOnBosses = loadPropBool("Display on Bosses", showOnBosses);
 
+		Property prop = config.get(Configuration.CATEGORY_GENERAL, "Blacklist", new String[] { "Shulker" });
+		blacklist = Arrays.asList(prop.getStringList());
+		
 		if(config.hasChanged())
 			config.save();
 	}

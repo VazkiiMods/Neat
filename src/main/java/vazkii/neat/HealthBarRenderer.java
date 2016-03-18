@@ -1,40 +1,44 @@
 package vazkii.neat;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.Stack;
+
+import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.VertexBuffer;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.resources.model.IBakedModel;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureAttribute;
-import net.minecraft.entity.boss.IBossDisplayData;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
-import org.lwjgl.opengl.GL11;
-
 public class HealthBarRenderer {
 
+	List<EntityLivingBase> renderedEntities = new ArrayList();
+	
 	@SubscribeEvent
 	public void onRenderWorldLast(RenderWorldLastEvent event) {
 		Minecraft mc = Minecraft.getMinecraft();
@@ -60,22 +64,31 @@ public class HealthBarRenderer {
 	}
 
 	public void renderHealthBar(EntityLivingBase passedEntity, float partialTicks, Entity viewPoint) {
-		if(passedEntity.riddenByEntity != null)
-			return;
+		Stack<EntityLivingBase> ridingStack = new Stack();
 		
 		EntityLivingBase entity = passedEntity;
-		while(entity.ridingEntity != null && entity.ridingEntity instanceof EntityLivingBase)
-			entity = (EntityLivingBase) entity.ridingEntity;
+		ridingStack.push(entity);
+
+		while(entity.getRidingEntity() != null && entity.getRidingEntity() instanceof EntityLivingBase) {
+			entity = (EntityLivingBase) entity.getRidingEntity();
+			ridingStack.push(entity);
+		}
 
 		Minecraft mc = Minecraft.getMinecraft();
 		
 		float pastTranslate = 0F;
-		while(entity != null) {
+		while(!ridingStack.isEmpty()) {
+			entity = ridingStack.pop();
+			boolean boss = !entity.isNonBoss();
+
+			if(NeatConfig.blacklist.contains(EntityList.getEntityString(entity)))
+				continue;
+			
 			processing: {
 				float distance = passedEntity.getDistanceToEntity(viewPoint);
 				if(distance > NeatConfig.maxDistance || !passedEntity.canEntityBeSeen(viewPoint) || entity.isInvisible()) 
 					break processing;
-				if(!NeatConfig.showOnBosses && entity instanceof IBossDisplayData)
+				if(!NeatConfig.showOnBosses && !boss)
 					break processing;
 				if(!NeatConfig.showOnPlayers && entity instanceof EntityPlayer)
 					break processing;
@@ -107,7 +120,7 @@ public class HealthBarRenderer {
 				GlStateManager.enableBlend();
 				GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 				Tessellator tessellator = Tessellator.getInstance();
-				WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+				VertexBuffer buffer = tessellator.getBuffer();
 
 				float padding = NeatConfig.backgroundPadding;
 				int bgHeight = NeatConfig.backgroundHeight;
@@ -136,7 +149,7 @@ public class HealthBarRenderer {
 					}
 				}
 
-				if(entity instanceof IBossDisplayData) {
+				if(boss) {
 					stack = new ItemStack(Items.skull);
 					size = NeatConfig.plateSizeBoss;
 					r = 128;
@@ -158,9 +171,9 @@ public class HealthBarRenderer {
 				GlStateManager.translate(0F, pastTranslate, 0F);
 				
 				float s = 0.5F;
-				String name = StatCollector.translateToLocal("entity." + EntityList.getEntityString(entity) + ".name");
+				String name = I18n.translateToLocal("entity." + EntityList.getEntityString(entity) + ".name");
 				if(entity instanceof EntityLiving && ((EntityLiving) entity).hasCustomName())
-					name = EnumChatFormatting.ITALIC + ((EntityLiving) entity).getCustomNameTag();
+					name = TextFormatting.ITALIC + ((EntityLiving) entity).getCustomNameTag();
 				float namel = mc.fontRendererObj.getStringWidth(name) * s;
 				if(namel + 20 > size * 2)
 					size = namel / 2F + 10F;
@@ -168,28 +181,28 @@ public class HealthBarRenderer {
 				
 				// Background
 				if(NeatConfig.drawBackground) {
-					worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-					worldRenderer.pos(-size - padding, -bgHeight, 0.0D).color(0, 0, 0, 64).endVertex();
-					worldRenderer.pos(-size - padding, barHeight + padding, 0.0D).color(0, 0, 0, 64).endVertex();
-					worldRenderer.pos(size + padding, barHeight + padding, 0.0D).color(0, 0, 0, 64).endVertex();
-					worldRenderer.pos(size + padding, -bgHeight, 0.0D).color(0, 0, 0, 64).endVertex();
+					buffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+					buffer.pos(-size - padding, -bgHeight, 0.0D).color(0, 0, 0, 64).endVertex();
+					buffer.pos(-size - padding, barHeight + padding, 0.0D).color(0, 0, 0, 64).endVertex();
+					buffer.pos(size + padding, barHeight + padding, 0.0D).color(0, 0, 0, 64).endVertex();
+					buffer.pos(size + padding, -bgHeight, 0.0D).color(0, 0, 0, 64).endVertex();
 					tessellator.draw();
 				}
 
 				// Gray Space
-				worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-				worldRenderer.pos(-size, 0, 0.0D).color(127, 127, 127, 127).endVertex();
-				worldRenderer.pos(-size, barHeight, 0.0D).color(127, 127, 127, 127).endVertex();
-				worldRenderer.pos(size, barHeight, 0.0D).color(127, 127, 127, 127).endVertex();
-				worldRenderer.pos(size, 0, 0.0D).color(127, 127, 127, 127).endVertex();
+				buffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+				buffer.pos(-size, 0, 0.0D).color(127, 127, 127, 127).endVertex();
+				buffer.pos(-size, barHeight, 0.0D).color(127, 127, 127, 127).endVertex();
+				buffer.pos(size, barHeight, 0.0D).color(127, 127, 127, 127).endVertex();
+				buffer.pos(size, 0, 0.0D).color(127, 127, 127, 127).endVertex();
 				tessellator.draw();
 
 				// Health Bar
-				worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-				worldRenderer.pos(-size, 0, 0.0D).color(r, g, b, 127).endVertex();
-				worldRenderer.pos(-size, barHeight, 0.0D).color(r, g, b, 127).endVertex();
-				worldRenderer.pos(healthSize * 2 - size, barHeight, 0.0D).color(r, g, b, 127).endVertex();
-				worldRenderer.pos(healthSize * 2 - size, 0, 0.0D).color(r, g, b, 127).endVertex();
+				buffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+				buffer.pos(-size, 0, 0.0D).color(r, g, b, 127).endVertex();
+				buffer.pos(-size, barHeight, 0.0D).color(r, g, b, 127).endVertex();
+				buffer.pos(healthSize * 2 - size, barHeight, 0.0D).color(r, g, b, 127).endVertex();
+				buffer.pos(healthSize * 2 - size, 0, 0.0D).color(r, g, b, 127).endVertex();
 				tessellator.draw();
 
 				GlStateManager.enableTexture2D();
@@ -204,7 +217,7 @@ public class HealthBarRenderer {
 				GlStateManager.scale(s1, s1, s1);
 				
 				int h = NeatConfig.hpTextHeight;
-				String maxHpStr = EnumChatFormatting.BOLD + "" + Math.round(maxHealth * 100.0) / 100.0;
+				String maxHpStr = TextFormatting.BOLD + "" + Math.round(maxHealth * 100.0) / 100.0;
 				String hpStr = "" + Math.round(health * 100.0) / 100.0;
 				String percStr = (int) percent + "%";
 				
@@ -265,11 +278,6 @@ public class HealthBarRenderer {
 				
 				pastTranslate = -(bgHeight + barHeight + padding);
 			}
-
-			Entity riddenBy = entity.riddenByEntity;
-			if(riddenBy instanceof EntityLivingBase)
-				entity = (EntityLivingBase) riddenBy;
-			else return;
 		}
 	}
 	
@@ -279,12 +287,12 @@ public class HealthBarRenderer {
 			TextureAtlasSprite textureAtlasSprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(iBakedModel.getParticleTexture().getIconName());
 			Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
 			Tessellator tessellator = Tessellator.getInstance();
-			WorldRenderer worldRenderer = tessellator.getWorldRenderer();
-			worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX);
-			worldRenderer.pos((double)(vertexX), 		(double)(vertexY + intV), 	0.0D).tex((double) textureAtlasSprite.getMinU(), (double) textureAtlasSprite.getMaxV()).endVertex();
-			worldRenderer.pos((double)(vertexX + intU), (double)(vertexY + intV),	0.0D).tex((double) textureAtlasSprite.getMaxU(), (double) textureAtlasSprite.getMaxV()).endVertex();
-			worldRenderer.pos((double)(vertexX + intU), (double)(vertexY), 			0.0D).tex((double) textureAtlasSprite.getMaxU(), (double) textureAtlasSprite.getMinV()).endVertex();
-			worldRenderer.pos((double)(vertexX), 		(double)(vertexY), 			0.0D).tex((double) textureAtlasSprite.getMinU(), (double) textureAtlasSprite.getMinV()).endVertex();
+			VertexBuffer buffer = tessellator.getBuffer();
+			buffer.begin(7, DefaultVertexFormats.POSITION_TEX);
+			buffer.pos((double)(vertexX), 		(double)(vertexY + intV), 	0.0D).tex((double) textureAtlasSprite.getMinU(), (double) textureAtlasSprite.getMaxV()).endVertex();
+			buffer.pos((double)(vertexX + intU), (double)(vertexY + intV),	0.0D).tex((double) textureAtlasSprite.getMaxU(), (double) textureAtlasSprite.getMaxV()).endVertex();
+			buffer.pos((double)(vertexX + intU), (double)(vertexY), 			0.0D).tex((double) textureAtlasSprite.getMaxU(), (double) textureAtlasSprite.getMinV()).endVertex();
+			buffer.pos((double)(vertexX), 		(double)(vertexY), 			0.0D).tex((double) textureAtlasSprite.getMinU(), (double) textureAtlasSprite.getMinV()).endVertex();
 			tessellator.draw();
 		} catch (Exception e) {}
 	}
