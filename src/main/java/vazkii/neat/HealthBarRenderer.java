@@ -50,9 +50,10 @@ public class HealthBarRenderer {
 		BlockPos renderingVector = cameraEntity.getPosition();
 		Frustum frustum = new Frustum();
 
-		double viewX = cameraEntity.lastTickPosX + (cameraEntity.posX - cameraEntity.lastTickPosX) * event.partialTicks;
-		double viewY = cameraEntity.lastTickPosY + (cameraEntity.posY - cameraEntity.lastTickPosY) * event.partialTicks;
-		double viewZ = cameraEntity.lastTickPosZ + (cameraEntity.posZ - cameraEntity.lastTickPosZ) * event.partialTicks;
+		float partialTicks = event.getPartialTicks();
+		double viewX = cameraEntity.lastTickPosX + (cameraEntity.posX - cameraEntity.lastTickPosX) * partialTicks;
+		double viewY = cameraEntity.lastTickPosY + (cameraEntity.posY - cameraEntity.lastTickPosY) * partialTicks;
+		double viewZ = cameraEntity.lastTickPosZ + (cameraEntity.posZ - cameraEntity.lastTickPosZ) * partialTicks;
 		frustum.setPosition(viewX, viewY, viewZ);
 
 		WorldClient client = mc.theWorld;
@@ -60,7 +61,7 @@ public class HealthBarRenderer {
 
 		for(Entity entity : entities)
 			if(entity != null && entity instanceof EntityLiving && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getEntityBoundingBox())) && entity.isEntityAlive()) 
-				renderHealthBar((EntityLiving) entity, event.partialTicks, cameraEntity);
+				renderHealthBar((EntityLiving) entity, partialTicks, cameraEntity);
 	}
 
 	public void renderHealthBar(EntityLivingBase passedEntity, float partialTicks, Entity viewPoint) {
