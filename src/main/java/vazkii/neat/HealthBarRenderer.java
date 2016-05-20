@@ -182,7 +182,7 @@ public class HealthBarRenderer {
 				GlStateManager.translate(0F, pastTranslate, 0F);
 				
 				float s = 0.5F;
-				String name = I18n.translateToLocal("entity." + EntityList.getEntityString(entity) + ".name");
+				String name = entity.getDisplayName().getFormattedText();
 				if(entity instanceof EntityLiving && ((EntityLiving) entity).hasCustomName())
 					name = TextFormatting.ITALIC + ((EntityLiving) entity).getCustomNameTag();
 				float namel = mc.fontRendererObj.getStringWidth(name) * s;
