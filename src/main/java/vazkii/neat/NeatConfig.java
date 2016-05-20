@@ -29,6 +29,7 @@ public class NeatConfig {
 	public static boolean showPercentage = true;
 	public static boolean showOnPlayers = true;
 	public static boolean showOnBosses = true;
+	public static boolean showOnlyFocused = false;
 
 	public static List<String> blacklist;
 	
@@ -57,6 +58,7 @@ public class NeatConfig {
 		showPercentage = loadPropBool("Show HP Percentage", showPercentage);
 		showOnPlayers = loadPropBool("Display on Players", showOnPlayers);
 		showOnBosses = loadPropBool("Display on Bosses", showOnBosses);
+		showOnlyFocused = loadPropBool("Only show the health bar for the entity looked at", showOnlyFocused);
 
 		Property prop = config.get(Configuration.CATEGORY_GENERAL, "Blacklist", new String[] { "Shulker" });
 		blacklist = Arrays.asList(prop.getStringList());

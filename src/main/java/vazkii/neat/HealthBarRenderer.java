@@ -28,9 +28,13 @@ import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.translation.I18n;
+import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
@@ -55,13 +59,19 @@ public class HealthBarRenderer {
 		double viewY = cameraEntity.lastTickPosY + (cameraEntity.posY - cameraEntity.lastTickPosY) * partialTicks;
 		double viewZ = cameraEntity.lastTickPosZ + (cameraEntity.posZ - cameraEntity.lastTickPosZ) * partialTicks;
 		frustum.setPosition(viewX, viewY, viewZ);
+		
+		if(NeatConfig.showOnlyFocused) {
+			Entity focused = getEntityLookedAt(mc.thePlayer);
+			if(focused != null && focused instanceof EntityLivingBase)
+				renderHealthBar((EntityLivingBase) focused, partialTicks, cameraEntity);
+		} else {
+			WorldClient client = mc.theWorld;
+			Set<Entity> entities = ReflectionHelper.getPrivateValue(WorldClient.class, client, new String[] { "entityList", "field_73032_d", "J" });
 
-		WorldClient client = mc.theWorld;
-		Set<Entity> entities = ReflectionHelper.getPrivateValue(WorldClient.class, client, new String[] { "entityList", "field_73032_d", "J" });
-
-		for(Entity entity : entities)
-			if(entity != null && entity instanceof EntityLiving && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getEntityBoundingBox())) && entity.isEntityAlive()) 
-				renderHealthBar((EntityLiving) entity, partialTicks, cameraEntity);
+			for(Entity entity : entities)
+				if(entity != null && entity instanceof EntityLivingBase && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getEntityBoundingBox())) && entity.isEntityAlive()) 
+					renderHealthBar((EntityLivingBase) entity, partialTicks, cameraEntity);
+		}
 	}
 
 	public void renderHealthBar(EntityLivingBase passedEntity, float partialTicks, Entity viewPoint) {
@@ -296,5 +306,72 @@ public class HealthBarRenderer {
 			buffer.pos((double)(vertexX), 		(double)(vertexY), 			0.0D).tex((double) textureAtlasSprite.getMinU(), (double) textureAtlasSprite.getMinV()).endVertex();
 			tessellator.draw();
 		} catch (Exception e) {}
+	}
+	
+	public static Entity getEntityLookedAt(Entity e) {
+		Entity foundEntity = null;
+
+		final double finalDistance = 32;
+		double distance = finalDistance;
+		RayTraceResult pos = raycast(e, finalDistance);
+		
+		Vec3d positionVector = e.getPositionVector();
+		if(e instanceof EntityPlayer)
+			positionVector = positionVector.addVector(0, e.getEyeHeight(), 0);
+
+		if(pos != null)
+			distance = pos.hitVec.distanceTo(positionVector);
+
+		Vec3d lookVector = e.getLookVec();
+		Vec3d reachVector = positionVector.addVector(lookVector.xCoord * finalDistance, lookVector.yCoord * finalDistance, lookVector.zCoord * finalDistance);
+
+		Entity lookedEntity = null;
+		List<Entity> entitiesInBoundingBox = e.worldObj.getEntitiesWithinAABBExcludingEntity(e, e.getEntityBoundingBox().addCoord(lookVector.xCoord * finalDistance, lookVector.yCoord * finalDistance, lookVector.zCoord * finalDistance).expand(1F, 1F, 1F));
+		double minDistance = distance;
+
+		for(Entity entity : entitiesInBoundingBox) {
+			if(entity.canBeCollidedWith()) {
+				float collisionBorderSize = entity.getCollisionBorderSize();
+				AxisAlignedBB hitbox = entity.getEntityBoundingBox().expand(collisionBorderSize, collisionBorderSize, collisionBorderSize);
+				RayTraceResult interceptPosition = hitbox.calculateIntercept(positionVector, reachVector);
+
+				if(hitbox.isVecInside(positionVector)) {
+					if(0.0D < minDistance || minDistance == 0.0D) {
+						lookedEntity = entity;
+						minDistance = 0.0D;
+					}
+				} else if(interceptPosition != null) {
+					double distanceToEntity = positionVector.distanceTo(interceptPosition.hitVec);
+
+					if(distanceToEntity < minDistance || minDistance == 0.0D) {
+						lookedEntity = entity;
+						minDistance = distanceToEntity;
+					}
+				}
+			}
+
+			if(lookedEntity != null && (minDistance < distance || pos == null))
+				foundEntity = lookedEntity;
+		}
+
+		return foundEntity;
+	}
+	
+	public static RayTraceResult raycast(Entity e, double len) {
+		Vec3d vec = new Vec3d(e.posX, e.posY, e.posZ);
+		if(e instanceof EntityPlayer)
+			vec = vec.add(new Vec3d(0, e.getEyeHeight(), 0));
+		
+		Vec3d look = e.getLookVec();
+		if(look == null)
+			return null;
+
+		return raycast(e.worldObj, vec, look, len);
+	}
+	
+	public static RayTraceResult raycast(World world, Vec3d origin, Vec3d ray, double len) {
+		Vec3d end = origin.add(ray.normalize().scale(len));
+		RayTraceResult pos = world.rayTraceBlocks(origin, end);
+		return pos;
 	}
 }
