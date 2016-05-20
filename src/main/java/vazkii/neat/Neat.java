@@ -5,7 +5,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
-@Mod(modid = Neat.MOD_ID, name = Neat.MOD_NAME, version = Neat.VERSION, dependencies = Neat.DEPENDENCIES, clientSideOnly = true)
+@Mod(modid = Neat.MOD_ID, name = Neat.MOD_NAME, version = Neat.VERSION, dependencies = Neat.DEPENDENCIES, guiFactory = Neat.GUI_FACTORY, clientSideOnly = true)
 public class Neat {
 	
 	public static final String MOD_ID = "Neat";
@@ -13,6 +13,7 @@ public class Neat {
 	public static final String BUILD = "GRADLE:BUILD";
 	public static final String VERSION = "GRADLE:VERSION-" + BUILD;	
 	public static final String DEPENDENCIES = "required-after:Forge@[12.17.0.1909,);";
+	public static final String GUI_FACTORY = "vazkii.neat.GuiFactory";
 
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {

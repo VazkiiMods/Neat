@@ -1,12 +1,14 @@
 package vazkii.neat;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class NeatConfig {
 	
@@ -33,12 +35,18 @@ public class NeatConfig {
 
 	public static List<String> blacklist;
 	
-	private static Configuration config;
+	public static Configuration config;
 	
-	public static void init(File f) {
-		config = new Configuration(f);
+	public static void init(File configFile) {
+		config = new Configuration(configFile);
+
 		config.load();
-		
+		load();
+
+		MinecraftForge.EVENT_BUS.register(new ChangeListener());
+	}
+	
+	public static void load() {
 		maxDistance = loadPropInt("Max Distance", maxDistance);
 		renderInF1 = loadPropBool("Render with Interface Disabled (F1)", renderInF1);
 		heightAbove = loadPropDouble("Height Above Mob", heightAbove);
@@ -51,7 +59,7 @@ public class NeatConfig {
 		showAttributes = loadPropBool("Show Attributes", showAttributes);
 		showArmor = loadPropBool("Show Armor", showArmor);
 		groupArmor = loadPropBool("Group Armor (condense 5 iron icons into 1 diamond icon)", groupArmor);
-		colorByType = loadPropBool("Color Health Bar by Type (instead of health %)", colorByType);
+		colorByType = loadPropBool("Color Health Bar by Type (instead of health percentage)", colorByType);
 		hpTextHeight = loadPropInt("HP Text Height", hpTextHeight);
 		showMaxHP = loadPropBool("Show Max HP", showMaxHP);
 		showCurrentHP = loadPropBool("Show Current HP", showCurrentHP);
@@ -80,5 +88,15 @@ public class NeatConfig {
 	public static boolean loadPropBool(String propName, boolean default_) {
 		Property prop = config.get(Configuration.CATEGORY_GENERAL, propName, default_);
 		return prop.getBoolean(default_);
+	}
+	
+	public static class ChangeListener {
+
+		@SubscribeEvent
+		public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs) {
+			if(eventArgs.getModID().equals(Neat.MOD_ID))
+				load();
+		}
+
 	}
 }
