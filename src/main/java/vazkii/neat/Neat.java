@@ -12,7 +12,7 @@ public class Neat {
 	public static final String MOD_NAME = MOD_ID;
 	public static final String BUILD = "GRADLE:BUILD";
 	public static final String VERSION = "GRADLE:VERSION-" + BUILD;	
-	public static final String DEPENDENCIES = "required-after:Forge@[12.16.0.1809,);";
+	public static final String DEPENDENCIES = "required-after:Forge@[12.17.0.1909,);";
 
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {

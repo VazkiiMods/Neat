@@ -140,18 +140,18 @@ public class HealthBarRenderer {
 					EnumCreatureAttribute attr = entity.getCreatureAttribute();
 					switch(attr) {
 					case ARTHROPOD:
-						stack = new ItemStack(Items.spider_eye);
+						stack = new ItemStack(Items.SPIDER_EYE);
 						break;
 					case UNDEAD:
-						stack = new ItemStack(Items.rotten_flesh);
+						stack = new ItemStack(Items.ROTTEN_FLESH);
 						break;
 					default:
-						stack = new ItemStack(Items.skull, 1, 4);
+						stack = new ItemStack(Items.SKULL, 1, 4);
 					}
 				}
 
 				if(boss) {
-					stack = new ItemStack(Items.skull);
+					stack = new ItemStack(Items.SKULL);
 					size = NeatConfig.plateSizeBoss;
 					r = 128;
 					g = 0;
@@ -241,7 +241,7 @@ public class HealthBarRenderer {
 				s1 = 0.5F;
 				GlStateManager.scale(s1, s1, s1);
 				GlStateManager.translate(size / (s * s1) * 2 - 16, 0F, 0F);
-				mc.renderEngine.bindTexture(TextureMap.locationBlocksTexture);
+				mc.renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 				if(stack != null && NeatConfig.showAttributes) {
 					renderIcon(off, 0, stack, 16, 16);
 					off -= 16;
@@ -255,13 +255,13 @@ public class HealthBarRenderer {
 						diamondArmor = 0;
 					}
 					
-					stack = new ItemStack(Items.iron_chestplate);
+					stack = new ItemStack(Items.IRON_CHESTPLATE);
 					for(int i = 0; i < ironArmor; i++) {
 						renderIcon(off, 0, stack, 16, 16);
 						off -= 4;
 					}
 					
-					stack = new ItemStack(Items.diamond_chestplate);
+					stack = new ItemStack(Items.DIAMOND_CHESTPLATE);
 					for(int i = 0; i < diamondArmor; i++) {
 						renderIcon(off, 0, stack, 16, 16);
 						off -= 4;
@@ -286,7 +286,7 @@ public class HealthBarRenderer {
 		try {
 			IBakedModel iBakedModel = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getItemModel(stack);
 			TextureAtlasSprite textureAtlasSprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(iBakedModel.getParticleTexture().getIconName());
-			Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+			Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 			Tessellator tessellator = Tessellator.getInstance();
 			VertexBuffer buffer = tessellator.getBuffer();
 			buffer.begin(7, DefaultVertexFormats.POSITION_TEX);
