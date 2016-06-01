@@ -102,6 +102,8 @@ public class HealthBarRenderer {
 					break processing;
 				if(!NeatConfig.showOnPlayers && entity instanceof EntityPlayer)
 					break processing;
+        if(!NeatConfig.showOnPlayerFirstPerson && entity == mc.thePlayer && mc.gameSettings.thirdPersonView == 0)
+          break processing;
 
 				double x = passedEntity.lastTickPosX + (passedEntity.posX - passedEntity.lastTickPosX) * partialTicks;
 				double y = passedEntity.lastTickPosY + (passedEntity.posY - passedEntity.lastTickPosY) * partialTicks;
