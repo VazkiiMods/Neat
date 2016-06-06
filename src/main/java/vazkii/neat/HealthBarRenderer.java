@@ -91,7 +91,8 @@ public class HealthBarRenderer {
 			entity = ridingStack.pop();
 			boolean boss = !entity.isNonBoss();
 
-			if(NeatConfig.blacklist.contains(EntityList.getEntityString(entity)))
+			String entityID = EntityList.getEntityString(entity);
+			if(NeatConfig.blacklist.contains(entityID))
 				continue;
 			
 			processing: {
@@ -242,6 +243,8 @@ public class HealthBarRenderer {
 					mc.fontRendererObj.drawString(maxHpStr, (int) (size / (s * s1) * 2) - 2 - mc.fontRendererObj.getStringWidth(maxHpStr), h, 0xFFFFFF);
 				if(NeatConfig.showPercentage)
 					mc.fontRendererObj.drawString(percStr, (int) (size / (s * s1)) - mc.fontRendererObj.getStringWidth(percStr) / 2, h, 0xFFFFFFFF);
+				if(NeatConfig.enableDebugInfo && mc.gameSettings.showDebugInfo)
+					mc.fontRendererObj.drawString("ID: \"" + entityID + "\"", 0, h + 16, 0xFFFFFFFF);
  				GlStateManager.popMatrix();
  				
  				GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
