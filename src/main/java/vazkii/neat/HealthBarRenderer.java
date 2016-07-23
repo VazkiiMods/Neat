@@ -124,6 +124,7 @@ public class HealthBarRenderer {
 				GlStateManager.rotate(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
 				GlStateManager.rotate(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
 				GlStateManager.scale(-scale, -scale, scale);
+				boolean lighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
 				GlStateManager.disableLighting();
 				GlStateManager.depthMask(false);
 				GlStateManager.disableDepth();
@@ -285,7 +286,8 @@ public class HealthBarRenderer {
 				GlStateManager.disableBlend();
 				GlStateManager.enableDepth();
 				GlStateManager.depthMask(true);
-				GlStateManager.enableLighting();
+				if(lighting)
+					GlStateManager.enableLighting();
 				GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 				GlStateManager.popMatrix();
 				
