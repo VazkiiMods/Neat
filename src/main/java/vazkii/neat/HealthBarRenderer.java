@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
@@ -33,7 +34,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -182,7 +182,7 @@ public class HealthBarRenderer {
 				GlStateManager.translate(0F, pastTranslate, 0F);
 				
 				float s = 0.5F;
-				String name = entity.getDisplayName().getFormattedText();
+				String name = I18n.format(entity.getDisplayName().getFormattedText());
 				if(entity instanceof EntityLiving && ((EntityLiving) entity).hasCustomName())
 					name = TextFormatting.ITALIC + ((EntityLiving) entity).getCustomNameTag();
 				float namel = mc.fontRendererObj.getStringWidth(name) * s;
