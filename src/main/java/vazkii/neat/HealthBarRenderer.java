@@ -62,13 +62,13 @@ public class HealthBarRenderer {
 		
 		if(NeatConfig.showOnlyFocused) {
 			Entity focused = getEntityLookedAt(mc.thePlayer);
-			if(focused != null && focused instanceof EntityLivingBase)
+			if(focused != null && focused instanceof EntityLivingBase && focused.isEntityAlive())
 				renderHealthBar((EntityLivingBase) focused, partialTicks, cameraEntity);
 		} else {
 			WorldClient client = mc.theWorld;
 			Set<Entity> entities = ReflectionHelper.getPrivateValue(WorldClient.class, client, new String[] { "entityList", "field_73032_d", "J" });
 			for(Entity entity : entities)
-				if(entity != null && entity instanceof EntityLivingBase && entity != mc.thePlayer && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getEntityBoundingBox())) && entity.isEntityAlive()) 
+				if(entity != null && entity instanceof EntityLivingBase && entity != mc.thePlayer && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getEntityBoundingBox())) && entity.isEntityAlive() && entity.getRecursivePassengers().isEmpty()) 
 					renderHealthBar((EntityLivingBase) entity, partialTicks, cameraEntity);
 		}
 	}
@@ -291,7 +291,7 @@ public class HealthBarRenderer {
 				GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 				GlStateManager.popMatrix();
 				
-				pastTranslate = -(bgHeight + barHeight + padding);
+				pastTranslate -= bgHeight + barHeight + padding;
 			}
 		}
 	}
