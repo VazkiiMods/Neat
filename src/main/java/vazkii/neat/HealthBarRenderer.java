@@ -61,14 +61,14 @@ public class HealthBarRenderer {
 		frustum.setPosition(viewX, viewY, viewZ);
 		
 		if(NeatConfig.showOnlyFocused) {
-			Entity focused = getEntityLookedAt(mc.thePlayer);
+			Entity focused = getEntityLookedAt(mc.player);
 			if(focused != null && focused instanceof EntityLivingBase && focused.isEntityAlive())
 				renderHealthBar((EntityLivingBase) focused, partialTicks, cameraEntity);
 		} else {
-			WorldClient client = mc.theWorld;
+			WorldClient client = mc.world;
 			Set<Entity> entities = ReflectionHelper.getPrivateValue(WorldClient.class, client, new String[] { "entityList", "field_73032_d", "J" });
 			for(Entity entity : entities)
-				if(entity != null && entity instanceof EntityLivingBase && entity != mc.thePlayer && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getEntityBoundingBox())) && entity.isEntityAlive() && entity.getRecursivePassengers().isEmpty()) 
+				if(entity != null && entity instanceof EntityLivingBase && entity != mc.player && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getEntityBoundingBox())) && entity.isEntityAlive() && entity.getRecursivePassengers().isEmpty()) 
 					renderHealthBar((EntityLivingBase) entity, partialTicks, cameraEntity);
 		}
 	}
@@ -330,7 +330,7 @@ public class HealthBarRenderer {
 		Vec3d reachVector = positionVector.addVector(lookVector.xCoord * finalDistance, lookVector.yCoord * finalDistance, lookVector.zCoord * finalDistance);
 
 		Entity lookedEntity = null;
-		List<Entity> entitiesInBoundingBox = e.worldObj.getEntitiesWithinAABBExcludingEntity(e, e.getEntityBoundingBox().addCoord(lookVector.xCoord * finalDistance, lookVector.yCoord * finalDistance, lookVector.zCoord * finalDistance).expand(1F, 1F, 1F));
+		List<Entity> entitiesInBoundingBox = e.getEntityWorld().getEntitiesWithinAABBExcludingEntity(e, e.getEntityBoundingBox().addCoord(lookVector.xCoord * finalDistance, lookVector.yCoord * finalDistance, lookVector.zCoord * finalDistance).expand(1F, 1F, 1F));
 		double minDistance = distance;
 
 		for(Entity entity : entitiesInBoundingBox) {
@@ -370,7 +370,7 @@ public class HealthBarRenderer {
 		if(look == null)
 			return null;
 
-		return raycast(e.worldObj, vec, look, len);
+		return raycast(e.getEntityWorld(), vec, look, len);
 	}
 	
 	public static RayTraceResult raycast(World world, Vec3d origin, Vec3d ray, double len) {

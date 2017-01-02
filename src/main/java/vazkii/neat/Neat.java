@@ -8,11 +8,11 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 @Mod(modid = Neat.MOD_ID, name = Neat.MOD_NAME, version = Neat.VERSION, dependencies = Neat.DEPENDENCIES, guiFactory = Neat.GUI_FACTORY, clientSideOnly = true)
 public class Neat {
 	
-	public static final String MOD_ID = "Neat";
-	public static final String MOD_NAME = MOD_ID;
+	public static final String MOD_ID = "neat";
+	public static final String MOD_NAME = "Neat";
 	public static final String BUILD = "GRADLE:BUILD";
 	public static final String VERSION = "GRADLE:VERSION-" + BUILD;	
-	public static final String DEPENDENCIES = "required-after:Forge@[12.17.0.1909,);";
+	public static final String DEPENDENCIES = "";
 	public static final String GUI_FACTORY = "vazkii.neat.GuiFactory";
 
 	@EventHandler

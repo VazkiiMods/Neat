@@ -36,7 +36,7 @@ group = "vazkii.neat" // http://maven.apache.org/guides/mini/guide-naming-conven
 archivesBaseName = config.mod_name
 
 minecraft {
-    version = "${config.mc_version}-${config.forge_version}-${config.mc_version_suffix}"
+    version = "${config.mc_version}-${config.forge_version}"
     runDir = "eclipse/assets"
     mappings = config.mc_mappings
 
