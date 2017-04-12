@@ -48,30 +48,30 @@ public class NeatConfig {
 	}
 	
 	public static void load() {
-		maxDistance = loadPropInt("Max Distance", maxDistance);
-		renderInF1 = loadPropBool("Render with Interface Disabled (F1)", renderInF1);
-		heightAbove = loadPropDouble("Height Above Mob", heightAbove);
-		drawBackground = loadPropBool("Draw Background", drawBackground);
-		backgroundPadding = loadPropInt("Background Padding", backgroundPadding);
-		backgroundHeight = loadPropInt("Background Height", backgroundHeight);
-		barHeight = loadPropInt("Health Bar Height", barHeight);
-		plateSize = loadPropInt("Plate Size", plateSize);
-		plateSizeBoss = loadPropInt("Plate Size (Boss)", plateSizeBoss);
-		showAttributes = loadPropBool("Show Attributes", showAttributes);
-		showArmor = loadPropBool("Show Armor", showArmor);
-		groupArmor = loadPropBool("Group Armor (condense 5 iron icons into 1 diamond icon)", groupArmor);
-		colorByType = loadPropBool("Color Health Bar by Type (instead of health percentage)", colorByType);
-		hpTextHeight = loadPropInt("HP Text Height", hpTextHeight);
-		showMaxHP = loadPropBool("Show Max HP", showMaxHP);
-		showCurrentHP = loadPropBool("Show Current HP", showCurrentHP);
-		showPercentage = loadPropBool("Show HP Percentage", showPercentage);
-		showOnPlayers = loadPropBool("Display on Players", showOnPlayers);
-		showOnBosses = loadPropBool("Display on Bosses", showOnBosses);
-		showOnlyFocused = loadPropBool("Only show the health bar for the entity looked at", showOnlyFocused);
-		enableDebugInfo = loadPropBool("Show Debug Info with F3", enableDebugInfo);
+		maxDistance = loadPropInt("最大距离", maxDistance);
+		renderInF1 = loadPropBool("隐藏界面时仍显示 (F1)", renderInF1);
+		heightAbove = loadPropDouble("离生物的高度", heightAbove);
+		drawBackground = loadPropBool("显示背景", drawBackground);
+		backgroundPadding = loadPropInt("背景衬底", backgroundPadding);
+		backgroundHeight = loadPropInt("背景高度", backgroundHeight);
+		barHeight = loadPropInt("血量条高度", barHeight);
+		plateSize = loadPropInt("面板大小", plateSize);
+		plateSizeBoss = loadPropInt("面板大小（Boss）", plateSizeBoss);
+		showAttributes = loadPropBool("显示属性", showAttributes);
+		showArmor = loadPropBool("显示盔甲", showArmor);
+		groupArmor = loadPropBool("合并盔甲（5个铁图标合并成1个钻石图标）", groupArmor);
+		colorByType = loadPropBool("按类型显示血量条颜色（而不是血量百分比）", colorByType);
+		hpTextHeight = loadPropInt("血量文字高度", hpTextHeight);
+		showMaxHP = loadPropBool("显示最大血量", showMaxHP);
+		showCurrentHP = loadPropBool("显示当前血量", showCurrentHP);
+		showPercentage = loadPropBool("显示血量百分比", showPercentage);
+		showOnPlayers = loadPropBool("显示玩家生物血量", showOnPlayers);
+		showOnBosses = loadPropBool("显示Boss级生物血量", showOnBosses);
+		showOnlyFocused = loadPropBool("瞄准实体时才显示血量条", showOnlyFocused);
+		enableDebugInfo = loadPropBool("在F3中显示调试信息", enableDebugInfo);
 
-		Property prop = config.get(Configuration.CATEGORY_GENERAL, "Blacklist", new String[] { "Shulker", "ArmorStand" });
-		prop.setComment("Blacklist uses entity IDs, not their display names. Use F3 to see them in the Neat bar.");
+		Property prop = config.get(Configuration.CATEGORY_GENERAL, "黑名单", new String[] { "潜影贝", "盔甲架" });
+		prop.setComment("黑名单使用实体ID，而不是它的显示名。按下F3可以在Neat条中看到。");
 		blacklist = Arrays.asList(prop.getStringList());
 		
 		if(config.hasChanged())
