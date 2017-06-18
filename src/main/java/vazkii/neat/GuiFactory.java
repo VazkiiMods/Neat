@@ -8,6 +8,7 @@ import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.client.IModGuiFactory;
 import net.minecraftforge.fml.client.config.GuiConfig;
+import vazkii.morphtool.GuiFactory.ConfigGui;
 
 public class GuiFactory implements IModGuiFactory {
 
@@ -38,8 +39,7 @@ public class GuiFactory implements IModGuiFactory {
 
 	@Override
 	public GuiScreen createConfigGui(GuiScreen parentScreen) {
-		// TODO Auto-generated method stub
-		return null;
+		return new ConfigGui(parentScreen);
 	}
 	
 	public static class ConfigGui extends GuiConfig {
