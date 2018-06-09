@@ -19,7 +19,6 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexBuffer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -27,6 +26,7 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.monster.IMob;
+import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -97,7 +97,7 @@ public class HealthBarRenderer {
 				continue;
 			
 			processing: {
-				float distance = passedEntity.getDistanceToEntity(viewPoint);
+				float distance = passedEntity.getDistance(viewPoint);
 				if(distance > NeatConfig.maxDistance || !passedEntity.canEntityBeSeen(viewPoint) || entity.isInvisible()) 
 					break processing;
 				if(!NeatConfig.showOnBosses && !boss)
@@ -187,7 +187,10 @@ public class HealthBarRenderer {
 				String name = I18n.format(entity.getDisplayName().getFormattedText());
 				if(entity instanceof EntityLiving && ((EntityLiving) entity).hasCustomName())
 					name = TextFormatting.ITALIC + ((EntityLiving) entity).getCustomNameTag();
-				float namel = mc.fontRendererObj.getStringWidth(name) * s;
+				else if(entity instanceof EntityVillager)
+					name = I18n.format("entity.Villager.name");
+					
+				float namel = mc.fontRenderer.getStringWidth(name) * s;
 				if(namel + 20 > size * 2)
 					size = namel / 2F + 10F;
 				float healthSize = size * (health / maxHealth);
@@ -223,7 +226,7 @@ public class HealthBarRenderer {
 				GlStateManager.pushMatrix();
 				GlStateManager.translate(-size, -4.5F, 0F);
 				GlStateManager.scale(s, s, s);
-				mc.fontRendererObj.drawString(name, 0, 0, 0xFFFFFF);
+				mc.fontRenderer.drawString(name, 0, 0, 0xFFFFFF);
 
 				GlStateManager.pushMatrix();
 				float s1 = 0.75F;
@@ -240,13 +243,13 @@ public class HealthBarRenderer {
 					hpStr = hpStr.substring(0, hpStr.length() - 2);
 				
 				if(NeatConfig.showCurrentHP)
-					mc.fontRendererObj.drawString(hpStr, 2, h, 0xFFFFFF);
+					mc.fontRenderer.drawString(hpStr, 2, h, 0xFFFFFF);
 				if(NeatConfig.showMaxHP)
-					mc.fontRendererObj.drawString(maxHpStr, (int) (size / (s * s1) * 2) - 2 - mc.fontRendererObj.getStringWidth(maxHpStr), h, 0xFFFFFF);
+					mc.fontRenderer.drawString(maxHpStr, (int) (size / (s * s1) * 2) - 2 - mc.fontRenderer.getStringWidth(maxHpStr), h, 0xFFFFFF);
 				if(NeatConfig.showPercentage)
-					mc.fontRendererObj.drawString(percStr, (int) (size / (s * s1)) - mc.fontRendererObj.getStringWidth(percStr) / 2, h, 0xFFFFFFFF);
+					mc.fontRenderer.drawString(percStr, (int) (size / (s * s1)) - mc.fontRenderer.getStringWidth(percStr) / 2, h, 0xFFFFFFFF);
 				if(NeatConfig.enableDebugInfo && mc.gameSettings.showDebugInfo)
-					mc.fontRendererObj.drawString("ID: \"" + entityID + "\"", 0, h + 16, 0xFFFFFFFF);
+					mc.fontRenderer.drawString("ID: \"" + entityID + "\"", 0, h + 16, 0xFFFFFFFF);
  				GlStateManager.popMatrix();
  				
  				GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -328,10 +331,10 @@ public class HealthBarRenderer {
 			distance = pos.hitVec.distanceTo(positionVector);
 
 		Vec3d lookVector = e.getLookVec();
-		Vec3d reachVector = positionVector.addVector(lookVector.xCoord * finalDistance, lookVector.yCoord * finalDistance, lookVector.zCoord * finalDistance);
+		Vec3d reachVector = positionVector.addVector(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance);
 
 		Entity lookedEntity = null;
-		List<Entity> entitiesInBoundingBox = e.getEntityWorld().getEntitiesWithinAABBExcludingEntity(e, e.getEntityBoundingBox().addCoord(lookVector.xCoord * finalDistance, lookVector.yCoord * finalDistance, lookVector.zCoord * finalDistance).expand(1F, 1F, 1F));
+		List<Entity> entitiesInBoundingBox = e.getEntityWorld().getEntitiesWithinAABBExcludingEntity(e, e.getEntityBoundingBox().grow(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance).expand(1F, 1F, 1F));
 		double minDistance = distance;
 
 		for(Entity entity : entitiesInBoundingBox) {
@@ -340,7 +343,7 @@ public class HealthBarRenderer {
 				AxisAlignedBB hitbox = entity.getEntityBoundingBox().expand(collisionBorderSize, collisionBorderSize, collisionBorderSize);
 				RayTraceResult interceptPosition = hitbox.calculateIntercept(positionVector, reachVector);
 
-				if(hitbox.isVecInside(positionVector)) {
+				if(hitbox.contains(positionVector)) {
 					if(0.0D < minDistance || minDistance == 0.0D) {
 						lookedEntity = entity;
 						minDistance = 0.0D;
