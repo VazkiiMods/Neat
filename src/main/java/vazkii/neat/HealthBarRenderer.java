@@ -48,7 +48,7 @@ public class HealthBarRenderer {
 	public void onRenderWorldLast(RenderWorldLastEvent event) {
 		Minecraft mc = Minecraft.getMinecraft();
 
-		if(!NeatConfig.renderInF1 && !Minecraft.isGuiEnabled()) 
+		if((!NeatConfig.renderInF1 && !Minecraft.isGuiEnabled()) || !NeatConfig.draw) 
 			return;
 
 		Entity cameraEntity = mc.getRenderViewEntity();

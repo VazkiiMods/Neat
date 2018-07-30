@@ -19,6 +19,7 @@ public class Neat {
 	public void preInit(FMLPreInitializationEvent event) {
 		NeatConfig.init(event.getSuggestedConfigurationFile());
 		
+		MinecraftForge.EVENT_BUS.register(new ToggleKeybind());
 		MinecraftForge.EVENT_BUS.register(new HealthBarRenderer());
 	}
 }

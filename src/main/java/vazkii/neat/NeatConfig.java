@@ -12,6 +12,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class NeatConfig {
 	
+	public static boolean draw = true;
+	
 	public static int maxDistance = 24;
 	public static boolean renderInF1 = false;
 	public static double heightAbove = 0.6;
