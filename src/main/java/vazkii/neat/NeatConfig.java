@@ -1,19 +1,43 @@
 package vazkii.neat;
 
-import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.apache.commons.lang3.tuple.Pair;
+
+import com.google.common.collect.ImmutableList;
+
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.config.ModConfig;
 
 public class NeatConfig {
-	
+
 	public static boolean draw = true;
-	
+
+	private static ConfigValue<Integer> v_maxDistance;
+	private static ConfigValue<Boolean> v_renderInF1;
+	private static ConfigValue<Double> v_heightAbove;
+	private static ConfigValue<Boolean> v_drawBackground;
+	private static ConfigValue<Integer> v_backgroundPadding;
+	private static ConfigValue<Integer> v_backgroundHeight;
+	private static ConfigValue<Integer> v_barHeight;
+	private static ConfigValue<Integer> v_plateSize;
+	private static ConfigValue<Integer> v_plateSizeBoss;
+	private static ConfigValue<Boolean> v_showAttributes;
+	private static ConfigValue<Boolean> v_showArmor;
+	private static ConfigValue<Boolean> v_groupArmor;
+	private static ConfigValue<Boolean> v_colorByType;
+	private static ConfigValue<Integer> v_hpTextHeight;
+	private static ConfigValue<Boolean> v_showMaxHP;
+	private static ConfigValue<Boolean> v_showCurrentHP;
+	private static ConfigValue<Boolean> v_showPercentage;
+	private static ConfigValue<Boolean> v_showOnPlayers;
+	private static ConfigValue<Boolean> v_showOnBosses;
+	private static ConfigValue<Boolean> v_showOnlyFocused;
+	private static ConfigValue<Boolean> v_enableDebugInfo;
+	private static ConfigValue<List<? extends String>> v_blacklist;
+
 	public static int maxDistance = 24;
 	public static boolean renderInF1 = false;
 	public static double heightAbove = 0.6;
@@ -37,71 +61,72 @@ public class NeatConfig {
 	public static boolean enableDebugInfo = true;
 
 	public static List<String> blacklist;
-	
-	public static Configuration config;
-	
-	public static void init(File configFile) {
-		config = new Configuration(configFile);
 
-		config.load();
-		load();
-
-		MinecraftForge.EVENT_BUS.register(new ChangeListener());
+	public static void init() {
+		Pair<Loader, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Loader::new);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, specPair.getRight());
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static void load() {
-		maxDistance = loadPropInt("Max Distance", maxDistance);
-		renderInF1 = loadPropBool("Render with Interface Disabled (F1)", renderInF1);
-		heightAbove = loadPropDouble("Height Above Mob", heightAbove);
-		drawBackground = loadPropBool("Draw Background", drawBackground);
-		backgroundPadding = loadPropInt("Background Padding", backgroundPadding);
-		backgroundHeight = loadPropInt("Background Height", backgroundHeight);
-		barHeight = loadPropInt("Health Bar Height", barHeight);
-		plateSize = loadPropInt("Plate Size", plateSize);
-		plateSizeBoss = loadPropInt("Plate Size (Boss)", plateSizeBoss);
-		showAttributes = loadPropBool("Show Attributes", showAttributes);
-		showArmor = loadPropBool("Show Armor", showArmor);
-		groupArmor = loadPropBool("Group Armor (condense 5 iron icons into 1 diamond icon)", groupArmor);
-		colorByType = loadPropBool("Color Health Bar by Type (instead of health percentage)", colorByType);
-		hpTextHeight = loadPropInt("HP Text Height", hpTextHeight);
-		showMaxHP = loadPropBool("Show Max HP", showMaxHP);
-		showCurrentHP = loadPropBool("Show Current HP", showCurrentHP);
-		showPercentage = loadPropBool("Show HP Percentage", showPercentage);
-		showOnPlayers = loadPropBool("Display on Players", showOnPlayers);
-		showOnBosses = loadPropBool("Display on Bosses", showOnBosses);
-		showOnlyFocused = loadPropBool("Only show the health bar for the entity looked at", showOnlyFocused);
-		enableDebugInfo = loadPropBool("Show Debug Info with F3", enableDebugInfo);
-
-		Property prop = config.get(Configuration.CATEGORY_GENERAL, "Blacklist", new String[] { "Shulker", "ArmorStand" });
-		prop.setComment("Blacklist uses entity IDs, not their display names. Use F3 to see them in the Neat bar.");
-		blacklist = Arrays.asList(prop.getStringList());
+		maxDistance = v_maxDistance.get();
+		renderInF1 = v_renderInF1.get();
+		heightAbove = v_heightAbove.get();
+		drawBackground = v_drawBackground.get();
+		backgroundPadding = v_backgroundPadding.get();
+		backgroundHeight = v_backgroundHeight.get();
+		barHeight = v_barHeight.get();
+		plateSize = v_plateSize.get();
+		plateSizeBoss = v_plateSizeBoss.get();
+		showAttributes = v_showAttributes.get();
+		showArmor = v_showArmor.get();
+		groupArmor = v_groupArmor.get();
+		colorByType = v_colorByType.get();
+		hpTextHeight = v_hpTextHeight.get();
+		showMaxHP = v_showMaxHP.get();
+		showCurrentHP = v_showCurrentHP.get();
+		showPercentage = v_showPercentage.get();
+		showOnPlayers = v_showOnPlayers.get();
+		showOnBosses = v_showOnBosses.get();
+		showOnlyFocused = v_showOnlyFocused.get();
+		enableDebugInfo = v_enableDebugInfo.get();
+		blacklist = (List<String>) v_blacklist.get();
+	}
+	
+	static class Loader {
 		
-		if(config.hasChanged())
-			config.save();
-	}
-	
-	public static int loadPropInt(String propName, int default_) {
-		Property prop = config.get(Configuration.CATEGORY_GENERAL, propName, default_);
-		return prop.getInt(default_);
-	}
+		public Loader(ForgeConfigSpec.Builder builder) {
+			builder.push("general");
 
-	public static double loadPropDouble(String propName, double default_) {
-		Property prop = config.get(Configuration.CATEGORY_GENERAL, propName, default_);
-		return prop.getDouble(default_);
-	}
+			v_maxDistance = builder.define("Max Distance", maxDistance);
+			v_renderInF1 = builder.define("Render with Interface Disabled (F1)", renderInF1);
+			v_heightAbove = builder.define("Height Above Mob", heightAbove);
+			v_drawBackground = builder.define("Draw Background", drawBackground);
+			v_backgroundPadding = builder.define("Background Padding", backgroundPadding);
+			v_backgroundHeight = builder.define("Background Height", backgroundHeight);
+			v_barHeight = builder.define("Health Bar Height", barHeight);
+			v_plateSize = builder.define("Plate Size", plateSize);
+			v_plateSizeBoss = builder.define("Plate Size (Boss)", plateSizeBoss);
+			v_showAttributes = builder.define("Show Attributes", showAttributes);
+			v_showArmor = builder.define("Show Armor", showArmor);
+			v_groupArmor = builder.define("Group Armor (condense 5 iron icons into 1 diamond icon)", groupArmor);
+			v_colorByType = builder.define("Color Health Bar by Type (instead of health percentage)", colorByType);
+			v_hpTextHeight = builder.define("HP Text Height", hpTextHeight);
+			v_showMaxHP = builder.define("Show Max HP", showMaxHP);
+			v_showCurrentHP = builder.define("Show Current HP", showCurrentHP);
+			v_showPercentage = builder.define("Show HP Percentage", showPercentage);
+			v_showOnPlayers = builder.define("Display on Players", showOnPlayers);
+			v_showOnBosses = builder.define("Display on Bosses", showOnBosses);
+			v_showOnlyFocused = builder.define("Only show the health bar for the entity looked at", showOnlyFocused);
+			v_enableDebugInfo = builder.define("Show Debug Info with F3", enableDebugInfo);
+			v_blacklist = builder.comment("Blacklist uses entity IDs, not their display names. Use F3 to see them in the Neat bar.")
+					.defineList("Blacklist", 
+							ImmutableList.of("minecraft:shulker", "minecraft:armor_stand", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish", "minecraft:tropical_fish"),
+							a -> true);
 
-	public static boolean loadPropBool(String propName, boolean default_) {
-		Property prop = config.get(Configuration.CATEGORY_GENERAL, propName, default_);
-		return prop.getBoolean(default_);
-	}
-	
-	public static class ChangeListener {
-
-		@SubscribeEvent
-		public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs) {
-			if(eventArgs.getModID().equals(Neat.MOD_ID))
-				load();
+			builder.pop();
 		}
-
+		
 	}
+
 }
