@@ -18,8 +18,6 @@ public class Neat {
 	public void setup(FMLClientSetupEvent event) {
 		NeatConfig.load();
 
-		System.out.println("Neat.setup");
-
 		MinecraftForge.EVENT_BUS.register(new ToggleKeybind());
 		MinecraftForge.EVENT_BUS.register(new HealthBarRenderer());
 	}

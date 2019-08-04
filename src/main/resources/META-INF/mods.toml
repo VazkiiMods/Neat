@@ -5,7 +5,7 @@ issueTrackerURL="https://github.com/Vazkii/Neat"
 [[mods]]
 modId="neat"
 displayName="Neat"
-version="GRADLE:VERSION-GRADLE:BUILD"
+version="${version}"
 authors="Vazkii"
 description='''
 Minimalistic Functional Unit Plates for the modern Minecrafter
