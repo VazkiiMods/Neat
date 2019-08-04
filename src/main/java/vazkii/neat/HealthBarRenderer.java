@@ -1,53 +1,50 @@
 package vazkii.neat;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.Stack;
-
-import org.lwjgl.opengl.GL11;
-
+import com.mojang.blaze3d.platform.GlStateManager;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.CreatureAttribute;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.passive.EntityVillager;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.item.Items;
+import net.minecraft.util.math.*;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import org.lwjgl.opengl.GL11;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Stack;
 
 public class HealthBarRenderer {
 
-	List<EntityLivingBase> renderedEntities = new ArrayList<>();
+	List<LivingEntity> renderedEntities = new ArrayList<>();
 	
 	@SubscribeEvent
 	public void onRenderWorldLast(RenderWorldLastEvent event) {
 		Minecraft mc = Minecraft.getInstance();
 
-		if((!NeatConfig.renderInF1 && !Minecraft.isGuiEnabled()) || !NeatConfig.draw) 
+		if((!NeatConfig.renderInF1 && !Minecraft.isGuiEnabled()) || !NeatConfig.draw)
 			return;
 
 		Entity cameraEntity = mc.getRenderViewEntity();
@@ -62,25 +59,26 @@ public class HealthBarRenderer {
 		
 		if(NeatConfig.showOnlyFocused) {
 			Entity focused = getEntityLookedAt(mc.player);
-			if(focused != null && focused instanceof EntityLivingBase && focused.isAlive())
-				renderHealthBar((EntityLivingBase) focused, partialTicks, cameraEntity);
+			if(focused != null && focused instanceof LivingEntity && focused.isAlive())
+				renderHealthBar((LivingEntity) focused, partialTicks, cameraEntity);
 		} else {
-			WorldClient client = mc.world;
-			Set<Entity> entities = ObfuscationReflectionHelper.getPrivateValue(WorldClient.class, client, "entityList");
-			for(Entity entity : entities)
-				if(entity != null && entity instanceof EntityLivingBase && entity != mc.player && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getBoundingBox())) && entity.isAlive() && entity.getRecursivePassengers().isEmpty()) 
-					renderHealthBar((EntityLivingBase) entity, partialTicks, cameraEntity);
+			ClientWorld client = mc.world;
+			Int2ObjectMap<Entity> entitiesById = ObfuscationReflectionHelper.getPrivateValue(ClientWorld.class, client, "entitiesById");
+			for(Entity entity : entitiesById.values()) {
+				if (entity != null && entity instanceof LivingEntity && entity != mc.player && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getBoundingBox())) && entity.isAlive() && entity.getRecursivePassengers().isEmpty())
+					renderHealthBar((LivingEntity) entity, partialTicks, cameraEntity);
+			}
 		}
 	}
 
-	public void renderHealthBar(EntityLivingBase passedEntity, float partialTicks, Entity viewPoint) {
-		Stack<EntityLivingBase> ridingStack = new Stack<>();
+	public void renderHealthBar(LivingEntity passedEntity, float partialTicks, Entity viewPoint) {
+		Stack<LivingEntity> ridingStack = new Stack<>();
 		
-		EntityLivingBase entity = passedEntity;
+		LivingEntity entity = passedEntity;
 		ridingStack.push(entity);
 
-		while(entity.getRidingEntity() != null && entity.getRidingEntity() instanceof EntityLivingBase) {
-			entity = (EntityLivingBase) entity.getRidingEntity();
+		while(entity.getRidingEntity() != null && entity.getRidingEntity() instanceof LivingEntity) {
+			entity = (LivingEntity) entity.getRidingEntity();
 			ridingStack.push(entity);
 		}
 
@@ -91,7 +89,7 @@ public class HealthBarRenderer {
 			entity = ridingStack.pop();
 			boolean boss = !entity.isNonBoss();
 
-			String entityID = entity.getEntityString();
+			String entityID = entity.getEntityString();	
 			if(NeatConfig.blacklist.contains(entityID))
 				continue;
 			
@@ -101,7 +99,7 @@ public class HealthBarRenderer {
 					break processing;
 				if(!NeatConfig.showOnBosses && !boss)
 					break processing;
-				if(!NeatConfig.showOnPlayers && entity instanceof EntityPlayer)
+				if(!NeatConfig.showOnPlayers && entity instanceof PlayerEntity)
 					break processing;
 
 				double x = passedEntity.lastTickPosX + (passedEntity.posX - passedEntity.lastTickPosX) * partialTicks;
@@ -116,10 +114,14 @@ public class HealthBarRenderer {
 					break processing;
 
 				float percent = (int) ((health / maxHealth) * 100F);
-				RenderManager renderManager = Minecraft.getInstance().getRenderManager();
 				
+				EntityRendererManager renderManager = Minecraft.getInstance().getRenderManager();
+				double renderPosX = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "renderPosX");
+				double renderPosY = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "renderPosY");
+				double renderPosZ = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "renderPosZ");
+
 				GlStateManager.pushMatrix();
-				GlStateManager.translatef((float) (x - renderManager.viewerPosX), (float) (y - renderManager.viewerPosY + passedEntity.height + NeatConfig.heightAbove), (float) (z - renderManager.viewerPosZ));
+				GlStateManager.translatef((float) (x - renderPosX), (float) (y - renderPosY + passedEntity.getHeight() + NeatConfig.heightAbove), (float) (z - renderPosZ));
 				GL11.glNormal3f(0.0F, 1.0F, 0.0F);
 				GlStateManager.rotatef(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
 				GlStateManager.rotatef(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
@@ -128,7 +130,7 @@ public class HealthBarRenderer {
 				GlStateManager.disableLighting();
 				GlStateManager.depthMask(false);
 				GlStateManager.disableDepthTest();
-				GlStateManager.disableTexture2D();
+				GlStateManager.disableTexture();
 				GlStateManager.enableBlend();
 				GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 				Tessellator tessellator = Tessellator.getInstance();
@@ -153,12 +155,10 @@ public class HealthBarRenderer {
 						stack = new ItemStack(Items.SPIDER_EYE);
 					else if(attr == CreatureAttribute.UNDEAD)
 						stack = new ItemStack(Items.ROTTEN_FLESH);
-					else 
-						stack = new ItemStack(Items.SKELETON_SKULL, 1);
 				}
 
 				if(boss) {
-					stack = new ItemStack(Items.WITHER_SKELETON_SKULL);
+					stack = new ItemStack(Items.NETHER_STAR);
 					size = NeatConfig.plateSizeBoss;
 					r = 128;
 					g = 0;
@@ -180,9 +180,9 @@ public class HealthBarRenderer {
 				
 				float s = 0.5F;
 				String name = I18n.format(entity.getDisplayName().getFormattedText());
-				if(entity instanceof EntityLiving && ((EntityLiving) entity).hasCustomName())
-					name = TextFormatting.ITALIC + ((EntityLiving) entity).getCustomName().toString();
-				else if(entity instanceof EntityVillager)
+				if(entity instanceof LivingEntity && entity.hasCustomName())
+					name = TextFormatting.ITALIC + entity.getCustomName().toString();
+				else if(entity instanceof VillagerEntity)
 					name = I18n.format("entity.Villager.name");
 					
 				float namel = mc.fontRenderer.getStringWidth(name) * s;
@@ -216,7 +216,7 @@ public class HealthBarRenderer {
 				buffer.pos(healthSize * 2 - size, 0, 0.0D).color(r, g, b, 127).endVertex();
 				tessellator.draw();
 
-				GlStateManager.enableTexture2D();
+				GlStateManager.enableTexture();
 				
 				GlStateManager.pushMatrix();
 				GlStateManager.translatef(-size, -4.5F, 0F);
@@ -253,7 +253,7 @@ public class HealthBarRenderer {
 				s1 = 0.5F;
 				GlStateManager.scalef(s1, s1, s1);
 				GlStateManager.translatef(size / (s * s1) * 2 - 16, 0F, 0F);
-				mc.textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+				mc.textureManager.bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
 				if(stack != null && NeatConfig.showAttributes) {
 					renderIcon(off, 0, stack, 16, 16);
 					off -= 16;
@@ -300,18 +300,18 @@ public class HealthBarRenderer {
 			Minecraft mc = Minecraft.getInstance();
 			IBakedModel iBakedModel = mc.getItemRenderer().getItemModelMesher().getItemModel(stack);
 			TextureAtlasSprite textureAtlasSprite = mc.getTextureMap().getAtlasSprite(iBakedModel.getParticleTexture().getName().toString());
-			mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+			mc.getTextureManager().bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder buffer = tessellator.getBuffer();
 			buffer.begin(7, DefaultVertexFormats.POSITION_TEX);
-			buffer.pos((double)(vertexX), 		(double)(vertexY + intV), 	0.0D).tex((double) textureAtlasSprite.getMinU(), (double) textureAtlasSprite.getMaxV()).endVertex();
-			buffer.pos((double)(vertexX + intU), (double)(vertexY + intV),	0.0D).tex((double) textureAtlasSprite.getMaxU(), (double) textureAtlasSprite.getMaxV()).endVertex();
-			buffer.pos((double)(vertexX + intU), (double)(vertexY), 			0.0D).tex((double) textureAtlasSprite.getMaxU(), (double) textureAtlasSprite.getMinV()).endVertex();
-			buffer.pos((double)(vertexX), 		(double)(vertexY), 			0.0D).tex((double) textureAtlasSprite.getMinU(), (double) textureAtlasSprite.getMinV()).endVertex();
+			buffer.pos((vertexX), 		vertexY + intV, 	0.0D).tex(textureAtlasSprite.getMinU(), textureAtlasSprite.getMaxV()).endVertex();
+			buffer.pos(vertexX + intU, vertexY + intV,	0.0D).tex(textureAtlasSprite.getMaxU(), textureAtlasSprite.getMaxV()).endVertex();
+			buffer.pos(vertexX + intU, (vertexY), 			0.0D).tex(textureAtlasSprite.getMaxU(), textureAtlasSprite.getMinV()).endVertex();
+			buffer.pos((vertexX), 		(vertexY), 			0.0D).tex(textureAtlasSprite.getMinU(), textureAtlasSprite.getMinV()).endVertex();
 			tessellator.draw();
 		} catch (Exception e) {}
 	}
-	
+
 	public static Entity getEntityLookedAt(Entity e) {
 		Entity foundEntity = null;
 
@@ -320,11 +320,11 @@ public class HealthBarRenderer {
 		RayTraceResult pos = raycast(e, finalDistance);
 		
 		Vec3d positionVector = e.getPositionVector();
-		if(e instanceof EntityPlayer)
+		if(e instanceof PlayerEntity)
 			positionVector = positionVector.add(0, e.getEyeHeight(), 0);
 
 		if(pos != null)
-			distance = pos.hitVec.distanceTo(positionVector);
+			distance = pos.getHitVec().distanceTo(positionVector);
 
 		Vec3d lookVector = e.getLookVec();
 		Vec3d reachVector = positionVector.add(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance);
@@ -337,15 +337,16 @@ public class HealthBarRenderer {
 			if(entity.canBeCollidedWith()) {
 				float collisionBorderSize = entity.getCollisionBorderSize();
 				AxisAlignedBB hitbox = entity.getBoundingBox().expand(collisionBorderSize, collisionBorderSize, collisionBorderSize);
-				RayTraceResult interceptPosition = hitbox.calculateIntercept(positionVector, reachVector);
-
+				Optional<Vec3d> interceptPosition = hitbox.rayTrace(positionVector, reachVector);
+				Vec3d interceptVec = interceptPosition.orElse(null);
+				
 				if(hitbox.contains(positionVector)) {
 					if(0.0D < minDistance || minDistance == 0.0D) {
 						lookedEntity = entity;
 						minDistance = 0.0D;
 					}
-				} else if(interceptPosition != null) {
-					double distanceToEntity = positionVector.distanceTo(interceptPosition.hitVec);
+				} else if(interceptVec != null) {
+					double distanceToEntity = positionVector.distanceTo(interceptVec);
 
 					if(distanceToEntity < minDistance || minDistance == 0.0D) {
 						lookedEntity = entity;
@@ -363,19 +364,19 @@ public class HealthBarRenderer {
 	
 	public static RayTraceResult raycast(Entity e, double len) {
 		Vec3d vec = new Vec3d(e.posX, e.posY, e.posZ);
-		if(e instanceof EntityPlayer)
+		if(e instanceof PlayerEntity)
 			vec = vec.add(new Vec3d(0, e.getEyeHeight(), 0));
 		
 		Vec3d look = e.getLookVec();
 		if(look == null)
 			return null;
 
-		return raycast(e.getEntityWorld(), vec, look, len);
+		return raycast(e.getEntityWorld(), vec, look, e, len);
 	}
 	
-	public static RayTraceResult raycast(World world, Vec3d origin, Vec3d ray, double len) {
+	public static RayTraceResult raycast(World world, Vec3d origin, Vec3d ray, Entity e, double len) {
 		Vec3d end = origin.add(ray.normalize().scale(len));
-		RayTraceResult pos = world.rayTraceBlocks(origin, end);
+		RayTraceResult pos = world.rayTraceBlocks(new RayTraceContext(origin, end, RayTraceContext.BlockMode.OUTLINE, RayTraceContext.FluidMode.NONE, e));
 		return pos;
 	}
 }
