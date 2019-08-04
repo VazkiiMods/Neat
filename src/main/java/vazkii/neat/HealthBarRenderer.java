@@ -63,7 +63,7 @@ public class HealthBarRenderer {
 				renderHealthBar((LivingEntity) focused, partialTicks, cameraEntity);
 		} else {
 			ClientWorld client = mc.world;
-			Int2ObjectMap<Entity> entitiesById = ObfuscationReflectionHelper.getPrivateValue(ClientWorld.class, client, "entitiesById");
+			Int2ObjectMap<Entity> entitiesById = ObfuscationReflectionHelper.getPrivateValue(ClientWorld.class, client, "field_217429_b");
 			for(Entity entity : entitiesById.values()) {
 				if (entity != null && entity instanceof LivingEntity && entity != mc.player && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getBoundingBox())) && entity.isAlive() && entity.getRecursivePassengers().isEmpty())
 					renderHealthBar((LivingEntity) entity, partialTicks, cameraEntity);
@@ -116,9 +116,9 @@ public class HealthBarRenderer {
 				float percent = (int) ((health / maxHealth) * 100F);
 				
 				EntityRendererManager renderManager = Minecraft.getInstance().getRenderManager();
-				double renderPosX = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "renderPosX");
-				double renderPosY = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "renderPosY");
-				double renderPosZ = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "renderPosZ");
+				double renderPosX = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "field_78725_b");
+				double renderPosY = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "field_78726_c");
+				double renderPosZ = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "field_78723_d");
 
 				GlStateManager.pushMatrix();
 				GlStateManager.translatef((float) (x - renderPosX), (float) (y - renderPosY + passedEntity.getHeight() + NeatConfig.heightAbove), (float) (z - renderPosZ));

@@ -89,11 +89,12 @@ processResources {
     }
 }
 
-
 task incrementBuildNumber {
-    config.build_number = (config.build_number.toString().toInteger()) + 1
-    configFile.withWriter {
-        config.toProperties().store(it, "")
+    doFirst {
+        config.build_number = (config.build_number.toString().toInteger()) + 1
+        configFile.withWriter {
+            config.toProperties().store(it, "")
+        }
     }
 
     //file('web/versions.ini').append("\n${version}=${minecraft.version}")
@@ -144,4 +145,4 @@ jar {
     }
 }
 
-defaultTasks 'clean', 'build', 'sort', 'incrementBuildNumber'
+defaultTasks 'clean', 'build', 'sortArtifacts', 'incrementBuildNumber'
