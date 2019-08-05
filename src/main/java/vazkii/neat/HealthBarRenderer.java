@@ -181,9 +181,7 @@ public class HealthBarRenderer {
 				float s = 0.5F;
 				String name = I18n.format(entity.getDisplayName().getFormattedText());
 				if(entity instanceof LivingEntity && entity.hasCustomName())
-					name = TextFormatting.ITALIC + entity.getCustomName().toString();
-				else if(entity instanceof VillagerEntity)
-					name = I18n.format("entity.Villager.name");
+					name = TextFormatting.ITALIC + entity.getCustomName().getFormattedText();
 					
 				float namel = mc.fontRenderer.getStringWidth(name) * s;
 				if(namel + 20 > size * 2)
