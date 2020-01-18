@@ -27,7 +27,6 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -63,7 +62,7 @@ public class HealthBarRenderer {
 				renderHealthBar((LivingEntity) focused, partialTicks, cameraEntity);
 		} else {
 			ClientWorld client = mc.world;
-			Int2ObjectMap<Entity> entitiesById = ObfuscationReflectionHelper.getPrivateValue(ClientWorld.class, client, "field_217429_b");
+			Int2ObjectMap<Entity> entitiesById = client.entitiesById;
 			for(Entity entity : entitiesById.values()) {
 				if (entity != null && entity instanceof LivingEntity && entity != mc.player && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getBoundingBox())) && entity.isAlive() && entity.getRecursivePassengers().isEmpty())
 					renderHealthBar((LivingEntity) entity, partialTicks, cameraEntity);
@@ -116,9 +115,9 @@ public class HealthBarRenderer {
 				float percent = (int) ((health / maxHealth) * 100F);
 				
 				EntityRendererManager renderManager = Minecraft.getInstance().getRenderManager();
-				double renderPosX = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "field_78725_b");
-				double renderPosY = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "field_78726_c");
-				double renderPosZ = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "field_78723_d");
+				double renderPosX = renderManager.renderPosX;
+				double renderPosY = renderManager.renderPosY;
+				double renderPosZ = renderManager.renderPosZ;
 
 				GlStateManager.pushMatrix();
 				GlStateManager.translatef((float) (x - renderPosX), (float) (y - renderPosY + passedEntity.getHeight() + NeatConfig.heightAbove), (float) (z - renderPosZ));
