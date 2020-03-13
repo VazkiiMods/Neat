@@ -1,14 +1,14 @@
 package vazkii.neat;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.culling.ClippingHelperImpl;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -37,8 +37,6 @@ import java.util.Optional;
 import java.util.Stack;
 
 public class HealthBarRenderer {
-
-	List<LivingEntity> renderedEntities = new ArrayList<>();
 	
 	@SubscribeEvent
 	public void onRenderWorldLast(RenderWorldLastEvent event) {
@@ -49,24 +47,30 @@ public class HealthBarRenderer {
 
 		Entity cameraEntity = mc.getRenderViewEntity();
 		BlockPos renderingVector = cameraEntity.getPosition();
-		Frustum frustum = new Frustum();
 
 		float partialTicks = event.getPartialTicks();
-		double viewX = cameraEntity.lastTickPosX + (cameraEntity.posX - cameraEntity.lastTickPosX) * partialTicks;
-		double viewY = cameraEntity.lastTickPosY + (cameraEntity.posY - cameraEntity.lastTickPosY) * partialTicks;
-		double viewZ = cameraEntity.lastTickPosZ + (cameraEntity.posZ - cameraEntity.lastTickPosZ) * partialTicks;
-		frustum.setPosition(viewX, viewY, viewZ);
+		double viewX = cameraEntity.lastTickPosX + (cameraEntity.getPosX() - cameraEntity.lastTickPosX) * partialTicks;
+		double viewY = cameraEntity.lastTickPosY + (cameraEntity.getPosY() - cameraEntity.lastTickPosY) * partialTicks;
+		double viewZ = cameraEntity.lastTickPosZ + (cameraEntity.getPosZ() - cameraEntity.lastTickPosZ) * partialTicks;
+
+		MatrixStack entityLocation = new MatrixStack();
+		entityLocation.getLast().getMatrix().mul(mc.gameRenderer.getProjectionMatrix(Minecraft.getInstance().getRenderManager().info, event.getPartialTicks(), false)); //Don't use FOV
+
+		ClippingHelperImpl clippingHelper = new ClippingHelperImpl(event.getProjectionMatrix(), entityLocation.getLast().getMatrix());
+		//clippingHelper.setCameraPosition(viewX, viewY, viewZ);
 		
 		if(NeatConfig.showOnlyFocused) {
 			Entity focused = getEntityLookedAt(mc.player);
-			if(focused != null && focused instanceof LivingEntity && focused.isAlive())
+			if(focused != null && focused instanceof LivingEntity && focused.isAlive()) {
 				renderHealthBar((LivingEntity) focused, partialTicks, cameraEntity);
+			}
 		} else {
 			ClientWorld client = mc.world;
 			Int2ObjectMap<Entity> entitiesById = ObfuscationReflectionHelper.getPrivateValue(ClientWorld.class, client, "entitiesById");
 			for(Entity entity : entitiesById.values()) {
-				if (entity != null && entity instanceof LivingEntity && entity != mc.player && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) && (entity.ignoreFrustumCheck || frustum.isBoundingBoxInFrustum(entity.getBoundingBox())) && entity.isAlive() && entity.getRecursivePassengers().isEmpty())
+				if (entity != null && entity instanceof LivingEntity && entity != mc.player && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) /*&& (entity.ignoreFrustumCheck || clippingHelper.isBoundingBoxInFrustum(entity.getBoundingBox()))*/ && entity.isAlive() && entity.getRecursivePassengers().isEmpty()) {
 					renderHealthBar((LivingEntity) entity, partialTicks, cameraEntity);
+				}
 			}
 		}
 	}
@@ -102,9 +106,9 @@ public class HealthBarRenderer {
 				if(!NeatConfig.showOnPlayers && entity instanceof PlayerEntity)
 					break processing;
 
-				double x = passedEntity.lastTickPosX + (passedEntity.posX - passedEntity.lastTickPosX) * partialTicks;
-				double y = passedEntity.lastTickPosY + (passedEntity.posY - passedEntity.lastTickPosY) * partialTicks;
-				double z = passedEntity.lastTickPosZ + (passedEntity.posZ - passedEntity.lastTickPosZ) * partialTicks;
+				double x = passedEntity.lastTickPosX + (passedEntity.getPosX() - passedEntity.lastTickPosX) * partialTicks;
+				double y = passedEntity.lastTickPosY + (passedEntity.getPosY() - passedEntity.lastTickPosY) * partialTicks;
+				double z = passedEntity.lastTickPosZ + (passedEntity.getPosZ() - passedEntity.lastTickPosZ) * partialTicks;
 
 				float scale = 0.026666672F;
 				float maxHealth = entity.getMaxHealth();
@@ -114,25 +118,26 @@ public class HealthBarRenderer {
 					break processing;
 
 				float percent = (int) ((health / maxHealth) * 100F);
-				
-				EntityRendererManager renderManager = Minecraft.getInstance().getRenderManager();
-				double renderPosX = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "renderPosX");
-				double renderPosY = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "renderPosY");
-				double renderPosZ = ObfuscationReflectionHelper.getPrivateValue(EntityRendererManager.class, renderManager, "renderPosZ");
 
-				GlStateManager.pushMatrix();
-				GlStateManager.translatef((float) (x - renderPosX), (float) (y - renderPosY + passedEntity.getHeight() + NeatConfig.heightAbove), (float) (z - renderPosZ));
-				GL11.glNormal3f(0.0F, 1.0F, 0.0F);
-				GlStateManager.rotatef(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
-				GlStateManager.rotatef(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
-				GlStateManager.scalef(-scale, -scale, scale);
+				EntityRendererManager renderManager = Minecraft.getInstance().getRenderManager();
+				BlockPos renderPos = renderManager.info.getBlockPos();
+				double renderPosX = renderPos.getX();
+				double renderPosY = renderPos.getY();
+				double renderPosZ = renderPos.getZ();
+
+				RenderSystem.pushMatrix();
+				RenderSystem.translatef((float) (x - renderPosX), (float) (y - renderPosY + passedEntity.getHeight() + NeatConfig.heightAbove), (float) (z - renderPosZ));
+				RenderSystem.normal3f(0.0F, 1.0F, 0.0F);
+				GL11.glRotated(-renderManager.info.getRenderViewEntity().getPosY(), 0.0F, 1.0F, 0.0F);
+				GL11.glRotated(renderManager.info.getRenderViewEntity().getPosX(), 1.0F, 0.0F, 0.0F);
+				RenderSystem.scalef(-scale, -scale, scale);
 				boolean lighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
-				GlStateManager.disableLighting();
-				GlStateManager.depthMask(false);
-				GlStateManager.disableDepthTest();
-				GlStateManager.disableTexture();
-				GlStateManager.enableBlend();
-				GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+				RenderSystem.disableLighting();
+				RenderSystem.depthMask(false);
+				RenderSystem.disableDepthTest();
+				RenderSystem.disableTexture();
+				RenderSystem.enableBlend();
+				RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 				Tessellator tessellator = Tessellator.getInstance();
 				BufferBuilder buffer = tessellator.getBuffer();
 
@@ -176,14 +181,14 @@ public class HealthBarRenderer {
 					b = color.getBlue();
 				}
 				
-				GlStateManager.translatef(0F, pastTranslate, 0F);
+				RenderSystem.translatef(0F, pastTranslate, 0F);
 				
 				float s = 0.5F;
 				String name = I18n.format(entity.getDisplayName().getFormattedText());
 				if(entity instanceof LivingEntity && entity.hasCustomName())
 					name = TextFormatting.ITALIC + entity.getCustomName().toString();
 				else if(entity instanceof VillagerEntity)
-					name = I18n.format("entity.Villager.name");
+					name = I18n.format("entity.minecraft.villager");
 					
 				float namel = mc.fontRenderer.getStringWidth(name) * s;
 				if(namel + 20 > size * 2)
@@ -216,16 +221,16 @@ public class HealthBarRenderer {
 				buffer.pos(healthSize * 2 - size, 0, 0.0D).color(r, g, b, 127).endVertex();
 				tessellator.draw();
 
-				GlStateManager.enableTexture();
-				
-				GlStateManager.pushMatrix();
-				GlStateManager.translatef(-size, -4.5F, 0F);
-				GlStateManager.scalef(s, s, s);
+				RenderSystem.enableTexture();
+
+				RenderSystem.pushMatrix();
+				RenderSystem.translatef(-size, -4.5F, 0F);
+				RenderSystem.scalef(s, s, s);
 				mc.fontRenderer.drawString(name, 0, 0, 0xFFFFFF);
 
-				GlStateManager.pushMatrix();
+				RenderSystem.pushMatrix();
 				float s1 = 0.75F;
-				GlStateManager.scalef(s1, s1, s1);
+				RenderSystem.scalef(s1, s1, s1);
 				
 				int h = NeatConfig.hpTextHeight;
 				String maxHpStr = TextFormatting.BOLD + "" + Math.round(maxHealth * 100.0) / 100.0;
@@ -245,14 +250,14 @@ public class HealthBarRenderer {
 					mc.fontRenderer.drawString(percStr, (int) (size / (s * s1)) - mc.fontRenderer.getStringWidth(percStr) / 2, h, 0xFFFFFFFF);
 				if(NeatConfig.enableDebugInfo && mc.gameSettings.showDebugInfo)
 					mc.fontRenderer.drawString("ID: \"" + entityID + "\"", 0, h + 16, 0xFFFFFFFF);
- 				GlStateManager.popMatrix();
- 				
- 				GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+				RenderSystem.popMatrix();
+
+				RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 				int off = 0;
 
 				s1 = 0.5F;
-				GlStateManager.scalef(s1, s1, s1);
-				GlStateManager.translatef(size / (s * s1) * 2 - 16, 0F, 0F);
+				RenderSystem.scalef(s1, s1, s1);
+				RenderSystem.translatef(size / (s * s1) * 2 - 16, 0F, 0F);
 				mc.textureManager.bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
 				if(stack != null && NeatConfig.showAttributes) {
 					renderIcon(off, 0, stack, 16, 16);
@@ -280,15 +285,15 @@ public class HealthBarRenderer {
 					}
 				}
 
-				GlStateManager.popMatrix();
+				RenderSystem.popMatrix();
 
-				GlStateManager.disableBlend();
-				GlStateManager.enableDepthTest();
-				GlStateManager.depthMask(true);
+				RenderSystem.disableBlend();
+				RenderSystem.enableDepthTest();
+				RenderSystem.depthMask(true);
 				if(lighting)
-					GlStateManager.enableLighting();
-				GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-				GlStateManager.popMatrix();
+					RenderSystem.enableLighting();
+				RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+				RenderSystem.popMatrix();
 				
 				pastTranslate -= bgHeight + barHeight + padding;
 			}
@@ -298,8 +303,7 @@ public class HealthBarRenderer {
 	private void renderIcon(int vertexX, int vertexY, ItemStack stack, int intU, int intV) {
 		try {
 			Minecraft mc = Minecraft.getInstance();
-			IBakedModel iBakedModel = mc.getItemRenderer().getItemModelMesher().getItemModel(stack);
-			TextureAtlasSprite textureAtlasSprite = mc.getTextureMap().getAtlasSprite(iBakedModel.getParticleTexture().getName().toString());
+			TextureAtlasSprite textureAtlasSprite = mc.getItemRenderer().getItemModelMesher().getItemModel(stack).getParticleTexture();
 			mc.getTextureManager().bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder buffer = tessellator.getBuffer();
@@ -363,7 +367,7 @@ public class HealthBarRenderer {
 	}
 	
 	public static RayTraceResult raycast(Entity e, double len) {
-		Vec3d vec = new Vec3d(e.posX, e.posY, e.posZ);
+		Vec3d vec = new Vec3d(e.getPosX(), e.getPosY(), e.getPosZ());
 		if(e instanceof PlayerEntity)
 			vec = vec.add(new Vec3d(0, e.getEyeHeight(), 0));
 		
@@ -376,7 +380,6 @@ public class HealthBarRenderer {
 	
 	public static RayTraceResult raycast(World world, Vec3d origin, Vec3d ray, Entity e, double len) {
 		Vec3d end = origin.add(ray.normalize().scale(len));
-		RayTraceResult pos = world.rayTraceBlocks(new RayTraceContext(origin, end, RayTraceContext.BlockMode.OUTLINE, RayTraceContext.FluidMode.NONE, e));
-		return pos;
+		return world.rayTraceBlocks(new RayTraceContext(origin, end, RayTraceContext.BlockMode.OUTLINE, RayTraceContext.FluidMode.NONE, e));
 	}
 }
