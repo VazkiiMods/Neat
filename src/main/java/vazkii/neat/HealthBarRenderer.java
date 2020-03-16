@@ -1,333 +1,284 @@
 package vazkii.neat;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.culling.ClippingHelperImpl;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.CreatureAttribute;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.merchant.villager.VillagerEntity;
-import net.minecraft.entity.monster.IMob;
+import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.*;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
-import org.lwjgl.opengl.GL11;
 
+import javax.annotation.Nonnull;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
 public class HealthBarRenderer {
-	
+	private static final ResourceLocation TEXTURE = new ResourceLocation(Neat.MOD_ID, "textures/ui/health_bar.png");
+
 	@SubscribeEvent
 	public void onRenderWorldLast(RenderWorldLastEvent event) {
 		Minecraft mc = Minecraft.getInstance();
 
-		if((!NeatConfig.renderInF1 && !Minecraft.isGuiEnabled()) || !NeatConfig.draw)
+		if ((!NeatConfig.renderInF1 && !Minecraft.isGuiEnabled()) || !NeatConfig.draw)
 			return;
 
-		Entity cameraEntity = mc.getRenderViewEntity();
-		BlockPos renderingVector = cameraEntity.getPosition();
-
+		ActiveRenderInfo renderInfo = mc.gameRenderer.getActiveRenderInfo();
+		MatrixStack matrixStack = event.getMatrixStack();
 		float partialTicks = event.getPartialTicks();
-		double viewX = cameraEntity.lastTickPosX + (cameraEntity.getPosX() - cameraEntity.lastTickPosX) * partialTicks;
-		double viewY = cameraEntity.lastTickPosY + (cameraEntity.getPosY() - cameraEntity.lastTickPosY) * partialTicks;
-		double viewZ = cameraEntity.lastTickPosZ + (cameraEntity.getPosZ() - cameraEntity.lastTickPosZ) * partialTicks;
+		Entity cameraEntity = renderInfo.getRenderViewEntity() != null ? renderInfo.getRenderViewEntity() : mc.player;
 
-		MatrixStack entityLocation = new MatrixStack();
-		entityLocation.getLast().getMatrix().mul(mc.gameRenderer.getProjectionMatrix(Minecraft.getInstance().getRenderManager().info, event.getPartialTicks(), false)); //Don't use FOV
-
-		ClippingHelperImpl clippingHelper = new ClippingHelperImpl(event.getProjectionMatrix(), entityLocation.getLast().getMatrix());
-		//clippingHelper.setCameraPosition(viewX, viewY, viewZ);
-		
-		if(NeatConfig.showOnlyFocused) {
+		if (NeatConfig.showOnlyFocused) {
 			Entity focused = getEntityLookedAt(mc.player);
-			if(focused != null && focused instanceof LivingEntity && focused.isAlive()) {
-				renderHealthBar((LivingEntity) focused, partialTicks, cameraEntity);
+			if (focused != null && focused instanceof LivingEntity && focused.isAlive()) {
+				renderHealthBar((LivingEntity) focused, mc, matrixStack, partialTicks, renderInfo, cameraEntity);
 			}
 		} else {
+			Vec3d cameraPos = renderInfo.getProjectedView();
+			final ClippingHelperImpl clippingHelper = new ClippingHelperImpl(matrixStack.getLast().getMatrix(), event.getProjectionMatrix());
+			clippingHelper.setCameraPosition(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
+
 			ClientWorld client = mc.world;
-			Int2ObjectMap<Entity> entitiesById = ObfuscationReflectionHelper.getPrivateValue(ClientWorld.class, client, "entitiesById");
-			for(Entity entity : entitiesById.values()) {
-				if (entity != null && entity instanceof LivingEntity && entity != mc.player && entity.isInRangeToRender3d(renderingVector.getX(), renderingVector.getY(), renderingVector.getZ()) /*&& (entity.ignoreFrustumCheck || clippingHelper.isBoundingBoxInFrustum(entity.getBoundingBox()))*/ && entity.isAlive() && entity.getRecursivePassengers().isEmpty()) {
-					renderHealthBar((LivingEntity) entity, partialTicks, cameraEntity);
+			if (client != null) {
+				for (Entity entity : client.getAllEntities()) {
+					if (entity != null && entity instanceof LivingEntity && entity != cameraEntity && entity.isAlive() && entity.getRecursivePassengers().isEmpty() && entity.isInRangeToRender3d(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ()) && (entity.ignoreFrustumCheck || clippingHelper.isBoundingBoxInFrustum(entity.getBoundingBox()))) {
+						renderHealthBar((LivingEntity) entity, mc, matrixStack, partialTicks, renderInfo, cameraEntity);
+					}
 				}
 			}
 		}
 	}
 
-	public void renderHealthBar(LivingEntity passedEntity, float partialTicks, Entity viewPoint) {
+	public void renderHealthBar(LivingEntity passedEntity, Minecraft mc, MatrixStack matrixStack, float partialTicks, ActiveRenderInfo renderInfo, Entity viewPoint) {
 		Stack<LivingEntity> ridingStack = new Stack<>();
-		
+
 		LivingEntity entity = passedEntity;
 		ridingStack.push(entity);
 
-		while(entity.getRidingEntity() != null && entity.getRidingEntity() instanceof LivingEntity) {
+		while (entity.getRidingEntity() != null && entity.getRidingEntity() instanceof LivingEntity) {
 			entity = (LivingEntity) entity.getRidingEntity();
 			ridingStack.push(entity);
 		}
 
-		Minecraft mc = Minecraft.getInstance();
-		
-		float pastTranslate = 0F;
-		while(!ridingStack.isEmpty()) {
+		matrixStack.push();
+		while (!ridingStack.isEmpty()) {
 			entity = ridingStack.pop();
 			boolean boss = !entity.isNonBoss();
 
-			String entityID = entity.getEntityString();	
-			if(NeatConfig.blacklist.contains(entityID))
+			String entityID = entity.getEntityString();
+			if (NeatConfig.blacklist.contains(entityID))
 				continue;
-			
-			processing: {
+
+			processing:
+			{
 				float distance = passedEntity.getDistance(viewPoint);
-				if(distance > NeatConfig.maxDistance || !passedEntity.canEntityBeSeen(viewPoint) || entity.isInvisible()) 
+				if (distance > NeatConfig.maxDistance || !passedEntity.canEntityBeSeen(viewPoint) || entity.isInvisible())
 					break processing;
-				if(!NeatConfig.showOnBosses && !boss)
+				if (!NeatConfig.showOnBosses && !boss)
 					break processing;
-				if(!NeatConfig.showOnPlayers && entity instanceof PlayerEntity)
+				if (!NeatConfig.showOnPlayers && entity instanceof PlayerEntity)
 					break processing;
-
-				double x = passedEntity.lastTickPosX + (passedEntity.getPosX() - passedEntity.lastTickPosX) * partialTicks;
-				double y = passedEntity.lastTickPosY + (passedEntity.getPosY() - passedEntity.lastTickPosY) * partialTicks;
-				double z = passedEntity.lastTickPosZ + (passedEntity.getPosZ() - passedEntity.lastTickPosZ) * partialTicks;
-
-				float scale = 0.026666672F;
-				float maxHealth = entity.getMaxHealth();
-				float health = Math.min(maxHealth, entity.getHealth());
-				
-				if(maxHealth <= 0)
+				if (entity.getMaxHealth() <= 0)
 					break processing;
 
-				float percent = (int) ((health / maxHealth) * 100F);
+				double x = passedEntity.prevPosX + (passedEntity.getPosX() - passedEntity.prevPosX) * partialTicks;
+				double y = passedEntity.prevPosY + (passedEntity.getPosY() - passedEntity.prevPosY) * partialTicks;
+				double z = passedEntity.prevPosZ + (passedEntity.getPosZ() - passedEntity.prevPosZ) * partialTicks;
 
 				EntityRendererManager renderManager = Minecraft.getInstance().getRenderManager();
 				BlockPos renderPos = renderManager.info.getBlockPos();
-				double renderPosX = renderPos.getX();
-				double renderPosY = renderPos.getY();
-				double renderPosZ = renderPos.getZ();
 
-				RenderSystem.pushMatrix();
-				RenderSystem.translatef((float) (x - renderPosX), (float) (y - renderPosY + passedEntity.getHeight() + NeatConfig.heightAbove), (float) (z - renderPosZ));
+				matrixStack.push();
+				matrixStack.translate((float) (x - renderPos.getX()), (float) (y - renderPos.getY() + passedEntity.getHeight() + NeatConfig.heightAbove), (float) (z - renderPos.getZ()));
 				RenderSystem.normal3f(0.0F, 1.0F, 0.0F);
-				GL11.glRotated(-renderManager.info.getRenderViewEntity().getPosY(), 0.0F, 1.0F, 0.0F);
-				GL11.glRotated(renderManager.info.getRenderViewEntity().getPosX(), 1.0F, 0.0F, 0.0F);
-				RenderSystem.scalef(-scale, -scale, scale);
-				boolean lighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
 				RenderSystem.disableLighting();
-				RenderSystem.depthMask(false);
-				RenderSystem.disableDepthTest();
-				RenderSystem.disableTexture();
-				RenderSystem.enableBlend();
-				RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-				Tessellator tessellator = Tessellator.getInstance();
-				BufferBuilder buffer = tessellator.getBuffer();
+				IRenderTypeBuffer.Impl buffer = mc.getRenderTypeBuffers().getBufferSource();
+				ItemStack icon = getIcon(entity, boss);
+				final int light = 0xF000F0;
+				renderEntity(mc, matrixStack, buffer, renderInfo, entity, light, icon, boss);
+				matrixStack.pop();
 
-				float padding = NeatConfig.backgroundPadding;
-				int bgHeight = NeatConfig.backgroundHeight;
-				int barHeight = NeatConfig.barHeight;
-				float size = NeatConfig.plateSize;
-
-				int r = 0;
-				int g = 255;
-				int b = 0;
-
-				ItemStack stack = null;
-
-				if(entity instanceof IMob) {
-					r = 255;
-					g = 0;
-					CreatureAttribute attr = entity.getCreatureAttribute();
-					if(attr == CreatureAttribute.ARTHROPOD)
-						stack = new ItemStack(Items.SPIDER_EYE);
-					else if(attr == CreatureAttribute.UNDEAD)
-						stack = new ItemStack(Items.ROTTEN_FLESH);
-				}
-
-				if(boss) {
-					stack = new ItemStack(Items.NETHER_STAR);
-					size = NeatConfig.plateSizeBoss;
-					r = 128;
-					g = 0;
-					b = 128;
-				}
-				
-				int armor = entity.getTotalArmorValue();
-
-				boolean useHue = !NeatConfig.colorByType;
-				if(useHue) {
-					float hue = Math.max(0F, (health / maxHealth) / 3F - 0.07F);
-					Color color = Color.getHSBColor(hue, 1F, 1F);
-					r = color.getRed();
-					g = color.getGreen();
-					b = color.getBlue();
-				}
-				
-				RenderSystem.translatef(0F, pastTranslate, 0F);
-				
-				float s = 0.5F;
-				String name = I18n.format(entity.getDisplayName().getFormattedText());
-				if(entity instanceof LivingEntity && entity.hasCustomName())
-					name = TextFormatting.ITALIC + entity.getCustomName().toString();
-				else if(entity instanceof VillagerEntity)
-					name = I18n.format("entity.minecraft.villager");
-					
-				float namel = mc.fontRenderer.getStringWidth(name) * s;
-				if(namel + 20 > size * 2)
-					size = namel / 2F + 10F;
-				float healthSize = size * (health / maxHealth);
-				
-				// Background
-				if(NeatConfig.drawBackground) {
-					buffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-					buffer.pos(-size - padding, -bgHeight, 0.0D).color(0, 0, 0, 64).endVertex();
-					buffer.pos(-size - padding, barHeight + padding, 0.0D).color(0, 0, 0, 64).endVertex();
-					buffer.pos(size + padding, barHeight + padding, 0.0D).color(0, 0, 0, 64).endVertex();
-					buffer.pos(size + padding, -bgHeight, 0.0D).color(0, 0, 0, 64).endVertex();
-					tessellator.draw();
-				}
-
-				// Gray Space
-				buffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-				buffer.pos(-size, 0, 0.0D).color(127, 127, 127, 127).endVertex();
-				buffer.pos(-size, barHeight, 0.0D).color(127, 127, 127, 127).endVertex();
-				buffer.pos(size, barHeight, 0.0D).color(127, 127, 127, 127).endVertex();
-				buffer.pos(size, 0, 0.0D).color(127, 127, 127, 127).endVertex();
-				tessellator.draw();
-
-				// Health Bar
-				buffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-				buffer.pos(-size, 0, 0.0D).color(r, g, b, 127).endVertex();
-				buffer.pos(-size, barHeight, 0.0D).color(r, g, b, 127).endVertex();
-				buffer.pos(healthSize * 2 - size, barHeight, 0.0D).color(r, g, b, 127).endVertex();
-				buffer.pos(healthSize * 2 - size, 0, 0.0D).color(r, g, b, 127).endVertex();
-				tessellator.draw();
-
-				RenderSystem.enableTexture();
-
-				RenderSystem.pushMatrix();
-				RenderSystem.translatef(-size, -4.5F, 0F);
-				RenderSystem.scalef(s, s, s);
-				mc.fontRenderer.drawString(name, 0, 0, 0xFFFFFF);
-
-				RenderSystem.pushMatrix();
-				float s1 = 0.75F;
-				RenderSystem.scalef(s1, s1, s1);
-				
-				int h = NeatConfig.hpTextHeight;
-				String maxHpStr = TextFormatting.BOLD + "" + Math.round(maxHealth * 100.0) / 100.0;
-				String hpStr = "" + Math.round(health * 100.0) / 100.0;
-				String percStr = (int) percent + "%";
-				
-				if(maxHpStr.endsWith(".0"))
-					maxHpStr = maxHpStr.substring(0, maxHpStr.length() - 2);
-				if(hpStr.endsWith(".0"))
-					hpStr = hpStr.substring(0, hpStr.length() - 2);
-				
-				if(NeatConfig.showCurrentHP)
-					mc.fontRenderer.drawString(hpStr, 2, h, 0xFFFFFF);
-				if(NeatConfig.showMaxHP)
-					mc.fontRenderer.drawString(maxHpStr, (int) (size / (s * s1) * 2) - 2 - mc.fontRenderer.getStringWidth(maxHpStr), h, 0xFFFFFF);
-				if(NeatConfig.showPercentage)
-					mc.fontRenderer.drawString(percStr, (int) (size / (s * s1)) - mc.fontRenderer.getStringWidth(percStr) / 2, h, 0xFFFFFFFF);
-				if(NeatConfig.enableDebugInfo && mc.gameSettings.showDebugInfo)
-					mc.fontRenderer.drawString("ID: \"" + entityID + "\"", 0, h + 16, 0xFFFFFFFF);
-				RenderSystem.popMatrix();
-
-				RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-				int off = 0;
-
-				s1 = 0.5F;
-				RenderSystem.scalef(s1, s1, s1);
-				RenderSystem.translatef(size / (s * s1) * 2 - 16, 0F, 0F);
-				mc.textureManager.bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
-				if(stack != null && NeatConfig.showAttributes) {
-					renderIcon(off, 0, stack, 16, 16);
-					off -= 16;
-				}
-				
-				if(armor > 0 && NeatConfig.showArmor) {
-					int ironArmor = armor % 5;
-					int diamondArmor = armor / 5;
-					if(!NeatConfig.groupArmor) {
-						ironArmor = armor;
-						diamondArmor = 0;
-					}
-					
-					stack = new ItemStack(Items.IRON_CHESTPLATE);
-					for(int i = 0; i < ironArmor; i++) {
-						renderIcon(off, 0, stack, 16, 16);
-						off -= 4;
-					}
-					
-					stack = new ItemStack(Items.DIAMOND_CHESTPLATE);
-					for(int i = 0; i < diamondArmor; i++) {
-						renderIcon(off, 0, stack, 16, 16);
-						off -= 4;
-					}
-				}
-
-				RenderSystem.popMatrix();
-
-				RenderSystem.disableBlend();
-				RenderSystem.enableDepthTest();
-				RenderSystem.depthMask(true);
-				if(lighting)
-					RenderSystem.enableLighting();
-				RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-				RenderSystem.popMatrix();
-				
-				pastTranslate -= bgHeight + barHeight + padding;
+				matrixStack.translate(0.0D, -(NeatConfig.backgroundHeight + NeatConfig.barHeight + NeatConfig.backgroundPadding), 0.0D);
 			}
 		}
+		matrixStack.pop();
 	}
-	
-	private void renderIcon(int vertexX, int vertexY, ItemStack stack, int intU, int intV) {
+
+	private void renderEntity(Minecraft mc, MatrixStack matrixStack, IRenderTypeBuffer.Impl buffer, ActiveRenderInfo renderInfo, LivingEntity entity, int light, ItemStack icon, boolean boss) {
+		Quaternion rotation = renderInfo.getRotation().copy();
+		rotation.multiply(-1.0F);
+		matrixStack.rotate(rotation);
+		float scale = 0.026666672F;
+		matrixStack.scale(-scale, -scale, scale);
+		float health = MathHelper.clamp(entity.getHealth(), 0.0F, entity.getMaxHealth());
+		float percent = (health / entity.getMaxHealth()) * 100.0F;
+		float size = NeatConfig.plateSize;
+		float textScale = 0.5F;
+
+		String name = (entity.hasCustomName() ? entity.getCustomName().applyTextStyle(TextFormatting.ITALIC) : entity.getDisplayName()).getFormattedText();
+		float namel = mc.fontRenderer.getStringWidth(name) * textScale;
+		if (namel + 20 > size * 2) {
+			size = namel / 2.0F + 10.0F;
+		}
+		float healthSize = size * (health / entity.getMaxHealth());
+		MatrixStack.Entry entry = matrixStack.getLast();
+		Matrix4f modelViewMatrix = entry.getMatrix();
+		Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
+		normal.transform(entry.getNormal());
+		IVertexBuilder builder = buffer.getBuffer(RenderType.func_230168_b_(TEXTURE, false));
+		final int overlay = OverlayTexture.NO_OVERLAY;
+		float padding = NeatConfig.backgroundPadding;
+		int bgHeight = NeatConfig.backgroundHeight;
+		int barHeight = NeatConfig.barHeight;
+
+		// Background
+		if (NeatConfig.drawBackground) {
+			builder.pos(modelViewMatrix, -size - padding, -bgHeight, 0.0F).color(255, 255, 255, 64).tex(0.0F, 0.0F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, -size - padding, barHeight + padding, 0.0F).color(255, 255, 255, 64).tex(0.0F, 0.5F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, size + padding, barHeight + padding, 0.0F).color(255, 255, 255, 64).tex(1.0F, 0.5F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, size + padding, -bgHeight, 0.0F).color(255, 255, 255, 64).tex(1.0F, 0.0F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		}
+
+		// Gray Space
+		builder.pos(modelViewMatrix, -size, 0, -0.001F).color(255, 255, 255, 127).tex(0.0F, 0.5F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, -size, barHeight, -0.001F).color(255, 255, 255, 127).tex(0.0F, 0.75F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, size, barHeight, -0.001F).color(255, 255, 255, 127).tex(1.0F, 0.75F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, size, 0, -0.001F).color(255, 255, 255, 127).tex(1.0F, 0.5F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+
+		// Health Bar
+		int argb = getColor(entity, NeatConfig.colorByType, boss);
+		int r = (argb >> 16) & 0xFF;
+		int g = (argb >> 8) & 0xFF;
+		int b = argb & 0xFF;
+		builder.pos(modelViewMatrix, -size, 0, -0.002F).color(r, g, b, 127).tex(0.0F, 0.75F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, -size, barHeight, -0.002F).color(r, g, b, 127).tex(0.0F, 1.0F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, healthSize * 2 - size, barHeight, -0.002F).color(r, g, b, 127).tex(1.0F, 1.0F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, healthSize * 2 - size, 0, -0.002F).color(r, g, b, 127).tex(1.0F, 0.75F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+
+		matrixStack.push();
+		{
+			int white = 0xFFFFFF;
+			int black = 0x000000;
+			matrixStack.translate(-size, -4.5F, 0F);
+			matrixStack.scale(textScale, textScale, textScale);
+			modelViewMatrix = matrixStack.getLast().getMatrix();
+			mc.fontRenderer.renderString(name, 0, 0, white, false, modelViewMatrix, buffer, false, black, light);
+
+			float s1 = 0.75F;
+			matrixStack.push();
+			{
+				matrixStack.scale(s1, s1, s1);
+				modelViewMatrix = matrixStack.getLast().getMatrix();
+
+				int h = NeatConfig.hpTextHeight;
+				String maxHpStr = TextFormatting.BOLD + "" + Math.round(entity.getMaxHealth() * 100.0) / 100.0;
+				String hpStr = "" + Math.round(health * 100.0) / 100.0;
+				String percStr = (int) percent + "%";
+
+				if (maxHpStr.endsWith(".00"))
+					maxHpStr = maxHpStr.substring(0, maxHpStr.length() - 3);
+				if (hpStr.endsWith(".00"))
+					hpStr = hpStr.substring(0, hpStr.length() - 3);
+
+				if (NeatConfig.showCurrentHP)
+					mc.fontRenderer.renderString(hpStr, 2, h, white, false, modelViewMatrix, buffer, false, black, light);
+				if (NeatConfig.showMaxHP)
+					mc.fontRenderer.renderString(maxHpStr, (int) (size / (textScale * s1) * 2) - 2 - mc.fontRenderer.getStringWidth(maxHpStr), h, white, false, modelViewMatrix, buffer, false, black, light);
+				if (NeatConfig.showPercentage)
+					mc.fontRenderer.renderString(percStr, (int) (size / (textScale * s1)) - mc.fontRenderer.getStringWidth(percStr) / 2, h, white, false, modelViewMatrix, buffer, false, black, light);
+				if (NeatConfig.enableDebugInfo && mc.gameSettings.showDebugInfo)
+					mc.fontRenderer.renderString("ID: \"" + Registry.ENTITY_TYPE.getId(entity.getType()) + "\"", 0, h + 16, white, false, modelViewMatrix, buffer, false, black, light);
+			}
+			matrixStack.pop();
+
+			matrixStack.push();
+			int off = 0;
+			s1 = 0.5F;
+			matrixStack.scale(s1, s1, s1);
+			matrixStack.translate(size / (textScale * s1) * 2 - 16, 0F, 0F);
+			mc.textureManager.bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
+			if (icon != null && NeatConfig.showAttributes) {
+				renderIcon(mc, off, 0, icon, matrixStack, buffer, OverlayTexture.NO_OVERLAY, light);
+				off -= 16;
+			}
+
+			int armor = entity.getTotalArmorValue();
+			if (armor > 0 && NeatConfig.showArmor) {
+				int ironArmor = armor % 5;
+				int diamondArmor = armor / 5;
+				if (!NeatConfig.groupArmor) {
+					ironArmor = armor;
+					diamondArmor = 0;
+				}
+
+				icon = new ItemStack(Items.IRON_CHESTPLATE);
+				for (int i = 0; i < ironArmor; i++) {
+					renderIcon(mc, off, 0, icon, matrixStack, buffer, OverlayTexture.NO_OVERLAY, light);
+					off -= 4;
+				}
+
+				icon = new ItemStack(Items.DIAMOND_CHESTPLATE);
+				for (int i = 0; i < diamondArmor; i++) {
+					renderIcon(mc, off, 0, icon, matrixStack, buffer, OverlayTexture.NO_OVERLAY, light);
+					off -= 4;
+				}
+			}
+			matrixStack.pop();
+		}
+		RenderSystem.disableBlend();
+		RenderSystem.enableDepthTest();
+		RenderSystem.depthMask(true);
+		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+	}
+
+	private void renderIcon(Minecraft mc, int vertexX, int vertexY, @Nonnull ItemStack icon, MatrixStack matrixStack, IRenderTypeBuffer buffer, int overlay, int light) {
+		matrixStack.push();
+		matrixStack.translate(vertexX, vertexY, 0.0D);
+		matrixStack.scale(16.0F, 16.0F, 1.0F);
 		try {
-			Minecraft mc = Minecraft.getInstance();
-			TextureAtlasSprite textureAtlasSprite = mc.getItemRenderer().getItemModelMesher().getItemModel(stack).getParticleTexture();
-			mc.getTextureManager().bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
-			Tessellator tessellator = Tessellator.getInstance();
-			BufferBuilder buffer = tessellator.getBuffer();
-			buffer.begin(7, DefaultVertexFormats.POSITION_TEX);
-			buffer.pos((vertexX), 		vertexY + intV, 	0.0D).tex(textureAtlasSprite.getMinU(), textureAtlasSprite.getMaxV()).endVertex();
-			buffer.pos(vertexX + intU, vertexY + intV,	0.0D).tex(textureAtlasSprite.getMaxU(), textureAtlasSprite.getMaxV()).endVertex();
-			buffer.pos(vertexX + intU, (vertexY), 			0.0D).tex(textureAtlasSprite.getMaxU(), textureAtlasSprite.getMinV()).endVertex();
-			buffer.pos((vertexX), 		(vertexY), 			0.0D).tex(textureAtlasSprite.getMinU(), textureAtlasSprite.getMinV()).endVertex();
-			tessellator.draw();
-		} catch (Exception e) {}
+			IVertexBuilder builder = buffer.getBuffer(RenderType.func_230168_b_(AtlasTexture.LOCATION_BLOCKS_TEXTURE, false));
+			TextureAtlasSprite sprite = mc.getItemRenderer().getItemModelMesher().getItemModel(icon).getParticleTexture();
+			Matrix4f modelViewMatrix = matrixStack.getLast().getMatrix();
+			Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
+			builder.pos(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMinU(), sprite.getMaxV()).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMaxU(), sprite.getMaxV()).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMaxU(), sprite.getMinV()).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMinU(), sprite.getMinV()).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		} catch (Exception ignored) {
+		}
+		matrixStack.pop();
 	}
 
 	public static Entity getEntityLookedAt(Entity e) {
 		Entity foundEntity = null;
-
 		final double finalDistance = 32;
 		double distance = finalDistance;
 		RayTraceResult pos = raycast(e, finalDistance);
-		
 		Vec3d positionVector = e.getPositionVector();
-		if(e instanceof PlayerEntity)
-			positionVector = positionVector.add(0, e.getEyeHeight(), 0);
 
-		if(pos != null)
+		if (e instanceof PlayerEntity)
+			positionVector = positionVector.add(0, e.getEyeHeight(e.getPose()), 0);
+
+		if (pos != null)
 			distance = pos.getHitVec().distanceTo(positionVector);
 
 		Vec3d lookVector = e.getLookVec();
@@ -337,49 +288,85 @@ public class HealthBarRenderer {
 		List<Entity> entitiesInBoundingBox = e.getEntityWorld().getEntitiesWithinAABBExcludingEntity(e, e.getBoundingBox().grow(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance).expand(1F, 1F, 1F));
 		double minDistance = distance;
 
-		for(Entity entity : entitiesInBoundingBox) {
-			if(entity.canBeCollidedWith()) {
-				float collisionBorderSize = entity.getCollisionBorderSize();
-				AxisAlignedBB hitbox = entity.getBoundingBox().expand(collisionBorderSize, collisionBorderSize, collisionBorderSize);
-				Optional<Vec3d> interceptPosition = hitbox.rayTrace(positionVector, reachVector);
-				Vec3d interceptVec = interceptPosition.orElse(null);
-				
-				if(hitbox.contains(positionVector)) {
-					if(0.0D < minDistance || minDistance == 0.0D) {
+		for (Entity entity : entitiesInBoundingBox) {
+			if (entity.canBeCollidedWith()) {
+				AxisAlignedBB collisionBox  = entity.getRenderBoundingBox();
+				Optional<Vec3d> interceptPosition = collisionBox .rayTrace(positionVector, reachVector);
+
+				if (collisionBox .contains(positionVector)) {
+					if (0.0D < minDistance || minDistance == 0.0D) {
 						lookedEntity = entity;
 						minDistance = 0.0D;
 					}
-				} else if(interceptVec != null) {
-					double distanceToEntity = positionVector.distanceTo(interceptVec);
+				} else if (interceptPosition.isPresent()) {
+					double distanceToEntity = positionVector.distanceTo(interceptPosition.get());
 
-					if(distanceToEntity < minDistance || minDistance == 0.0D) {
+					if (distanceToEntity < minDistance || minDistance == 0.0D) {
 						lookedEntity = entity;
 						minDistance = distanceToEntity;
 					}
 				}
 			}
 
-			if(lookedEntity != null && (minDistance < distance || pos == null))
+			if (lookedEntity != null && (minDistance < distance || pos == null))
 				foundEntity = lookedEntity;
 		}
 
 		return foundEntity;
 	}
-	
+
 	public static RayTraceResult raycast(Entity e, double len) {
 		Vec3d vec = new Vec3d(e.getPosX(), e.getPosY(), e.getPosZ());
-		if(e instanceof PlayerEntity)
-			vec = vec.add(new Vec3d(0, e.getEyeHeight(), 0));
-		
+		if (e instanceof PlayerEntity)
+			vec = vec.add(new Vec3d(0, e.getEyeHeight(e.getPose()), 0));
+
 		Vec3d look = e.getLookVec();
-		if(look == null)
+		if (look == null)
 			return null;
 
-		return raycast(e.getEntityWorld(), vec, look, e, len);
+		return raycast(vec, look, e, len);
 	}
-	
-	public static RayTraceResult raycast(World world, Vec3d origin, Vec3d ray, Entity e, double len) {
-		Vec3d end = origin.add(ray.normalize().scale(len));
-		return world.rayTraceBlocks(new RayTraceContext(origin, end, RayTraceContext.BlockMode.OUTLINE, RayTraceContext.FluidMode.NONE, e));
+
+	public static RayTraceResult raycast(Vec3d origin, Vec3d ray, Entity e, double len) {
+		Vec3d next = origin.add(ray.normalize().scale(len));
+		return e.world.rayTraceBlocks(new RayTraceContext(origin, next, RayTraceContext.BlockMode.OUTLINE, RayTraceContext.FluidMode.NONE, e));
+	}
+
+	@Nonnull
+	public static ItemStack getIcon(LivingEntity entity, boolean boss) {
+		if (boss) {
+			return new ItemStack(Items.NETHER_STAR);
+		}
+		CreatureAttribute attr = entity.getCreatureAttribute();
+		if (attr == CreatureAttribute.ARTHROPOD) {
+			return new ItemStack(Items.SPIDER_EYE);
+		} else if (attr == CreatureAttribute.UNDEAD) {
+			return new ItemStack(Items.ROTTEN_FLESH);
+		} else {
+			return new ItemStack(Items.SKELETON_SKULL);
+		}
+	}
+
+	public static int getColor(LivingEntity entity, boolean colorByType, boolean boss) {
+		if (colorByType) {
+			int r = 0;
+			int g = 255;
+			int b = 0;
+			if (boss) {
+				r = 128;
+				g = 0;
+				b = 128;
+			}
+			if (entity instanceof MonsterEntity) { //MobEntity is a red herring
+				r = 255;
+				g = 0;
+				b = 0;
+			}
+			return 0xff000000 | r << 16 | g << 8 | b;
+		} else {
+			float health = MathHelper.clamp(entity.getHealth(), 0.0F, entity.getMaxHealth());
+			float hue = Math.max(0.0F, (health / entity.getMaxHealth()) / 3.0F - 0.07F);
+			return Color.HSBtoRGB(hue, 1.0F, 1.0F);
+		}
 	}
 }
