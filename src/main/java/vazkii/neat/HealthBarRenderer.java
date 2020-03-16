@@ -105,7 +105,7 @@ public class HealthBarRenderer {
 				double z = passedEntity.prevPosZ + (passedEntity.getPosZ() - passedEntity.prevPosZ) * partialTicks;
 
 				EntityRendererManager renderManager = Minecraft.getInstance().getRenderManager();
-				BlockPos renderPos = renderManager.info.getBlockPos();
+				Vec3d renderPos = renderManager.info.getProjectedView();
 
 				matrixStack.push();
 				matrixStack.translate((float) (x - renderPos.getX()), (float) (y - renderPos.getY() + passedEntity.getHeight() + NeatConfig.heightAbove), (float) (z - renderPos.getZ()));
