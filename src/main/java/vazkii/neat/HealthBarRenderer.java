@@ -1,14 +1,13 @@
 package vazkii.neat;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.culling.ClippingHelperImpl;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.AtlasTexture;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.CreatureAttribute;
@@ -16,13 +15,13 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.*;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -33,7 +32,6 @@ import java.util.Optional;
 import java.util.Stack;
 
 public class HealthBarRenderer {
-	private static final ResourceLocation TEXTURE = new ResourceLocation(Neat.MOD_ID, "textures/ui/health_bar.png");
 
 	@SubscribeEvent
 	public void onRenderWorldLast(RenderWorldLastEvent event) {
@@ -109,8 +107,6 @@ public class HealthBarRenderer {
 
 				matrixStack.push();
 				matrixStack.translate((float) (x - renderPos.getX()), (float) (y - renderPos.getY() + passedEntity.getHeight() + NeatConfig.heightAbove), (float) (z - renderPos.getZ()));
-				RenderSystem.normal3f(0.0F, 1.0F, 0.0F);
-				RenderSystem.disableLighting();
 				IRenderTypeBuffer.Impl buffer = mc.getRenderTypeBuffers().getBufferSource();
 				ItemStack icon = getIcon(entity, boss);
 				final int light = 0xF000F0;
@@ -144,37 +140,35 @@ public class HealthBarRenderer {
 		Matrix4f modelViewMatrix = entry.getMatrix();
 		Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
 		normal.transform(entry.getNormal());
-		IVertexBuilder builder = buffer.getBuffer(RenderType.func_230168_b_(TEXTURE, false));
-		final int overlay = OverlayTexture.NO_OVERLAY;
+		IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getHealthBarType());
 		float padding = NeatConfig.backgroundPadding;
 		int bgHeight = NeatConfig.backgroundHeight;
 		int barHeight = NeatConfig.barHeight;
 
 		// Background
 		if (NeatConfig.drawBackground) {
-			builder.pos(modelViewMatrix, -size - padding, -bgHeight, 0.0F).color(255, 255, 255, 64).tex(0.0F, 0.0F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-			builder.pos(modelViewMatrix, -size - padding, barHeight + padding, 0.0F).color(255, 255, 255, 64).tex(0.0F, 0.5F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-			builder.pos(modelViewMatrix, size + padding, barHeight + padding, 0.0F).color(255, 255, 255, 64).tex(1.0F, 0.5F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-			builder.pos(modelViewMatrix, size + padding, -bgHeight, 0.0F).color(255, 255, 255, 64).tex(1.0F, 0.0F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, -size - padding, -bgHeight, 0.0F).tex(0.0F, 0.0F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, -size - padding, barHeight + padding, 0.0F).tex(0.0F, 0.5F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, size + padding, barHeight + padding, 0.0F).tex(1.0F, 0.5F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, size + padding, -bgHeight, 0.0F).tex(1.0F, 0.0F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
 		}
 
 		// Gray Space
-		builder.pos(modelViewMatrix, -size, 0, -0.001F).color(255, 255, 255, 127).tex(0.0F, 0.5F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, -size, barHeight, -0.001F).color(255, 255, 255, 127).tex(0.0F, 0.75F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, size, barHeight, -0.001F).color(255, 255, 255, 127).tex(1.0F, 0.75F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, size, 0, -0.001F).color(255, 255, 255, 127).tex(1.0F, 0.5F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, -size, 0, -0.001F).tex(0.0F, 0.5F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, -size, barHeight, -0.001F).tex(0.0F, 0.75F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, size, barHeight, -0.001F).tex(1.0F, 0.75F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, size, 0, -0.001F).tex(1.0F, 0.5F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
 
 		// Health Bar
 		int argb = getColor(entity, NeatConfig.colorByType, boss);
 		int r = (argb >> 16) & 0xFF;
 		int g = (argb >> 8) & 0xFF;
 		int b = argb & 0xFF;
-		builder.pos(modelViewMatrix, -size, 0, -0.002F).color(r, g, b, 127).tex(0.0F, 0.75F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, -size, barHeight, -0.002F).color(r, g, b, 127).tex(0.0F, 1.0F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, healthSize * 2 - size, barHeight, -0.002F).color(r, g, b, 127).tex(1.0F, 1.0F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, healthSize * 2 - size, 0, -0.002F).color(r, g, b, 127).tex(1.0F, 0.75F).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, -size, 0, -0.002F).tex(0.0F, 0.75F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, -size, barHeight, -0.002F).tex(0.0F, 1.0F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, healthSize * 2 - size, barHeight, -0.002F).tex(1.0F, 1.0F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, healthSize * 2 - size, 0, -0.002F).tex(1.0F, 0.75F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
 
-		matrixStack.push();
 		{
 			int white = 0xFFFFFF;
 			int black = 0x000000;
@@ -214,10 +208,10 @@ public class HealthBarRenderer {
 			int off = 0;
 			s1 = 0.5F;
 			matrixStack.scale(s1, s1, s1);
-			matrixStack.translate(size / (textScale * s1) * 2 - 16, 0F, 0F);
+			matrixStack.translate(size / (textScale * s1) * 2, 0F, 0F);
 			mc.textureManager.bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
-			if (icon != null && NeatConfig.showAttributes) {
-				renderIcon(mc, off, 0, icon, matrixStack, buffer, OverlayTexture.NO_OVERLAY, light);
+			if (NeatConfig.showAttributes) {
+				renderIcon(mc, off, 0, icon, matrixStack, buffer, renderInfo);
 				off -= 16;
 			}
 
@@ -232,37 +226,42 @@ public class HealthBarRenderer {
 
 				icon = new ItemStack(Items.IRON_CHESTPLATE);
 				for (int i = 0; i < ironArmor; i++) {
-					renderIcon(mc, off, 0, icon, matrixStack, buffer, OverlayTexture.NO_OVERLAY, light);
+					renderIcon(mc, off, 0, icon, matrixStack, buffer, renderInfo);
 					off -= 4;
 				}
 
 				icon = new ItemStack(Items.DIAMOND_CHESTPLATE);
 				for (int i = 0; i < diamondArmor; i++) {
-					renderIcon(mc, off, 0, icon, matrixStack, buffer, OverlayTexture.NO_OVERLAY, light);
+					renderIcon(mc, off, 0, icon, matrixStack, buffer, renderInfo);
 					off -= 4;
 				}
 			}
-			matrixStack.pop();
 		}
-		RenderSystem.disableBlend();
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthMask(true);
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 	}
 
-	private void renderIcon(Minecraft mc, int vertexX, int vertexY, @Nonnull ItemStack icon, MatrixStack matrixStack, IRenderTypeBuffer buffer, int overlay, int light) {
+	private void renderIcon(Minecraft mc, int vertexX, int vertexY, @Nonnull ItemStack icon, MatrixStack matrixStack, IRenderTypeBuffer buffer, ActiveRenderInfo renderInfo) {
 		matrixStack.push();
-		matrixStack.translate(vertexX, vertexY, 0.0D);
+		matrixStack.rotate(Vector3f.ZP.rotationDegrees(-90));
+		matrixStack.translate(vertexY - 16, vertexX - 16, 0.0D);
 		matrixStack.scale(16.0F, 16.0F, 1.0F);
 		try {
-			IVertexBuilder builder = buffer.getBuffer(RenderType.func_230168_b_(AtlasTexture.LOCATION_BLOCKS_TEXTURE, false));
-			TextureAtlasSprite sprite = mc.getItemRenderer().getItemModelMesher().getItemModel(icon).getParticleTexture();
+			ResourceLocation registryName = icon.getItem().getRegistryName();
+			Pair<ResourceLocation, ResourceLocation> pair = Pair.of(PlayerContainer.LOCATION_BLOCKS_TEXTURE, new ResourceLocation(registryName.getNamespace(), "item/" + registryName.getPath()));
+			TextureAtlasSprite sprite = mc.getAtlasSpriteGetter(pair.getFirst()).apply(pair.getSecond());
 			Matrix4f modelViewMatrix = matrixStack.getLast().getMatrix();
-			Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
-			builder.pos(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMinU(), sprite.getMaxV()).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-			builder.pos(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMaxU(), sprite.getMaxV()).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-			builder.pos(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMaxU(), sprite.getMinV()).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-			builder.pos(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMinU(), sprite.getMinV()).overlay(overlay).lightmap(light).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			if (icon == null || icon.isEmpty())  { //Wonky workaround to make text stay in position
+				IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getNoIconType());
+				builder.pos(modelViewMatrix, 0.0F, 0.0F, 0.0F).endVertex();
+				builder.pos(modelViewMatrix, 0.0F, 1.0F, 0.0F).endVertex();
+				builder.pos(modelViewMatrix, 1.0F, 1.0F, 0.0F).endVertex();
+				builder.pos(modelViewMatrix, 1.0F, 0.0F, 0.0F).endVertex();
+			} else {
+				IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getIconType(pair.getSecond()));
+				builder.pos(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMinU(), sprite.getMaxV()).endVertex();
+				builder.pos(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMaxU(), sprite.getMaxV()).endVertex();
+				builder.pos(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMaxU(), sprite.getMinV()).endVertex();
+				builder.pos(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMinU(), sprite.getMinV()).endVertex();
+			}
 		} catch (Exception ignored) {
 		}
 		matrixStack.pop();
@@ -343,7 +342,7 @@ public class HealthBarRenderer {
 		} else if (attr == CreatureAttribute.UNDEAD) {
 			return new ItemStack(Items.ROTTEN_FLESH);
 		} else {
-			return new ItemStack(Items.SKELETON_SKULL);
+			return ItemStack.EMPTY;
 		}
 	}
 
@@ -357,7 +356,7 @@ public class HealthBarRenderer {
 				g = 0;
 				b = 128;
 			}
-			if (entity instanceof MonsterEntity) { //MobEntity is a red herring
+			if (entity instanceof MonsterEntity) {
 				r = 255;
 				g = 0;
 				b = 0;
