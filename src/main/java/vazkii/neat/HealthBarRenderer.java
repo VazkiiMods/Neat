@@ -262,14 +262,14 @@ public class HealthBarRenderer {
 				builder.pos(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMaxU(), sprite.getMinV()).endVertex();
 				builder.pos(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMinU(), sprite.getMinV()).endVertex();
 			}
+			//Wonky workaround for making corner icons stay in position
+			IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getNoIconType());
+			builder.pos(0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
+			builder.pos(0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
+			builder.pos(1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
+			builder.pos(1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 		} catch (Exception ignored) {
 		}
-		//Wonky workaround for making corner icons stay in position
-		IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getNoIconType());
-		builder.pos(0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-		builder.pos(0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-		builder.pos(1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-		builder.pos(1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 		matrixStack.pop();
 	}
 
