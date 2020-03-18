@@ -13,7 +13,7 @@ public class NeatRenderType extends RenderState {
 
     public static RenderType getNoIconType() {
         RenderType.State renderTypeState = RenderType.State.getBuilder().transparency(TransparencyState.TRANSLUCENT_TRANSPARENCY).build(true);
-        return RenderType.makeType("neat_icon", DefaultVertexFormats.POSITION, 0, 0, false, false, renderTypeState);
+        return RenderType.makeType("neat_icon", DefaultVertexFormats.POSITION_COLOR, 0, 0, false, false, renderTypeState);
     }
 
     public static RenderType getIconType(ResourceLocation location) {

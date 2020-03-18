@@ -249,12 +249,12 @@ public class HealthBarRenderer {
 			Pair<ResourceLocation, ResourceLocation> pair = Pair.of(PlayerContainer.LOCATION_BLOCKS_TEXTURE, new ResourceLocation(registryName.getNamespace(), "item/" + registryName.getPath()));
 			TextureAtlasSprite sprite = mc.getAtlasSpriteGetter(pair.getFirst()).apply(pair.getSecond());
 			Matrix4f modelViewMatrix = matrixStack.getLast().getMatrix();
-			if (icon == null || icon.isEmpty()) { //Wonky workaround to make text stay in position
+			if (icon == null || icon.isEmpty()) { //Wonky workaround to make text stay in position & make empty icon not rendering
 				IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getNoIconType());
-				builder.pos(modelViewMatrix, 0.0F, 0.0F, 0.0F).endVertex();
-				builder.pos(modelViewMatrix, 0.0F, 1.0F, 0.0F).endVertex();
-				builder.pos(modelViewMatrix, 1.0F, 1.0F, 0.0F).endVertex();
-				builder.pos(modelViewMatrix, 1.0F, 0.0F, 0.0F).endVertex();
+				builder.pos(0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
+				builder.pos(0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
+				builder.pos(1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
+				builder.pos(1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			} else {
 				IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getIconType(pair.getSecond()));
 				builder.pos(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(255, 255, 255, 255).tex(sprite.getMinU(), sprite.getMaxV()).endVertex();
@@ -264,6 +264,12 @@ public class HealthBarRenderer {
 			}
 		} catch (Exception ignored) {
 		}
+		//Wonky workaround for making corner icons stay in position
+		IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getNoIconType());
+		builder.pos(0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
+		builder.pos(0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
+		builder.pos(1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
+		builder.pos(1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 		matrixStack.pop();
 	}
 
