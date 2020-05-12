@@ -35,6 +35,7 @@ public class NeatConfig {
 	private static ConfigValue<Boolean> v_showOnPlayers;
 	private static ConfigValue<Boolean> v_showOnBosses;
 	private static ConfigValue<Boolean> v_showOnlyFocused;
+	private static ConfigValue<Boolean> v_showFullHealth;
 	private static ConfigValue<Boolean> v_enableDebugInfo;
 	private static ConfigValue<List<? extends String>> v_blacklist;
 
@@ -58,6 +59,7 @@ public class NeatConfig {
 	public static boolean showOnPlayers = true;
 	public static boolean showOnBosses = true;
 	public static boolean showOnlyFocused = false;
+	public static boolean showFullHealth = true;
 	public static boolean enableDebugInfo = true;
 
 	public static List<String> blacklist;
@@ -89,6 +91,7 @@ public class NeatConfig {
 		showOnPlayers = v_showOnPlayers.get();
 		showOnBosses = v_showOnBosses.get();
 		showOnlyFocused = v_showOnlyFocused.get();
+		showFullHealth = v_showFullHealth.get();
 		enableDebugInfo = v_enableDebugInfo.get();
 		blacklist = (List<String>) v_blacklist.get();
 	}
@@ -118,6 +121,7 @@ public class NeatConfig {
 			v_showOnPlayers = builder.define("Display on Players", showOnPlayers);
 			v_showOnBosses = builder.define("Display on Bosses", showOnBosses);
 			v_showOnlyFocused = builder.define("Only show the health bar for the entity looked at", showOnlyFocused);
+			v_showFullHealth = builder.define("Show entities with full health", showFullHealth);
 			v_enableDebugInfo = builder.define("Show Debug Info with F3", enableDebugInfo);
 			v_blacklist = builder.comment("Blacklist uses entity IDs, not their display names. Use F3 to see them in the Neat bar.")
 					.defineList("Blacklist", 

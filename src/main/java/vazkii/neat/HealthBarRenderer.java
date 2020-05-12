@@ -97,7 +97,9 @@ public class HealthBarRenderer {
 					break processing;
 				if (entity.getMaxHealth() <= 0)
 					break processing;
-
+				if(!NeatConfig.showFullHealth && entity.getHealth() == entity.getMaxHealth())
+					break processing;
+				
 				double x = passedEntity.prevPosX + (passedEntity.getPosX() - passedEntity.prevPosX) * partialTicks;
 				double y = passedEntity.prevPosY + (passedEntity.getPosY() - passedEntity.prevPosY) * partialTicks;
 				double z = passedEntity.prevPosZ + (passedEntity.getPosZ() - passedEntity.prevPosZ) * partialTicks;
