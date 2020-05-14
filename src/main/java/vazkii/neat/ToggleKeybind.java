@@ -6,13 +6,15 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 
+import org.lwjgl.glfw.GLFW;
+
 public class ToggleKeybind {
 
 	KeyBinding key;
 	boolean down;
 	
 	public ToggleKeybind() {
-		key = new KeyBinding("neat.keybind.toggle", 0, "key.categories.misc");
+		key = new KeyBinding("neat.keybind.toggle", GLFW.GLFW_KEY_UNKNOWN, "key.categories.misc");
 		ClientRegistry.registerKeyBinding(key);
 	}
 	
