@@ -238,6 +238,7 @@ public class HealthBarRenderer {
 					off -= 4;
 				}
 			}
+			matrixStack.pop();
 		}
 	}
 
@@ -251,7 +252,7 @@ public class HealthBarRenderer {
 			Pair<ResourceLocation, ResourceLocation> pair = Pair.of(PlayerContainer.LOCATION_BLOCKS_TEXTURE, new ResourceLocation(registryName.getNamespace(), "item/" + registryName.getPath()));
 			TextureAtlasSprite sprite = mc.getAtlasSpriteGetter(pair.getFirst()).apply(pair.getSecond());
 			Matrix4f modelViewMatrix = matrixStack.getLast().getMatrix();
-			if (icon == null || icon.isEmpty()) { //Wonky workaround to make text stay in position & make empty icon not rendering
+			if (icon.isEmpty()) { //Wonky workaround to make text stay in position & make empty icon not rendering
 				IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getNoIconType());
 				builder.pos(0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 				builder.pos(0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
