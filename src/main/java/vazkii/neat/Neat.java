@@ -15,7 +15,7 @@ public class Neat {
 	public static final String MOD_ID = "neat";
 
 	public Neat() {
-		ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
+        ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         NeatConfig.init();
 	}
