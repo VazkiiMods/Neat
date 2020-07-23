@@ -1,11 +1,20 @@
 package vazkii.neat;
 
+import java.awt.Color;
+import java.util.List;
+import java.util.Optional;
+import java.util.Stack;
+
+import javax.annotation.Nonnull;
+
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.mojang.datafixers.util.Pair;
+
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.culling.ClippingHelperImpl;
+import net.minecraft.client.renderer.ActiveRenderInfo;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.culling.ClippingHelper;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -19,17 +28,18 @@ import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RayTraceContext;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-
-import javax.annotation.Nonnull;
-import java.awt.*;
-import java.util.List;
-import java.util.Optional;
-import java.util.Stack;
 
 public class HealthBarRenderer {
 
@@ -51,8 +61,8 @@ public class HealthBarRenderer {
 				renderHealthBar((LivingEntity) focused, mc, matrixStack, partialTicks, renderInfo, cameraEntity);
 			}
 		} else {
-			Vec3d cameraPos = renderInfo.getProjectedView();
-			final ClippingHelperImpl clippingHelper = new ClippingHelperImpl(matrixStack.getLast().getMatrix(), event.getProjectionMatrix());
+			Vector3d cameraPos = renderInfo.getProjectedView();
+			final ClippingHelper clippingHelper = new ClippingHelper(matrixStack.getLast().getMatrix(), event.getProjectionMatrix());
 			clippingHelper.setCameraPosition(cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
 
 			ClientWorld client = mc.world;
@@ -105,7 +115,7 @@ public class HealthBarRenderer {
 				double z = passedEntity.prevPosZ + (passedEntity.getPosZ() - passedEntity.prevPosZ) * partialTicks;
 
 				EntityRendererManager renderManager = Minecraft.getInstance().getRenderManager();
-				Vec3d renderPos = renderManager.info.getProjectedView();
+				Vector3d renderPos = renderManager.info.getProjectedView();
 
 				matrixStack.push();
 				matrixStack.translate((float) (x - renderPos.getX()), (float) (y - renderPos.getY() + passedEntity.getHeight() + NeatConfig.heightAbove), (float) (z - renderPos.getZ()));
@@ -132,7 +142,10 @@ public class HealthBarRenderer {
 		float size = NeatConfig.plateSize;
 		float textScale = 0.5F;
 
-		String name = (entity.hasCustomName() ? entity.getCustomName().applyTextStyle(TextFormatting.ITALIC) : entity.getDisplayName()).getFormattedText();
+		String name = (entity.hasCustomName() ? entity.getCustomName() : entity.getDisplayName()).getString();
+		if(entity.hasCustomName())
+			name = TextFormatting.ITALIC + name;
+		
 		float namel = mc.fontRenderer.getStringWidth(name) * textScale;
 		if (namel + 20 > size * 2) {
 			size = namel / 2.0F + 10.0F;
@@ -147,29 +160,35 @@ public class HealthBarRenderer {
 		int bgHeight = NeatConfig.backgroundHeight;
 		int barHeight = NeatConfig.barHeight;
 
+		float z = 0.01F;
+		
 		// Background
 		if (NeatConfig.drawBackground) {
-			builder.pos(modelViewMatrix, -size - padding, -bgHeight, 0.0F).tex(0.0F, 0.0F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-			builder.pos(modelViewMatrix, -size - padding, barHeight + padding, 0.0F).tex(0.0F, 0.5F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-			builder.pos(modelViewMatrix, size + padding, barHeight + padding, 0.0F).tex(1.0F, 0.5F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-			builder.pos(modelViewMatrix, size + padding, -bgHeight, 0.0F).tex(1.0F, 0.0F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, -size - padding, -bgHeight, z).tex(0.0F, 0.0F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, -size - padding, barHeight + padding, z).tex(0.0F, 0.5F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, size + padding, barHeight + padding, z).tex(1.0F, 0.5F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+			builder.pos(modelViewMatrix, size + padding, -bgHeight, z).tex(1.0F, 0.0F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
 		}
-
+		
 		// Gray Space
-		builder.pos(modelViewMatrix, -size, 0, -0.001F).tex(0.0F, 0.5F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, -size, barHeight, -0.001F).tex(0.0F, 0.75F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, size, barHeight, -0.001F).tex(1.0F, 0.75F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, size, 0, -0.001F).tex(1.0F, 0.5F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		z -= 0.001F;
+
+		builder.pos(modelViewMatrix, -size, 0, z).tex(0.0F, 0.5F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, -size, barHeight, z).tex(0.0F, 0.75F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, size, barHeight, z).tex(1.0F, 0.75F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, size, 0, z).tex(1.0F, 0.5F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
 
 		// Health Bar
 		int argb = getColor(entity, NeatConfig.colorByType, boss);
 		int r = (argb >> 16) & 0xFF;
 		int g = (argb >> 8) & 0xFF;
 		int b = argb & 0xFF;
-		builder.pos(modelViewMatrix, -size, 0, -0.002F).tex(0.0F, 0.75F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, -size, barHeight, -0.002F).tex(0.0F, 1.0F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, healthSize * 2 - size, barHeight, -0.002F).tex(1.0F, 1.0F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
-		builder.pos(modelViewMatrix, healthSize * 2 - size, 0, -0.002F).tex(1.0F, 0.75F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		z -= 0.001F;
+
+		builder.pos(modelViewMatrix, -size, 0, z).tex(0.0F, 0.75F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, -size, barHeight, z).tex(0.0F, 1.0F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, healthSize * 2 - size, barHeight, z).tex(1.0F, 1.0F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
+		builder.pos(modelViewMatrix, healthSize * 2 - size, 0, z).tex(1.0F, 0.75F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).endVertex();
 
 		{
 			int white = 0xFFFFFF;
@@ -255,7 +274,7 @@ public class HealthBarRenderer {
 			if (icon.isEmpty()) { //Wonky workaround to make text stay in position & make empty icon not rendering
 				IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getNoIconType());
 				builder.pos(0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-				builder.pos(0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
+				builder.pos(0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();	
 				builder.pos(1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 				builder.pos(1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			} else {
@@ -281,7 +300,7 @@ public class HealthBarRenderer {
 		final double finalDistance = 32;
 		double distance = finalDistance;
 		RayTraceResult pos = raycast(e, finalDistance);
-		Vec3d positionVector = e.getPositionVector();
+		Vector3d positionVector = e.getPositionVec();
 
 		if (e instanceof PlayerEntity)
 			positionVector = positionVector.add(0, e.getEyeHeight(e.getPose()), 0);
@@ -289,8 +308,8 @@ public class HealthBarRenderer {
 		if (pos != null)
 			distance = pos.getHitVec().distanceTo(positionVector);
 
-		Vec3d lookVector = e.getLookVec();
-		Vec3d reachVector = positionVector.add(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance);
+		Vector3d lookVector = e.getLookVec();
+		Vector3d reachVector = positionVector.add(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance);
 
 		Entity lookedEntity = null;
 		List<Entity> entitiesInBoundingBox = e.getEntityWorld().getEntitiesWithinAABBExcludingEntity(e, e.getBoundingBox().grow(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance).expand(1F, 1F, 1F));
@@ -299,7 +318,7 @@ public class HealthBarRenderer {
 		for (Entity entity : entitiesInBoundingBox) {
 			if (entity.canBeCollidedWith()) {
 				AxisAlignedBB collisionBox = entity.getRenderBoundingBox();
-				Optional<Vec3d> interceptPosition = collisionBox.rayTrace(positionVector, reachVector);
+				Optional<Vector3d> interceptPosition = collisionBox.rayTrace(positionVector, reachVector);
 
 				if (collisionBox.contains(positionVector)) {
 					if (0.0D < minDistance || minDistance == 0.0D) {
@@ -324,19 +343,19 @@ public class HealthBarRenderer {
 	}
 
 	public static RayTraceResult raycast(Entity e, double len) {
-		Vec3d vec = new Vec3d(e.getPosX(), e.getPosY(), e.getPosZ());
+		Vector3d vec = new Vector3d(e.getPosX(), e.getPosY(), e.getPosZ());
 		if (e instanceof PlayerEntity)
-			vec = vec.add(new Vec3d(0, e.getEyeHeight(e.getPose()), 0));
+			vec = vec.add(new Vector3d(0, e.getEyeHeight(e.getPose()), 0));
 
-		Vec3d look = e.getLookVec();
+		Vector3d look = e.getLookVec();
 		if (look == null)
 			return null;
 
 		return raycast(vec, look, e, len);
 	}
 
-	public static RayTraceResult raycast(Vec3d origin, Vec3d ray, Entity e, double len) {
-		Vec3d next = origin.add(ray.normalize().scale(len));
+	public static RayTraceResult raycast(Vector3d origin, Vector3d ray, Entity e, double len) {
+		Vector3d next = origin.add(ray.normalize().scale(len));
 		return e.world.rayTraceBlocks(new RayTraceContext(origin, next, RayTraceContext.BlockMode.OUTLINE, RayTraceContext.FluidMode.NONE, e));
 	}
 

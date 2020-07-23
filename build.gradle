@@ -74,6 +74,14 @@ dependencies {
     minecraft "net.minecraftforge:forge:${config.mc_version}-${config.forge_version}"
 }
 
+repositories {
+    maven {
+        // for Mappings
+        name "gigaherz"
+        url "http://dogforce-games.com/maven/"
+    }
+}
+
 processResources {
     // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
