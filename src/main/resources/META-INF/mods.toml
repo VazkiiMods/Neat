@@ -1,6 +1,7 @@
 modLoader="javafml"
 loaderVersion="[25,)"
 issueTrackerURL="https://github.com/Vazkii/Neat"
+license="No License/Public Domain"
 
 [[mods]]
 modId="neat"
