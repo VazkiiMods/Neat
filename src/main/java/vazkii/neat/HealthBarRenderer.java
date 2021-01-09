@@ -92,7 +92,7 @@ public class HealthBarRenderer {
 			entity = ridingStack.pop();
 			boolean boss = !entity.isNonBoss();
 
-			String entityID = entity.getEntityString();
+			String entityID = entity.getType().getRegistryName().toString();
 			if (NeatConfig.blacklist.contains(entityID))
 				continue;
 
@@ -221,7 +221,7 @@ public class HealthBarRenderer {
 				if (NeatConfig.showPercentage)
 					mc.fontRenderer.renderString(percStr, (int) (size / (textScale * s1)) - mc.fontRenderer.getStringWidth(percStr) / 2, h, white, false, modelViewMatrix, buffer, false, black, light);
 				if (NeatConfig.enableDebugInfo && mc.gameSettings.showDebugInfo)
-					mc.fontRenderer.renderString("ID: \"" + Registry.ENTITY_TYPE.getId(entity.getType()) + "\"", 0, h + 16, white, false, modelViewMatrix, buffer, false, black, light);
+					mc.fontRenderer.renderString("ID: \"" + entity.getType().getRegistryName().toString() + "\"", 0, h + 16, white, false, modelViewMatrix, buffer, false, black, light);
 			}
 			matrixStack.pop();
 
