@@ -12,19 +12,19 @@ public class ToggleKeybind {
 
 	KeyBinding key;
 	boolean down;
-	
+
 	public ToggleKeybind() {
 		key = new KeyBinding("neat.keybind.toggle", GLFW.GLFW_KEY_UNKNOWN, "key.categories.misc");
 		ClientRegistry.registerKeyBinding(key);
 	}
-	
+
 	@SubscribeEvent
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		Minecraft mc = Minecraft.getInstance();
 		boolean wasDown = down;
 		down = key.isKeyDown();
-		if(mc.isGameFocused() && down && !wasDown)
+		if (mc.isGameFocused() && down && !wasDown)
 			NeatConfig.draw = !NeatConfig.draw;
 	}
-	
+
 }
