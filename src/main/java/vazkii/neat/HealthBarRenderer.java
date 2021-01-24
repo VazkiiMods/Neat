@@ -10,7 +10,6 @@ import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.culling.ClippingHelper;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.AtlasTexture;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.CreatureAttribute;
@@ -259,40 +258,37 @@ public class HealthBarRenderer {
 		Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
 		normal.transform(entry.getNormal());
 		IVertexBuilder builder = buffer.getBuffer(NeatRenderType.getHealthBarType(NeatRenderType.HEALTH_BAR_TEXTURE));
-		final int overlay = OverlayTexture.NO_OVERLAY;
 		float padding = NeatConfig.backgroundPadding;
 		int bgHeight = NeatConfig.backgroundHeight;
 		int barHeight = NeatConfig.barHeight;
 
-		float z = 0.01F;
-
 		// Background
 		if (NeatConfig.drawBackground) {
-			builder.pos(modelViewMatrix, -size - padding, -bgHeight, z).tex(0.0F, 0.0F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-			builder.pos(modelViewMatrix, -size - padding, barHeight + padding, z).tex(0.0F, 0.5F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-			builder.pos(modelViewMatrix, size + padding, barHeight + padding, z).tex(1.0F, 0.5F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-			builder.pos(modelViewMatrix, size + padding, -bgHeight, z).tex(1.0F, 0.0F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
+			builder.pos(modelViewMatrix, -size - padding, -bgHeight, 0.01F).tex(0.0F, 0.0F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+			builder.pos(modelViewMatrix, -size - padding, barHeight + padding, 0.01F).tex(0.0F, 0.5F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+			builder.pos(modelViewMatrix, size + padding, barHeight + padding, 0.01F).tex(1.0F, 0.5F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+			builder.pos(modelViewMatrix, size + padding, -bgHeight, 0.01F).tex(1.0F, 0.0F).color(0, 0, 0, 64).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
 		}
-
-		// Gray Space
-		z -= 0.001F;
-
-		builder.pos(modelViewMatrix, -size, 0, z).tex(0.0F, 0.5F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-		builder.pos(modelViewMatrix, -size, barHeight, z).tex(0.0F, 0.75F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-		builder.pos(modelViewMatrix, size, barHeight, z).tex(1.0F, 0.75F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-		builder.pos(modelViewMatrix, size, 0, z).tex(1.0F, 0.5F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
 
 		// Health Bar
 		int argb = getColor(entity, NeatConfig.colorByType, boss);
 		int r = (argb >> 16) & 0xFF;
 		int g = (argb >> 8) & 0xFF;
 		int b = argb & 0xFF;
-		z -= 0.001F;
 
-		builder.pos(modelViewMatrix, -size, 0, z).tex(0.0F, 0.75F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-		builder.pos(modelViewMatrix, -size, barHeight, z).tex(0.0F, 1.0F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-		builder.pos(modelViewMatrix, healthSize * 2 - size, barHeight, z).tex(1.0F, 1.0F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-		builder.pos(modelViewMatrix, healthSize * 2 - size, 0, z).tex(1.0F, 0.75F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
+		builder.pos(modelViewMatrix, -size, 0, 0.001F).tex(0.0F, 0.75F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+		builder.pos(modelViewMatrix, -size, barHeight, 0.001F).tex(0.0F, 1.0F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+		builder.pos(modelViewMatrix, healthSize * 2 - size, barHeight, 0.001F).tex(1.0F, 1.0F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+		builder.pos(modelViewMatrix, healthSize * 2 - size, 0, 0.001F).tex(1.0F, 0.75F).color(r, g, b, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+
+		//Health bar background
+		if (healthSize < size) {
+			builder.pos(modelViewMatrix, -size + healthSize * 2, 0, 0.001F).tex(0.0F, 0.5F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+			builder.pos(modelViewMatrix, -size + healthSize * 2, barHeight, 0.001F).tex(0.0F, 0.75F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+			builder.pos(modelViewMatrix, size, barHeight, 0.001F).tex(1.0F, 0.75F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+			builder.pos(modelViewMatrix, size, 0, 0.001F).tex(1.0F, 0.5F).color(0, 0, 0, 127).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+		}
+
 
 		{
 			int white = 0xFFFFFF;
@@ -336,7 +332,7 @@ public class HealthBarRenderer {
 			matrixStack.translate(size / (textScale * s1) * 2, 0F, 0F);
 			mc.textureManager.bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
 			if (NeatConfig.showAttributes) {
-				renderIcon(mc, off, 0, icon, matrixStack, buffer, light, overlay);
+				renderIcon(mc, off, 0, icon, matrixStack, buffer, light);
 				off -= 16;
 			}
 
@@ -351,13 +347,13 @@ public class HealthBarRenderer {
 
 				icon = new ItemStack(Items.IRON_CHESTPLATE);
 				for (int i = 0; i < ironArmor; i++) {
-					renderIcon(mc, off, 0, icon, matrixStack, buffer, light, overlay);
+					renderIcon(mc, off, 0, icon, matrixStack, buffer, light);
 					off -= 4;
 				}
 
 				icon = new ItemStack(Items.DIAMOND_CHESTPLATE);
 				for (int i = 0; i < diamondArmor; i++) {
-					renderIcon(mc, off, 0, icon, matrixStack, buffer, light, overlay);
+					renderIcon(mc, off, 0, icon, matrixStack, buffer, light);
 					off -= 4;
 				}
 			}
@@ -365,7 +361,7 @@ public class HealthBarRenderer {
 		}
 	}
 
-	private void renderIcon(Minecraft mc, int vertexX, int vertexY, @Nonnull ItemStack icon, MatrixStack matrixStack, IRenderTypeBuffer buffer, int light, int overlay) {
+	private void renderIcon(Minecraft mc, int vertexX, int vertexY, @Nonnull ItemStack icon, MatrixStack matrixStack, IRenderTypeBuffer buffer, int light) {
 		matrixStack.push();
 		matrixStack.rotate(Vector3f.ZP.rotationDegrees(-90));
 		matrixStack.translate(vertexY - 16, vertexX - 16, 0.0D);
@@ -386,10 +382,10 @@ public class HealthBarRenderer {
 				builder.pos(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			} else {
 				builder = buffer.getBuffer(NeatRenderType.getHealthBarType(AtlasTexture.LOCATION_BLOCKS_TEXTURE));
-				builder.pos(modelViewMatrix, 0.0F, 0.0F, 0.0F).tex(sprite.getMinU(), sprite.getMaxV()).color(255, 255, 255, 255).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-				builder.pos(modelViewMatrix, 0.0F, 1.0F, 0.0F).tex(sprite.getMaxU(), sprite.getMaxV()).color(255, 255, 255, 255).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-				builder.pos(modelViewMatrix, 1.0F, 1.0F, 0.0F).tex(sprite.getMaxU(), sprite.getMinV()).color(255, 255, 255, 255).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
-				builder.pos(modelViewMatrix, 1.0F, 0.0F, 0.0F).tex(sprite.getMinU(), sprite.getMinV()).color(255, 255, 255, 255).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).overlay(overlay).endVertex();
+				builder.pos(modelViewMatrix, 0.0F, 0.0F, 0.0F).tex(sprite.getMinU(), sprite.getMaxV()).color(255, 255, 255, 255).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+				builder.pos(modelViewMatrix, 0.0F, 1.0F, 0.0F).tex(sprite.getMaxU(), sprite.getMaxV()).color(255, 255, 255, 255).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+				builder.pos(modelViewMatrix, 1.0F, 1.0F, 0.0F).tex(sprite.getMaxU(), sprite.getMinV()).color(255, 255, 255, 255).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
+				builder.pos(modelViewMatrix, 1.0F, 0.0F, 0.0F).tex(sprite.getMinU(), sprite.getMinV()).color(255, 255, 255, 255).normal(normal.getX(), normal.getY(), normal.getZ()).lightmap(light).endVertex();
 			}
 			//Wonky workaround for making corner icons stay in position
 			builder = buffer.getBuffer(NeatRenderType.getNoIconType());
