@@ -2,14 +2,16 @@ package vazkii.neat;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.datafixers.util.Pair;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Camera;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.MobType;
@@ -188,6 +190,8 @@ public class HealthBarRenderer {
 			ridingStack.push(entity);
 		}
 
+		ShaderInstance prevShader = RenderSystem.getShader();
+		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		poseStack.pushPose();
 		while (!ridingStack.isEmpty()) {
 			entity = ridingStack.pop();
@@ -230,6 +234,7 @@ public class HealthBarRenderer {
 			}
 		}
 		poseStack.popPose();
+		//RenderSystem.setShader(() -> prevShader);
 
 	}
 
@@ -330,7 +335,7 @@ public class HealthBarRenderer {
 			s1 = 0.5F;
 			poseStack.scale(s1, s1, s1);
 			poseStack.translate(size / (textScale * s1) * 2, 0F, 0F);
-			mc.textureManager.bindForSetup(TextureAtlas.LOCATION_BLOCKS);
+			mc.textureManager.bindForSetup(InventoryMenu.BLOCK_ATLAS);
 			if (NeatConfig.showAttributes) {
 				renderIcon(mc, off, 0, icon, poseStack, buffer, light);
 				off -= 16;
@@ -381,7 +386,7 @@ public class HealthBarRenderer {
 				builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 				builder.vertex(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			} else {
-				builder = buffer.getBuffer(NeatRenderType.getHealthBarType(TextureAtlas.LOCATION_BLOCKS));
+				builder = buffer.getBuffer(NeatRenderType.getHealthBarType(InventoryMenu.BLOCK_ATLAS));
 				builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).uv(sprite.getU0(), sprite.getV1()).color(255, 255, 255, 255).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
 				builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).uv(sprite.getU1(), sprite.getV1()).color(255, 255, 255, 255).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
 				builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).uv(sprite.getU1(), sprite.getV0()).color(255, 255, 255, 255).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();

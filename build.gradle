@@ -21,6 +21,10 @@ version = "${config.version}-${config.build_number}"
 group = "vazkii.${config.mod_id}" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = config.mod_name
 
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+compileJava.options.compilerArgs << "-Xlint:all,-classfile,-processing,-serial" << "-Werror"
+
 //sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
 
 minecraft {
@@ -88,16 +92,10 @@ repositories {
 
 processResources {
     // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'META-INF/mods.toml'
+    filesMatching('META-INF/mods.toml') {
 
         // replace version and mcversion
         expand 'version': project.version
-    }
-
-    // copy everything else, thats not the mods.toml
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'META-INF/mods.toml', '**/psd/**'
     }
 }
 
