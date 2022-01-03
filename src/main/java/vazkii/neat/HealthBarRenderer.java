@@ -191,7 +191,7 @@ public class HealthBarRenderer {
 		}
 
 		ShaderInstance prevShader = RenderSystem.getShader();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
 		poseStack.pushPose();
 		while (!ridingStack.isEmpty()) {
 			entity = ridingStack.pop();
@@ -269,10 +269,10 @@ public class HealthBarRenderer {
 
 		// Background
 		if (NeatConfig.drawBackground) {
-			builder.vertex(modelViewMatrix, -size - padding, -bgHeight, 0.01F).uv(0.0F, 0.0F).color(0, 0, 0, 64).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, -size - padding, barHeight + padding, 0.01F).uv(0.0F, 0.5F).color(0, 0, 0, 64).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, size + padding, barHeight + padding, 0.01F).uv(1.0F, 0.5F).color(0, 0, 0, 64).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, size + padding, -bgHeight, 0.01F).uv(1.0F, 0.0F).color(0, 0, 0, 64).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
+			builder.vertex(modelViewMatrix, -size - padding, -bgHeight, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.0F).uv2(light).endVertex();
+			builder.vertex(modelViewMatrix, -size - padding, barHeight + padding, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.5F).uv2(light).endVertex();
+			builder.vertex(modelViewMatrix, size + padding, barHeight + padding, 0.01F).color(0, 0, 0, 64).uv(1.0F, 0.5F).uv2(light).endVertex();
+			builder.vertex(modelViewMatrix, size + padding, -bgHeight, 0.01F).color(0, 0, 0, 64).uv(1.0F, 0.0F).uv2(light).endVertex();
 		}
 
 		// Health Bar
@@ -281,17 +281,17 @@ public class HealthBarRenderer {
 		int g = (argb >> 8) & 0xFF;
 		int b = argb & 0xFF;
 
-		builder.vertex(modelViewMatrix, -size, 0, 0.001F).uv(0.0F, 0.75F).color(r, g, b, 127).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-		builder.vertex(modelViewMatrix, -size, barHeight, 0.001F).uv(0.0F, 1.0F).color(r, g, b, 127).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-		builder.vertex(modelViewMatrix, healthSize * 2 - size, barHeight, 0.001F).uv(1.0F, 1.0F).color(r, g, b, 127).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-		builder.vertex(modelViewMatrix, healthSize * 2 - size, 0, 0.001F).uv(1.0F, 0.75F).color(r, g, b, 127).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
+		builder.vertex(modelViewMatrix, -size, 0, 0.001F).color(r, g, b, 127).uv(0.0F, 0.75F).uv2(light).endVertex();
+		builder.vertex(modelViewMatrix, -size, barHeight, 0.001F).color(r, g, b, 127).uv(0.0F, 1.0F).uv2(light).endVertex();
+		builder.vertex(modelViewMatrix, healthSize * 2 - size, barHeight, 0.001F).color(r, g, b, 127).uv(1.0F, 1.0F).uv2(light).endVertex();
+		builder.vertex(modelViewMatrix, healthSize * 2 - size, 0, 0.001F).color(r, g, b, 127).uv(1.0F, 0.75F).uv2(light).endVertex();
 
 		//Health bar background
 		if (healthSize < size) {
-			builder.vertex(modelViewMatrix, -size + healthSize * 2, 0, 0.001F).uv(0.0F, 0.5F).color(0, 0, 0, 127).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, -size + healthSize * 2, barHeight, 0.001F).uv(0.0F, 0.75F).color(0, 0, 0, 127).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, size, barHeight, 0.001F).uv(1.0F, 0.75F).color(0, 0, 0, 127).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, size, 0, 0.001F).uv(1.0F, 0.5F).color(0, 0, 0, 127).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
+			builder.vertex(modelViewMatrix, -size + healthSize * 2, 0, 0.001F).color(0, 0, 0, 127).uv(0.0F, 0.5F).uv2(light).endVertex();
+			builder.vertex(modelViewMatrix, -size + healthSize * 2, barHeight, 0.001F).color(0, 0, 0, 127).uv(0.0F, 0.75F).uv2(light).endVertex();
+			builder.vertex(modelViewMatrix, size, barHeight, 0.001F).color(0, 0, 0, 127).uv(1.0F, 0.75F).uv2(light).endVertex();
+			builder.vertex(modelViewMatrix, size, 0, 0.001F).color(0, 0, 0, 127).uv(1.0F, 0.5F).uv2(light).endVertex();
 		}
 
 
@@ -379,21 +379,21 @@ public class HealthBarRenderer {
 			Matrix4f modelViewMatrix = pose.pose();
 			Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
 			normal.transform(pose.normal());
-			VertexConsumer builder = buffer.getBuffer(NeatRenderType.getNoIconType());
 			if (icon.isEmpty()) { //Wonky workaround to make text stay in position & make empty icon not rendering
+				VertexConsumer builder = buffer.getBuffer(NeatRenderType.getNoIconType());
 				builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 				builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 				builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 				builder.vertex(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			} else {
-				builder = buffer.getBuffer(NeatRenderType.getHealthBarType(InventoryMenu.BLOCK_ATLAS));
-				builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).uv(sprite.getU0(), sprite.getV1()).color(255, 255, 255, 255).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-				builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).uv(sprite.getU1(), sprite.getV1()).color(255, 255, 255, 255).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-				builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).uv(sprite.getU1(), sprite.getV0()).color(255, 255, 255, 255).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
-				builder.vertex(modelViewMatrix, 1.0F, 0.0F, 0.0F).uv(sprite.getU0(), sprite.getV0()).color(255, 255, 255, 255).normal(normal.x(), normal.y(), normal.z()).uv2(light).endVertex();
+				VertexConsumer builder = buffer.getBuffer(NeatRenderType.getHealthBarType(InventoryMenu.BLOCK_ATLAS));
+				builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU0(), sprite.getV1()).uv2(light).endVertex();
+				builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU1(), sprite.getV1()).uv2(light).endVertex();
+				builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU1(), sprite.getV0()).uv2(light).endVertex();
+				builder.vertex(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU0(), sprite.getV0()).uv2(light).endVertex();
 			}
 			//Wonky workaround for making corner icons stay in position
-			builder = buffer.getBuffer(NeatRenderType.getNoIconType());
+			VertexConsumer builder = buffer.getBuffer(NeatRenderType.getNoIconType());
 			builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
