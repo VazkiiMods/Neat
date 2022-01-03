@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
@@ -19,7 +19,9 @@ version = "${config.version}-${config.build_number}"
 group = "vazkii.${config.mod_id}" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = config.mod_name
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+compileJava.options.compilerArgs << "-Xlint:all,-classfile,-processing,-serial" << "-Werror"
 
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.
@@ -74,26 +76,12 @@ dependencies {
     minecraft "net.minecraftforge:forge:${config.mc_version}-${config.forge_version}"
 }
 
-repositories {
-    maven {
-        // for Mappings
-        name "gigaherz"
-        url "http://dogforce-games.com/maven/"
-    }
-}
-
 processResources {
     // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'META-INF/mods.toml'
+    filesMatching('META-INF/mods.toml') {
 
         // replace version and mcversion
         expand 'version': project.version
-    }
-
-    // copy everything else, thats not the mods.toml
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'META-INF/mods.toml', '**/psd/**'
     }
 }
 
@@ -104,9 +92,6 @@ task incrementBuildNumber {
             config.toProperties().store(it, "")
         }
     }
-
-    //file('web/versions.ini').append("\n${version}=${minecraft.version}")
-    //file("${config.dir_repo}/version/${minecraft.version}.txt").write("${version}")
 }
 
 import java.util.regex.Pattern
@@ -118,8 +103,7 @@ task sortArtifacts(type: Copy) {
         //This matcher is used to get the classifier of the jar
         def matcher = Pattern.compile(Pattern.quote("$config.mod_name-$version") + "-(?<classifier>\\w+).jar").matcher(it.name)
         //Only change the destination for full matches, i.e jars with classifiers
-        if (matcher.matches())
-        {
+        if (matcher.matches()) {
             def classifier = matcher.group('classifier')
             /* Set the relative path to change the destination, since 
              * Gradle doesn't seem to like the absolute path being set*/
