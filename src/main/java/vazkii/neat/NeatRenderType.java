@@ -25,7 +25,7 @@ public class NeatRenderType extends RenderStateShard {
 	}
 
 	public static RenderType getNoIconType() {
-		RenderType.CompositeState renderTypeState = RenderType.CompositeState.builder().setTransparencyState(TransparencyStateShard.TRANSLUCENT_TRANSPARENCY).createCompositeState(true);
+		RenderType.CompositeState renderTypeState = RenderType.CompositeState.builder().setShaderState(POSITION_COLOR_SHADER).setTransparencyState(TransparencyStateShard.TRANSLUCENT_TRANSPARENCY).createCompositeState(true);
 		return RenderType.create("neat_icon", POSITION_COLOR, VertexFormat.Mode.QUADS, 0, false, false, renderTypeState);
 	}
 
