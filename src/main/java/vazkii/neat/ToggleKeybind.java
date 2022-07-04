@@ -23,8 +23,9 @@ public class ToggleKeybind {
 		Minecraft mc = Minecraft.getInstance();
 		boolean wasDown = down;
 		down = key.isDown();
-		if (mc.isWindowActive() && down && !wasDown)
+		if (mc.isWindowActive() && down && !wasDown) {
 			NeatConfig.draw = !NeatConfig.draw;
+		}
 	}
 
 }

@@ -51,11 +51,13 @@ public class HealthBarRenderer {
 		HitResult pos = raycast(e, finalDistance);
 		Vec3 positionVector = e.position();
 
-		if (e instanceof Player)
+		if (e instanceof Player) {
 			positionVector = positionVector.add(0, e.getEyeHeight(e.getPose()), 0);
+		}
 
-		if (pos != null)
+		if (pos != null) {
 			distance = pos.getLocation().distanceTo(positionVector);
+		}
 
 		Vec3 lookVector = e.getLookAngle();
 		Vec3 reachVector = positionVector.add(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance);
@@ -84,8 +86,9 @@ public class HealthBarRenderer {
 				}
 			}
 
-			if (lookedEntity != null && (minDistance < distance || pos == null))
+			if (lookedEntity != null && (minDistance < distance || pos == null)) {
 				foundEntity = lookedEntity;
+			}
 		}
 
 		return foundEntity;
@@ -93,12 +96,14 @@ public class HealthBarRenderer {
 
 	public static HitResult raycast(Entity e, double len) {
 		Vec3 vec = new Vec3(e.getX(), e.getY(), e.getZ());
-		if (e instanceof Player)
+		if (e instanceof Player) {
 			vec = vec.add(new Vec3(0, e.getEyeHeight(e.getPose()), 0));
+		}
 
 		Vec3 look = e.getLookAngle();
-		if (look == null)
+		if (look == null) {
 			return null;
+		}
 
 		return raycast(vec, look, e, len);
 	}
@@ -150,8 +155,9 @@ public class HealthBarRenderer {
 	public void onRenderLevelLast(RenderLevelLastEvent event) {
 		Minecraft mc = Minecraft.getInstance();
 
-		if ((!NeatConfig.renderInF1 && !Minecraft.renderNames()) || !NeatConfig.draw)
+		if ((!NeatConfig.renderInF1 && !Minecraft.renderNames()) || !NeatConfig.draw) {
 			return;
+		}
 
 		Camera camera = mc.gameRenderer.getMainCamera();
 		PoseStack poseStack = event.getPoseStack();
@@ -198,21 +204,27 @@ public class HealthBarRenderer {
 			boolean boss = !entity.canChangeDimensions();
 
 			String entityID = entity.getType().getRegistryName().toString();
-			if (NeatConfig.blacklist.contains(entityID))
+			if (NeatConfig.blacklist.contains(entityID)) {
 				continue;
+			}
 
 			processing: {
 				float distance = passedEntity.distanceTo(viewPoint);
-				if (distance > NeatConfig.maxDistance || !passedEntity.hasLineOfSight(viewPoint) || entity.isInvisible())
+				if (distance > NeatConfig.maxDistance || !passedEntity.hasLineOfSight(viewPoint) || entity.isInvisible()) {
 					break processing;
-				if (!NeatConfig.showOnBosses && boss)
+				}
+				if (!NeatConfig.showOnBosses && boss) {
 					break processing;
-				if (!NeatConfig.showOnPlayers && entity instanceof Player)
+				}
+				if (!NeatConfig.showOnPlayers && entity instanceof Player) {
 					break processing;
-				if (entity.getMaxHealth() <= 0)
+				}
+				if (entity.getMaxHealth() <= 0) {
 					break processing;
-				if (!NeatConfig.showFullHealth && entity.getHealth() == entity.getMaxHealth())
+				}
+				if (!NeatConfig.showFullHealth && entity.getHealth() == entity.getMaxHealth()) {
 					break processing;
+				}
 
 				double x = passedEntity.xo + (passedEntity.getX() - passedEntity.xo) * partialTicks;
 				double y = passedEntity.yo + (passedEntity.getY() - passedEntity.yo) * partialTicks;
@@ -249,8 +261,9 @@ public class HealthBarRenderer {
 		float textScale = 0.5F;
 
 		String name = (entity.hasCustomName() ? entity.getCustomName() : entity.getDisplayName()).getString();
-		if (entity.hasCustomName())
+		if (entity.hasCustomName()) {
 			name = ChatFormatting.ITALIC + name;
+		}
 
 		float namel = mc.font.width(name) * textScale;
 		if (namel + 20 > size * 2) {
@@ -312,19 +325,25 @@ public class HealthBarRenderer {
 				String hpStr = "" + Math.round(health * 100.0) / 100.0;
 				String percStr = (int) percent + "%";
 
-				if (maxHpStr.endsWith(".00"))
+				if (maxHpStr.endsWith(".00")) {
 					maxHpStr = maxHpStr.substring(0, maxHpStr.length() - 3);
-				if (hpStr.endsWith(".00"))
+				}
+				if (hpStr.endsWith(".00")) {
 					hpStr = hpStr.substring(0, hpStr.length() - 3);
+				}
 
-				if (NeatConfig.showCurrentHP)
+				if (NeatConfig.showCurrentHP) {
 					mc.font.drawInBatch(hpStr, 2, h, white, false, modelViewMatrix, buffer, false, black, light);
-				if (NeatConfig.showMaxHP)
+				}
+				if (NeatConfig.showMaxHP) {
 					mc.font.drawInBatch(maxHpStr, (int) (size / (textScale * s1) * 2) - 2 - mc.font.width(maxHpStr), h, white, false, modelViewMatrix, buffer, false, black, light);
-				if (NeatConfig.showPercentage)
+				}
+				if (NeatConfig.showPercentage) {
 					mc.font.drawInBatch(percStr, (int) (size / (textScale * s1)) - mc.font.width(percStr) / 2, h, white, false, modelViewMatrix, buffer, false, black, light);
-				if (NeatConfig.enableDebugInfo && mc.options.renderDebug)
+				}
+				if (NeatConfig.enableDebugInfo && mc.options.renderDebug) {
 					mc.font.drawInBatch("ID: \"" + entity.getType().getRegistryName().toString() + "\"", 0, h + 16, white, false, modelViewMatrix, buffer, false, black, light);
+				}
 			}
 			poseStack.popPose();
 
