@@ -33,6 +33,11 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Forge
-        path: build/libs/*.jar
+        path: Forge/build/libs/*.jar
+    - name: Archive Fabric Binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: Fabric
+        path: Fabric/build/libs/*.jar
     - name: Cleanup
       run: ./gradlew --stop
