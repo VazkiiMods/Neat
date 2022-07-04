@@ -2,7 +2,7 @@
 Thumbs.db
 
 ## gradle
-/.gradle
+.gradle/
 build/
 
 ## ForgeGradle

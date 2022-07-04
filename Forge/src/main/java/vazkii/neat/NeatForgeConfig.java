@@ -1,7 +1,5 @@
 package vazkii.neat;
 
-import com.google.common.collect.ImmutableList;
-
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -69,9 +67,7 @@ public class NeatForgeConfig {
 			showFullHealth = builder.define("Show entities with full health", true);
 			enableDebugInfo = builder.define("Show Debug Info with F3", true);
 			blacklist = builder.comment("Blacklist uses entity IDs, not their display names. Use F3 to see them in the Neat bar.")
-					.defineList("Blacklist",
-							ImmutableList.of("minecraft:shulker", "minecraft:armor_stand", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish", "minecraft:tropical_fish"),
-							a -> true);
+					.defineList("Blacklist", NeatConfig.DEFAULT_DISABLED, a -> true);
 
 			builder.pop();
 		}

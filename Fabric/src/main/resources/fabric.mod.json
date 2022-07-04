@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "neat",
+  "version": "${version}",
+
+  "name": "Neat",
+  "description": "Botania is a tech mod themed around natural magic",
+  "authors": [
+    "Vazkii",
+    "williewillus",
+    "Alwinfy"
+  ],
+  "contact": {
+    "sources": "https://github.com/VazkiiMods/Neat",
+    "issues": "https://github.com/VazkiiMods/Neat/issues"
+  },
+
+  "license": "MIT AND CC-BY-NC-SA-3.0",
+
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "vazkii.neat.NeatFabricInitializer"
+    ]
+  },
+  "mixins": [
+    "neat.mixins.json"
+  ],
+  "accessWidener": "neat.accesswidener",
+
+  "depends": {
+    "fabricloader": ">=0.12",
+    "fabric": ">=0.50",
+    "minecraft": ">=1.18.2"
+  }
+}

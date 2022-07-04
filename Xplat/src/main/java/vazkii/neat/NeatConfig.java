@@ -1,5 +1,7 @@
 package vazkii.neat;
 
+import com.google.common.collect.ImmutableList;
+
 import java.util.List;
 
 public class NeatConfig {
@@ -32,6 +34,8 @@ public class NeatConfig {
 		boolean enableDebugInfo();
 		List<String> blacklist();
 	}
+
+	public static final List<String> DEFAULT_DISABLED = ImmutableList.of("minecraft:shulker", "minecraft:armor_stand", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish", "minecraft:tropical_fish");
 
 	public static ConfigAccess instance;
 }

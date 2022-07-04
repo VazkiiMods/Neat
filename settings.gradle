@@ -8,4 +8,4 @@ pluginManagement {
     }
 }
 rootProject.name = 'Neat'
-include("Xplat", "Forge")
+include("Xplat", "Fabric", "Forge")
