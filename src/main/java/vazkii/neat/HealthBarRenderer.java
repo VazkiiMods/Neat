@@ -342,7 +342,6 @@ public class HealthBarRenderer {
 			s1 = 0.5F;
 			poseStack.scale(s1, s1, s1);
 			poseStack.translate(size / (textScale * s1) * 2, 0F, 0F);
-			mc.textureManager.bindForSetup(InventoryMenu.BLOCK_ATLAS);
 			if (NeatConfig.showAttributes.get()) {
 				renderIcon(mc, off, 0, icon, poseStack, buffer, light);
 				off -= 16;
