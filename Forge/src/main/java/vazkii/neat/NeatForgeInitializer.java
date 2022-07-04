@@ -1,8 +1,6 @@
 package vazkii.neat;
 
 import net.minecraftforge.client.ClientRegistry;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -22,6 +20,5 @@ public class NeatForgeInitializer {
 	public void setup(FMLClientSetupEvent event) {
 		// Constructing KEY itself accesses global vanilla state which is incompatible with parallel mod loading
 		event.enqueueWork(() -> ClientRegistry.registerKeyBinding(ToggleKeybind.KEY));
-		MinecraftForge.EVENT_BUS.addListener((InputEvent.KeyInputEvent e) -> ToggleKeybind.onKeyInput());
 	}
 }
