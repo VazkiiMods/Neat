@@ -10,12 +10,10 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkConstants;
 
-@Mod(Neat.MOD_ID)
-public class Neat {
+@Mod(NeatConfig.MOD_ID)
+public class NeatForgeInitializer {
 
-	public static final String MOD_ID = "neat";
-
-	public Neat() {
+	public NeatForgeInitializer() {
 		ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (incoming, isNetwork) -> true));
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
 		NeatConfig.init();

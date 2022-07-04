@@ -11,7 +11,7 @@ import static com.mojang.blaze3d.vertex.DefaultVertexFormat.*;
 public class NeatRenderType extends RenderStateShard {
 
 	//https://github.com/UpcraftLP/Orderly/blob/master/src/main/resources/assets/orderly/textures/ui/default_health_bar.png
-	public static final ResourceLocation HEALTH_BAR_TEXTURE = new ResourceLocation(Neat.MOD_ID, "textures/ui/health_bar_texture.png");
+	public static final ResourceLocation HEALTH_BAR_TEXTURE = new ResourceLocation(NeatConfig.MOD_ID, "textures/ui/health_bar_texture.png");
 	public static final RenderType BAR_TEXTURE_TYPE = getHealthBarType();
 
 	private NeatRenderType(String string, Runnable r, Runnable r1) {

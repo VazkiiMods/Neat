@@ -13,6 +13,7 @@ import java.util.List;
 
 public class NeatConfig {
 
+	public static final String MOD_ID = "neat";
 	public static boolean draw = true;
 
 	public static ConfigValue<Integer> maxDistance;
