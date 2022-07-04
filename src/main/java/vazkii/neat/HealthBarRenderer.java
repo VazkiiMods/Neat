@@ -263,7 +263,7 @@ public class HealthBarRenderer {
 		Matrix4f modelViewMatrix = pose.pose();
 		Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
 		normal.transform(pose.normal());
-		VertexConsumer builder = buffer.getBuffer(NeatRenderType.getHealthBarType(NeatRenderType.HEALTH_BAR_TEXTURE));
+		VertexConsumer builder = buffer.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
 		float padding = NeatConfig.backgroundPadding.get();
 		int bgHeight = NeatConfig.backgroundHeight.get();
 		int barHeight = NeatConfig.barHeight.get();
@@ -386,20 +386,20 @@ public class HealthBarRenderer {
 			Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
 			normal.transform(pose.normal());
 			if (icon.isEmpty()) { //Wonky workaround to make text stay in position & make empty icon not rendering
-				VertexConsumer builder = buffer.getBuffer(NeatRenderType.getNoIconType());
+				VertexConsumer builder = buffer.getBuffer(NeatRenderType.NO_ICON_TYPE);
 				builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 				builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 				builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 				builder.vertex(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			} else {
-				VertexConsumer builder = buffer.getBuffer(NeatRenderType.getHealthBarType(InventoryMenu.BLOCK_ATLAS));
+				VertexConsumer builder = buffer.getBuffer(NeatRenderType.BAR_ATLAS_TYPE);
 				builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU0(), sprite.getV1()).uv2(light).endVertex();
 				builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU1(), sprite.getV1()).uv2(light).endVertex();
 				builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU1(), sprite.getV0()).uv2(light).endVertex();
 				builder.vertex(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU0(), sprite.getV0()).uv2(light).endVertex();
 			}
 			//Wonky workaround for making corner icons stay in position
-			VertexConsumer builder = buffer.getBuffer(NeatRenderType.getNoIconType());
+			VertexConsumer builder = buffer.getBuffer(NeatRenderType.NO_ICON_TYPE);
 			builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
