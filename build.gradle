@@ -1,10 +1,15 @@
 buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
+        maven {
+            url = 'https://repo.spongepowered.org/repository/maven-public/'
+            content { includeGroup "org.spongepowered" }
+        }
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 
@@ -17,6 +22,7 @@ apply plugin: 'eclipse'
 apply plugin: "pmd"
 apply plugin: "com.diffplug.spotless"
 apply plugin: 'maven-publish'
+apply plugin: 'org.spongepowered.mixin'
 
 version = "${project.version}-${project.build_number}"
 group = "vazkii.${project.mod_id}"
@@ -25,6 +31,11 @@ archivesBaseName = project.mod_name
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 compileJava.options.compilerArgs << "-Xlint:all,-classfile,-processing,-serial,-deprecation" << "-Werror"
+
+mixin {
+    add sourceSets.main, "neat.refmap.json"
+    config "neat.mixins.json"
+}
 
 pmd {
     toolVersion '6.35.0'
@@ -75,6 +86,7 @@ minecraft {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${project.mc_version}-${project.forge_version}"
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 processResources {
