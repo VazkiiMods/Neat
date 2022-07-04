@@ -38,9 +38,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import javax.annotation.Nonnull;
 
 import java.awt.Color;
-import java.util.List;
-import java.util.Optional;
-import java.util.Stack;
+import java.util.*;
 
 public class HealthBarRenderer {
 
@@ -182,7 +180,7 @@ public class HealthBarRenderer {
 	}
 
 	public void renderHealthBar(LivingEntity passedEntity, Minecraft mc, PoseStack poseStack, float partialTicks, Camera camera, Entity viewPoint) {
-		Stack<LivingEntity> ridingStack = new Stack<>();
+		Deque<LivingEntity> ridingStack = new ArrayDeque<>();
 
 		LivingEntity entity = passedEntity;
 		ridingStack.push(entity);
