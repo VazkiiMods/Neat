@@ -1,0 +1,38 @@
+name: Java CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - name: Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+          ./.gradle/loom-cache/remapped-mods
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle', '**/gradle-wrapper.properties') }}
+    - name: Build with Gradle
+      run: ./gradlew pmdMain spotlessJavaCheck build
+    - name: PMD report
+      uses: jwgmeligmeyling/pmd-github-action@v1
+      if: failure()
+      with:
+        path: '**/reports/pmd/main.xml'
+    - name: Archive Forge Binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: Forge
+        path: build/libs/*.jar
+    - name: Cleanup
+      run: ./gradlew --stop
