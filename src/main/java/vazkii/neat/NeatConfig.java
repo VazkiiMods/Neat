@@ -16,38 +16,66 @@ public class NeatConfig {
 	public static final String MOD_ID = "neat";
 	public static boolean draw = true;
 
-	public static ConfigValue<Integer> maxDistance;
-	public static ConfigValue<Boolean> renderInF1;
-	public static ConfigValue<Double> heightAbove;
-	public static ConfigValue<Boolean> drawBackground;
-	public static ConfigValue<Integer> backgroundPadding;
-	public static ConfigValue<Integer> backgroundHeight;
-	public static ConfigValue<Integer> barHeight;
-	public static ConfigValue<Integer> plateSize;
-	public static ConfigValue<Integer> plateSizeBoss;
-	public static ConfigValue<Boolean> showAttributes;
-	public static ConfigValue<Boolean> showArmor;
-	public static ConfigValue<Boolean> groupArmor;
-	public static ConfigValue<Boolean> colorByType;
-	public static ConfigValue<Integer> hpTextHeight;
-	public static ConfigValue<Boolean> showMaxHP;
-	public static ConfigValue<Boolean> showCurrentHP;
-	public static ConfigValue<Boolean> showPercentage;
-	public static ConfigValue<Boolean> showOnPlayers;
-	public static ConfigValue<Boolean> showOnBosses;
-	public static ConfigValue<Boolean> showOnlyFocused;
-	public static ConfigValue<Boolean> showFullHealth;
-	public static ConfigValue<Boolean> enableDebugInfo;
-	public static ConfigValue<List<? extends String>> blacklist;
+	public interface ConfigAccess {
+		int maxDistance();
+		boolean renderInF1();
+		double heightAbove();
+		boolean drawBackground();
+		int backgroundPadding();
+		int backgroundHeight();
+		int barHeight();
+		int plateSize();
+		int plateSizeBoss();
+		boolean showAttributes();
+		boolean showArmor();
+		boolean groupArmor();
+		boolean colorByType();
+		int hpTextHeight();
+		boolean showMaxHP();
+		boolean showCurrentHP();
+		boolean showPercentage();
+		boolean showOnPlayers();
+		boolean showOnBosses();
+		boolean showOnlyFocused();
+		boolean showFullHealth();
+		boolean enableDebugInfo();
+		List<String> blacklist();
+	}
+
+	public static ConfigAccess instance;
 
 	public static void init() {
-		Pair<Loader, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Loader::new);
+		Pair<ForgeNeatConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ForgeNeatConfig::new);
+		instance = specPair.getLeft();
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, specPair.getRight());
 	}
 
-	static class Loader {
+	private static class ForgeNeatConfig implements ConfigAccess {
+		private final ConfigValue<Integer> maxDistance;
+		private final ConfigValue<Boolean> renderInF1;
+		private final ConfigValue<Double> heightAbove;
+		private final ConfigValue<Boolean> drawBackground;
+		private final ConfigValue<Integer> backgroundPadding;
+		private final ConfigValue<Integer> backgroundHeight;
+		private final ConfigValue<Integer> barHeight;
+		private final ConfigValue<Integer> plateSize;
+		private final ConfigValue<Integer> plateSizeBoss;
+		private final ConfigValue<Boolean> showAttributes;
+		private final ConfigValue<Boolean> showArmor;
+		private final ConfigValue<Boolean> groupArmor;
+		private final ConfigValue<Boolean> colorByType;
+		private final ConfigValue<Integer> hpTextHeight;
+		private final ConfigValue<Boolean> showMaxHP;
+		private final ConfigValue<Boolean> showCurrentHP;
+		private final ConfigValue<Boolean> showPercentage;
+		private final ConfigValue<Boolean> showOnPlayers;
+		private final ConfigValue<Boolean> showOnBosses;
+		private final ConfigValue<Boolean> showOnlyFocused;
+		private final ConfigValue<Boolean> showFullHealth;
+		private final ConfigValue<Boolean> enableDebugInfo;
+		private final ConfigValue<List<? extends String>> blacklist;
 
-		public Loader(ForgeConfigSpec.Builder builder) {
+		public ForgeNeatConfig(ForgeConfigSpec.Builder builder) {
 			builder.push("general");
 
 			maxDistance = builder.define("Max Distance", 24);
@@ -80,6 +108,122 @@ public class NeatConfig {
 			builder.pop();
 		}
 
+		@Override
+		public int maxDistance() {
+			return maxDistance.get();
+		}
+
+		@Override
+		public boolean renderInF1() {
+			return renderInF1.get();
+		}
+
+		@Override
+		public double heightAbove() {
+			return heightAbove.get();
+		}
+
+		@Override
+		public boolean drawBackground() {
+			return drawBackground.get();
+		}
+
+		@Override
+		public int backgroundPadding() {
+			return backgroundPadding.get();
+		}
+
+		@Override
+		public int backgroundHeight() {
+			return backgroundHeight.get();
+		}
+
+		@Override
+		public int barHeight() {
+			return barHeight.get();
+		}
+
+		@Override
+		public int plateSize() {
+			return plateSize.get();
+		}
+
+		@Override
+		public int plateSizeBoss() {
+			return plateSizeBoss.get();
+		}
+
+		@Override
+		public boolean showAttributes() {
+			return showAttributes.get();
+		}
+
+		@Override
+		public boolean showArmor() {
+			return showArmor.get();
+		}
+
+		@Override
+		public boolean groupArmor() {
+			return groupArmor.get();
+		}
+
+		@Override
+		public boolean colorByType() {
+			return colorByType.get();
+		}
+
+		@Override
+		public int hpTextHeight() {
+			return hpTextHeight.get();
+		}
+
+		@Override
+		public boolean showMaxHP() {
+			return showMaxHP.get();
+		}
+
+		@Override
+		public boolean showCurrentHP() {
+			return showCurrentHP.get();
+		}
+
+		@Override
+		public boolean showPercentage() {
+			return showPercentage.get();
+		}
+
+		@Override
+		public boolean showOnPlayers() {
+			return showOnPlayers.get();
+		}
+
+		@Override
+		public boolean showOnBosses() {
+			return showOnBosses.get();
+		}
+
+		@Override
+		public boolean showOnlyFocused() {
+			return showOnlyFocused.get();
+		}
+
+		@Override
+		public boolean showFullHealth() {
+			return showFullHealth.get();
+		}
+
+		@Override
+		public boolean enableDebugInfo() {
+			return enableDebugInfo.get();
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public List<String> blacklist() {
+			// Safe cast from List<? extends String> to List<String>, as String is final
+			return (List<String>) blacklist.get();
+		}
 	}
 
 }

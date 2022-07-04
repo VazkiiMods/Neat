@@ -132,7 +132,7 @@ public class HealthBarRenderer {
 	}
 
 	private static boolean shouldShowPlate(Entity entity, Entity cameraEntity) {
-		if ((!NeatConfig.renderInF1.get() && !Minecraft.renderNames()) || !NeatConfig.draw) {
+		if ((!NeatConfig.instance.renderInF1() && !Minecraft.renderNames()) || !NeatConfig.draw) {
 			return false;
 		}
 
@@ -141,26 +141,26 @@ public class HealthBarRenderer {
 		}
 
 		var id = Registry.ENTITY_TYPE.getKey(living.getType());
-		if (NeatConfig.blacklist.get().contains(id.toString())) {
+		if (NeatConfig.instance.blacklist().contains(id.toString())) {
 			return false;
 		}
 
 		float distance = living.distanceTo(cameraEntity);
-		if (distance > NeatConfig.maxDistance.get()
+		if (distance > NeatConfig.instance.maxDistance()
 				|| !living.hasLineOfSight(cameraEntity)
 				|| living.isInvisible()) {
 			return false;
 		}
-		if (!NeatConfig.showOnBosses.get() && isBoss(living)) {
+		if (!NeatConfig.instance.showOnBosses() && isBoss(living)) {
 			return false;
 		}
-		if (!NeatConfig.showOnPlayers.get() && living instanceof Player) {
+		if (!NeatConfig.instance.showOnPlayers() && living instanceof Player) {
 			return false;
 		}
-		if (!NeatConfig.showFullHealth.get() && living.getHealth() >= living.getMaxHealth()) {
+		if (!NeatConfig.instance.showFullHealth() && living.getHealth() >= living.getMaxHealth()) {
 			return false;
 		}
-		if (NeatConfig.showOnlyFocused.get() && getEntityLookedAt(cameraEntity) != entity) {
+		if (NeatConfig.instance.showOnlyFocused() && getEntityLookedAt(cameraEntity) != entity) {
 			return false;
 		}
 
@@ -184,16 +184,16 @@ public class HealthBarRenderer {
 		final int light = 0xF000F0;
 		final float globalScale = 0.0267F;
 		final float textScale = 0.5F;
-		final int barHeight = NeatConfig.barHeight.get();
+		final int barHeight = NeatConfig.instance.barHeight();
 		final boolean boss = isBoss(entity);
 		final String name = entity.hasCustomName()
 				? ChatFormatting.ITALIC + entity.getCustomName().getString()
 				: entity.getDisplayName().getString();
 		final float nameLen = mc.font.width(name) * textScale;
-		final float halfSize = Math.max(NeatConfig.plateSize.get(), nameLen / 2.0F + 10.0F);
+		final float halfSize = Math.max(NeatConfig.instance.plateSize(), nameLen / 2.0F + 10.0F);
 
 		poseStack.pushPose();
-		poseStack.translate(0, entity.getBbHeight() + NeatConfig.heightAbove.get(), 0);
+		poseStack.translate(0, entity.getBbHeight() + NeatConfig.instance.heightAbove(), 0);
 		poseStack.mulPose(cameraOrientation);
 
 		// Plate background, bars, and text operate with globalScale, but icons don't
@@ -201,9 +201,9 @@ public class HealthBarRenderer {
 		poseStack.scale(-globalScale, -globalScale, globalScale);
 
 		// Background
-		if (NeatConfig.drawBackground.get()) {
-			float padding = NeatConfig.backgroundPadding.get();
-			int bgHeight = NeatConfig.backgroundHeight.get();
+		if (NeatConfig.instance.drawBackground()) {
+			float padding = NeatConfig.instance.backgroundPadding();
+			int bgHeight = NeatConfig.instance.backgroundHeight();
 			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
 			builder.vertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.0F).uv2(light).endVertex();
 			builder.vertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.5F).uv2(light).endVertex();
@@ -213,7 +213,7 @@ public class HealthBarRenderer {
 
 		// Health Bar
 		{
-			int argb = getColor(living, NeatConfig.colorByType.get(), boss);
+			int argb = getColor(living, NeatConfig.instance.colorByType(), boss);
 			int r = (argb >> 16) & 0xFF;
 			int g = (argb >> 8) & 0xFF;
 			int b = argb & 0xFF;
@@ -255,21 +255,21 @@ public class HealthBarRenderer {
 				poseStack.translate(-halfSize, -4.5F, 0F);
 				poseStack.scale(healthValueTextScale, healthValueTextScale, healthValueTextScale);
 
-				int h = NeatConfig.hpTextHeight.get();
+				int h = NeatConfig.instance.hpTextHeight();
 
-				if (NeatConfig.showCurrentHP.get()) {
+				if (NeatConfig.instance.showCurrentHP()) {
 					String hpStr = HEALTH_FORMAT.format(living.getHealth());
 					mc.font.drawInBatch(hpStr, 2, h, white, false, poseStack.last().pose(), buffers, false, black, light);
 				}
-				if (NeatConfig.showMaxHP.get()) {
+				if (NeatConfig.instance.showMaxHP()) {
 					String maxHpStr = ChatFormatting.BOLD + HEALTH_FORMAT.format(living.getMaxHealth());
 					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, white, false, poseStack.last().pose(), buffers, false, black, light);
 				}
-				if (NeatConfig.showPercentage.get()) {
+				if (NeatConfig.instance.showPercentage()) {
 					String percStr = (int) (100 * living.getHealth() / living.getMaxHealth()) + "%";
 					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, white, false, poseStack.last().pose(), buffers, false, black, light);
 				}
-				if (NeatConfig.enableDebugInfo.get() && mc.options.renderDebug) {
+				if (NeatConfig.instance.enableDebugInfo() && mc.options.renderDebug) {
 					var id = Registry.ENTITY_TYPE.getKey(entity.getType());
 					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, poseStack.last().pose(), buffers, false, black, light);
 				}
@@ -286,7 +286,7 @@ public class HealthBarRenderer {
 
 			float iconOffset = 2.85F;
 			float zShift = 0F;
-			if (NeatConfig.showAttributes.get()) {
+			if (NeatConfig.instance.showAttributes()) {
 				var icon = getIcon(living, boss);
 				renderIcon(icon, poseStack, buffers, globalScale, halfSize, iconOffset, zShift);
 				iconOffset += 5F;
@@ -294,10 +294,10 @@ public class HealthBarRenderer {
 			}
 
 			int armor = living.getArmorValue();
-			if (armor > 0 && NeatConfig.showArmor.get()) {
+			if (armor > 0 && NeatConfig.instance.showArmor()) {
 				int ironArmor = armor % 5;
 				int diamondArmor = armor / 5;
-				if (!NeatConfig.groupArmor.get()) {
+				if (!NeatConfig.instance.groupArmor()) {
 					ironArmor = armor;
 					diamondArmor = 0;
 				}
