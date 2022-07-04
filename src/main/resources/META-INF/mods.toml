@@ -1,7 +1,7 @@
 modLoader="javafml"
 loaderVersion="[39,)"
 issueTrackerURL="https://github.com/VazkiiMods/Neat"
-license="Creative Commons 3.0 BY-NC-SA"
+license="MIT AND CC-BY-NC-SA-3.0"  # Code is MIT, assets are CC
 
 [[mods]]
 modId="neat"
