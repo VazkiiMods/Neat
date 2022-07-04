@@ -7,8 +7,15 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
+
+plugins {
+    id 'com.diffplug.spotless' version '5.12.5' apply false
+}
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
+apply plugin: "pmd"
+apply plugin: "com.diffplug.spotless"
 apply plugin: 'maven-publish'
 
 version = "${project.version}-${project.build_number}"
@@ -18,6 +25,24 @@ archivesBaseName = project.mod_name
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 compileJava.options.compilerArgs << "-Xlint:all,-classfile,-processing,-serial" << "-Werror"
+
+pmd {
+    toolVersion '6.35.0'
+    incrementalAnalysis.set(true)
+    ruleSets.clear()
+    ruleSetFiles = rootProject.files("spotless/pmd-ruleset.xml")
+}
+
+spotless {
+    enforceCheck = false // workaround around jenkins having wrong line endings in some files
+    // we explicitly check in github actions builds
+    java {
+        indentWithTabs()
+        eclipse().configFile rootProject.file('spotless/eclipseformat.xml')
+        removeUnusedImports()
+        importOrderFile rootProject.file('spotless/eclipse.importorder')
+    }
+}
 
 minecraft {
     mappings channel: "official", version: "${project.mc_version}"
