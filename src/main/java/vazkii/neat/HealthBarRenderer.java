@@ -33,8 +33,6 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.event.RenderLevelLastEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import javax.annotation.Nonnull;
 
@@ -42,7 +40,7 @@ import java.util.*;
 
 public class HealthBarRenderer {
 
-	public static Entity getEntityLookedAt(Entity e) {
+	private static Entity getEntityLookedAt(Entity e) {
 		Entity foundEntity = null;
 		final double finalDistance = 32;
 		HitResult pos = raycast(e, finalDistance);
@@ -89,7 +87,7 @@ public class HealthBarRenderer {
 		return foundEntity;
 	}
 
-	public static HitResult raycast(Entity e, double len) {
+	private static HitResult raycast(Entity e, double len) {
 		Vec3 vec = new Vec3(e.getX(), e.getY(), e.getZ());
 		if (e instanceof Player) {
 			vec = vec.add(new Vec3(0, e.getEyeHeight(e.getPose()), 0));
@@ -99,13 +97,13 @@ public class HealthBarRenderer {
 		return raycast(vec, look, e, len);
 	}
 
-	public static HitResult raycast(Vec3 origin, Vec3 ray, Entity e, double len) {
+	private static HitResult raycast(Vec3 origin, Vec3 ray, Entity e, double len) {
 		Vec3 next = origin.add(ray.normalize().scale(len));
 		return e.level.clip(new ClipContext(origin, next, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, e));
 	}
 
 	@Nonnull
-	public static ItemStack getIcon(LivingEntity entity, boolean boss) {
+	private static ItemStack getIcon(LivingEntity entity, boolean boss) {
 		if (boss) {
 			return new ItemStack(Items.NETHER_STAR);
 		}
@@ -119,7 +117,7 @@ public class HealthBarRenderer {
 		}
 	}
 
-	public static int getColor(LivingEntity entity, boolean colorByType, boolean boss) {
+	private static int getColor(LivingEntity entity, boolean colorByType, boolean boss) {
 		if (colorByType) {
 			int r = 0;
 			int g = 255;
@@ -142,8 +140,7 @@ public class HealthBarRenderer {
 		}
 	}
 
-	@SubscribeEvent
-	public void onRenderLevelLast(RenderLevelLastEvent event) {
+	public static void onRenderLevelLast(PoseStack poseStack, float partialTicks, Matrix4f projectionMatrix) {
 		Minecraft mc = Minecraft.getInstance();
 
 		if ((!NeatConfig.renderInF1.get() && !Minecraft.renderNames()) || !NeatConfig.draw) {
@@ -151,8 +148,6 @@ public class HealthBarRenderer {
 		}
 
 		Camera camera = mc.gameRenderer.getMainCamera();
-		PoseStack poseStack = event.getPoseStack();
-		float partialTicks = event.getPartialTick();
 		Entity cameraEntity = camera.getEntity() != null ? camera.getEntity() : mc.player;
 
 		if (NeatConfig.showOnlyFocused.get()) {
@@ -162,7 +157,7 @@ public class HealthBarRenderer {
 			}
 		} else {
 			Vec3 cameraPos = camera.getPosition();
-			final Frustum frustum = new Frustum(poseStack.last().pose(), event.getProjectionMatrix());
+			final Frustum frustum = new Frustum(poseStack.last().pose(), projectionMatrix);
 			frustum.prepare(cameraPos.x(), cameraPos.y(), cameraPos.z());
 
 			ClientLevel client = mc.level;
@@ -179,7 +174,7 @@ public class HealthBarRenderer {
 		}
 	}
 
-	public void renderHealthBar(LivingEntity passedEntity, Minecraft mc, PoseStack poseStack, float partialTicks, Camera camera, Entity viewPoint) {
+	private static void renderHealthBar(LivingEntity passedEntity, Minecraft mc, PoseStack poseStack, float partialTicks, Camera camera, Entity viewPoint) {
 		Deque<LivingEntity> ridingStack = new ArrayDeque<>();
 
 		LivingEntity entity = passedEntity;
@@ -243,7 +238,7 @@ public class HealthBarRenderer {
 
 	}
 
-	private void renderEntity(Minecraft mc, PoseStack poseStack, MultiBufferSource.BufferSource buffer, Camera camera, LivingEntity entity, int light, ItemStack icon, boolean boss) {
+	private static void renderEntity(Minecraft mc, PoseStack poseStack, MultiBufferSource.BufferSource buffer, Camera camera, LivingEntity entity, int light, ItemStack icon, boolean boss) {
 		Quaternion rotation = camera.rotation().copy();
 		rotation.mul(-1.0F);
 		poseStack.mulPose(rotation);
@@ -378,7 +373,7 @@ public class HealthBarRenderer {
 		}
 	}
 
-	private void renderIcon(Minecraft mc, int vertexX, int vertexY, @Nonnull ItemStack icon, PoseStack poseStack, MultiBufferSource buffer, int light) {
+	private static void renderIcon(Minecraft mc, int vertexX, int vertexY, @Nonnull ItemStack icon, PoseStack poseStack, MultiBufferSource buffer, int light) {
 		poseStack.pushPose();
 		poseStack.mulPose(Vector3f.ZP.rotationDegrees(-90));
 		poseStack.translate(vertexY - 16, vertexX - 16, 0.0D);
