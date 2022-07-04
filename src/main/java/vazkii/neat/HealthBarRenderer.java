@@ -3,7 +3,6 @@ package vazkii.neat;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
@@ -14,7 +13,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -35,31 +33,31 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.*;
 
 public class HealthBarRenderer {
 
+	@Nullable
 	private static Entity getEntityLookedAt(Entity e) {
 		Entity foundEntity = null;
 		final double finalDistance = 32;
 		HitResult pos = raycast(e, finalDistance);
-		Vec3 positionVector = e.position();
-
-		if (e instanceof Player) {
-			positionVector = positionVector.add(0, e.getEyeHeight(e.getPose()), 0);
-		}
+		Vec3 positionVector = e.getEyePosition();
 
 		double distance = pos.getLocation().distanceTo(positionVector);
 
 		Vec3 lookVector = e.getLookAngle();
 		Vec3 reachVector = positionVector.add(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance);
 
-		Entity lookedEntity = null;
-		List<Entity> entitiesInBoundingBox = e.getCommandSenderWorld().getEntities(e, e.getBoundingBox().inflate(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance).expandTowards(1F, 1F, 1F));
+		List<Entity> entitiesInBoundingBox = e.getLevel().getEntities(e,
+				e.getBoundingBox().inflate(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance)
+						.expandTowards(1F, 1F, 1F));
 		double minDistance = distance;
 
 		for (Entity entity : entitiesInBoundingBox) {
+			Entity lookedEntity = null;
 			if (entity.isPickable()) {
 				AABB collisionBox = entity.getBoundingBoxForCulling();
 				Optional<Vec3> interceptPosition = collisionBox.clip(positionVector, reachVector);
@@ -88,13 +86,7 @@ public class HealthBarRenderer {
 	}
 
 	private static HitResult raycast(Entity e, double len) {
-		Vec3 vec = new Vec3(e.getX(), e.getY(), e.getZ());
-		if (e instanceof Player) {
-			vec = vec.add(new Vec3(0, e.getEyeHeight(e.getPose()), 0));
-		}
-
-		Vec3 look = e.getLookAngle();
-		return raycast(vec, look, e, len);
+		return raycast(e.getEyePosition(), e.getLookAngle(), e, len);
 	}
 
 	private static HitResult raycast(Vec3 origin, Vec3 ray, Entity e, double len) {
@@ -185,7 +177,6 @@ public class HealthBarRenderer {
 			ridingStack.push(entity);
 		}
 
-		ShaderInstance prevShader = RenderSystem.getShader();
 		RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
 		poseStack.pushPose();
 		while (!ridingStack.isEmpty()) {
@@ -225,20 +216,18 @@ public class HealthBarRenderer {
 				poseStack.pushPose();
 				poseStack.translate((float) (x - renderPos.x()), (float) (y - renderPos.y() + passedEntity.getBbHeight() + NeatConfig.heightAbove.get()), (float) (z - renderPos.z()));
 				MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
-				ItemStack icon = getIcon(entity, boss);
 				final int light = 0xF000F0;
-				renderEntity(mc, poseStack, buffer, camera, entity, light, icon, boss);
+				renderEntity(mc, poseStack, buffer, camera, entity, light, boss);
 				poseStack.popPose();
 
 				poseStack.translate(0.0D, -(NeatConfig.backgroundHeight.get() + NeatConfig.barHeight.get() + NeatConfig.backgroundPadding.get()), 0.0D);
 			}
 		}
 		poseStack.popPose();
-		//RenderSystem.setShader(() -> prevShader);
 
 	}
 
-	private static void renderEntity(Minecraft mc, PoseStack poseStack, MultiBufferSource.BufferSource buffer, Camera camera, LivingEntity entity, int light, ItemStack icon, boolean boss) {
+	private static void renderEntity(Minecraft mc, PoseStack poseStack, MultiBufferSource.BufferSource buffer, Camera camera, LivingEntity entity, int light, boolean boss) {
 		Quaternion rotation = camera.rotation().copy();
 		rotation.mul(-1.0F);
 		poseStack.mulPose(rotation);
@@ -259,10 +248,7 @@ public class HealthBarRenderer {
 			size = namel / 2.0F + 10.0F;
 		}
 		float healthSize = size * (health / entity.getMaxHealth());
-		PoseStack.Pose pose = poseStack.last();
-		Matrix4f modelViewMatrix = pose.pose();
-		Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
-		normal.transform(pose.normal());
+		Matrix4f modelViewMatrix = poseStack.last().pose();
 		VertexConsumer builder = buffer.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
 		float padding = NeatConfig.backgroundPadding.get();
 		int bgHeight = NeatConfig.backgroundHeight.get();
@@ -338,13 +324,13 @@ public class HealthBarRenderer {
 			poseStack.popPose();
 
 			poseStack.pushPose();
-			int off = 0;
+			int iconOffset = 0;
 			s1 = 0.5F;
 			poseStack.scale(s1, s1, s1);
 			poseStack.translate(size / (textScale * s1) * 2, 0F, 0F);
 			if (NeatConfig.showAttributes.get()) {
-				renderIcon(mc, off, 0, icon, poseStack, buffer, light);
-				off -= 16;
+				renderIcon(mc, iconOffset, 0, getIcon(entity, boss), poseStack, buffer, light);
+				iconOffset -= 16;
 			}
 
 			int armor = entity.getArmorValue();
@@ -356,16 +342,16 @@ public class HealthBarRenderer {
 					diamondArmor = 0;
 				}
 
-				icon = new ItemStack(Items.IRON_CHESTPLATE);
+				var iron = new ItemStack(Items.IRON_CHESTPLATE);
 				for (int i = 0; i < ironArmor; i++) {
-					renderIcon(mc, off, 0, icon, poseStack, buffer, light);
-					off -= 4;
+					renderIcon(mc, iconOffset, 0, iron, poseStack, buffer, light);
+					iconOffset -= 4;
 				}
 
-				icon = new ItemStack(Items.DIAMOND_CHESTPLATE);
+				var diamond = new ItemStack(Items.DIAMOND_CHESTPLATE);
 				for (int i = 0; i < diamondArmor; i++) {
-					renderIcon(mc, off, 0, icon, poseStack, buffer, light);
-					off -= 4;
+					renderIcon(mc, iconOffset, 0, diamond, poseStack, buffer, light);
+					iconOffset -= 4;
 				}
 			}
 			poseStack.popPose();
@@ -379,12 +365,9 @@ public class HealthBarRenderer {
 		poseStack.scale(16.0F, 16.0F, 1.0F);
 		try {
 			ResourceLocation registryName = Registry.ITEM.getKey(icon.getItem());
-			Pair<ResourceLocation, ResourceLocation> pair = Pair.of(InventoryMenu.BLOCK_ATLAS, new ResourceLocation(registryName.getNamespace(), "item/" + registryName.getPath()));
-			TextureAtlasSprite sprite = mc.getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
-			PoseStack.Pose pose = poseStack.last();
-			Matrix4f modelViewMatrix = pose.pose();
-			Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
-			normal.transform(pose.normal());
+			TextureAtlasSprite sprite = mc.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
+					.apply(new ResourceLocation(registryName.getNamespace(), "item/" + registryName.getPath()));
+			Matrix4f modelViewMatrix = poseStack.last().pose();
 			if (icon.isEmpty()) { //Wonky workaround to make text stay in position & make empty icon not rendering
 				VertexConsumer builder = buffer.getBuffer(NeatRenderType.NO_ICON_TYPE);
 				builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
@@ -405,9 +388,9 @@ public class HealthBarRenderer {
 			builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 			builder.vertex(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
 		} catch (Exception ignored) {
+			// Swallow
+		} finally {
 			poseStack.popPose();
-			return;
 		}
-		poseStack.popPose();
 	}
 }
