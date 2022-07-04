@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -37,7 +38,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import javax.annotation.Nonnull;
 
-import java.awt.Color;
 import java.util.*;
 
 public class HealthBarRenderer {
@@ -138,7 +138,7 @@ public class HealthBarRenderer {
 		} else {
 			float health = Mth.clamp(entity.getHealth(), 0.0F, entity.getMaxHealth());
 			float hue = Math.max(0.0F, (health / entity.getMaxHealth()) / 3.0F - 0.07F);
-			return Color.HSBtoRGB(hue, 1.0F, 1.0F);
+			return Mth.hsvToRgb(hue, 1.0F, 1.0F);
 		}
 	}
 
@@ -197,7 +197,7 @@ public class HealthBarRenderer {
 			entity = ridingStack.pop();
 			boolean boss = !entity.canChangeDimensions();
 
-			String entityID = entity.getType().getRegistryName().toString();
+			String entityID = Registry.ENTITY_TYPE.getKey(entity.getType()).toString();
 			if (NeatConfig.blacklist.get().contains(entityID)) {
 				continue;
 			}
@@ -336,7 +336,8 @@ public class HealthBarRenderer {
 					mc.font.drawInBatch(percStr, (int) (size / (textScale * s1)) - mc.font.width(percStr) / 2, h, white, false, modelViewMatrix, buffer, false, black, light);
 				}
 				if (NeatConfig.enableDebugInfo.get() && mc.options.renderDebug) {
-					mc.font.drawInBatch("ID: \"" + entity.getType().getRegistryName().toString() + "\"", 0, h + 16, white, false, modelViewMatrix, buffer, false, black, light);
+					var id = Registry.ENTITY_TYPE.getKey(entity.getType());
+					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, modelViewMatrix, buffer, false, black, light);
 				}
 			}
 			poseStack.popPose();
@@ -383,7 +384,7 @@ public class HealthBarRenderer {
 		poseStack.translate(vertexY - 16, vertexX - 16, 0.0D);
 		poseStack.scale(16.0F, 16.0F, 1.0F);
 		try {
-			ResourceLocation registryName = icon.getItem().getRegistryName();
+			ResourceLocation registryName = Registry.ITEM.getKey(icon.getItem());
 			Pair<ResourceLocation, ResourceLocation> pair = Pair.of(InventoryMenu.BLOCK_ATLAS, new ResourceLocation(registryName.getNamespace(), "item/" + registryName.getPath()));
 			TextureAtlasSprite sprite = mc.getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
 			PoseStack.Pose pose = poseStack.last();

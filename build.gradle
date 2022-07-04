@@ -24,7 +24,7 @@ archivesBaseName = project.mod_name
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-compileJava.options.compilerArgs << "-Xlint:all,-classfile,-processing,-serial" << "-Werror"
+compileJava.options.compilerArgs << "-Xlint:all,-classfile,-processing,-serial,-deprecation" << "-Werror"
 
 pmd {
     toolVersion '6.35.0'
