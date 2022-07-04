@@ -1,15 +1,12 @@
 package vazkii.neat;
 
-import com.google.common.collect.ImmutableMap;
+import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.minecraft.resources.ResourceLocation;
 
 import static com.mojang.blaze3d.vertex.DefaultVertexFormat.*;
-
 import static net.minecraft.client.renderer.RenderStateShard.TextureStateShard;
 import static net.minecraft.client.renderer.RenderStateShard.TransparencyStateShard;
 

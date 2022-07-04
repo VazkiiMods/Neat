@@ -8,8 +8,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkConstants;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 @Mod(Neat.MOD_ID)
 public class Neat {
 

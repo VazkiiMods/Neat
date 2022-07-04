@@ -1,15 +1,15 @@
 package vazkii.neat;
 
-import java.util.List;
-
-import org.apache.commons.lang3.tuple.Pair;
-
 import com.google.common.collect.ImmutableList;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
+
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.List;
 
 public class NeatConfig {
 
@@ -66,9 +66,9 @@ public class NeatConfig {
 
 	public static void init() {
 		Pair<Loader, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Loader::new);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, specPair.getRight());
+		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, specPair.getRight());
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static void load() {
 		maxDistance = v_maxDistance.get();
@@ -95,9 +95,9 @@ public class NeatConfig {
 		enableDebugInfo = v_enableDebugInfo.get();
 		blacklist = (List<String>) v_blacklist.get();
 	}
-	
+
 	static class Loader {
-		
+
 		public Loader(ForgeConfigSpec.Builder builder) {
 			builder.push("general");
 
@@ -124,13 +124,13 @@ public class NeatConfig {
 			v_showFullHealth = builder.define("Show entities with full health", showFullHealth);
 			v_enableDebugInfo = builder.define("Show Debug Info with F3", enableDebugInfo);
 			v_blacklist = builder.comment("Blacklist uses entity IDs, not their display names. Use F3 to see them in the Neat bar.")
-					.defineList("Blacklist", 
+					.defineList("Blacklist",
 							ImmutableList.of("minecraft:shulker", "minecraft:armor_stand", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish", "minecraft:tropical_fish"),
 							a -> true);
 
 			builder.pop();
 		}
-		
+
 	}
 
 }
