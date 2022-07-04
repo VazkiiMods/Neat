@@ -47,7 +47,6 @@ public class HealthBarRenderer {
 	public static Entity getEntityLookedAt(Entity e) {
 		Entity foundEntity = null;
 		final double finalDistance = 32;
-		double distance = finalDistance;
 		HitResult pos = raycast(e, finalDistance);
 		Vec3 positionVector = e.position();
 
@@ -55,9 +54,7 @@ public class HealthBarRenderer {
 			positionVector = positionVector.add(0, e.getEyeHeight(e.getPose()), 0);
 		}
 
-		if (pos != null) {
-			distance = pos.getLocation().distanceTo(positionVector);
-		}
+		double distance = pos.getLocation().distanceTo(positionVector);
 
 		Vec3 lookVector = e.getLookAngle();
 		Vec3 reachVector = positionVector.add(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance);
@@ -86,7 +83,7 @@ public class HealthBarRenderer {
 				}
 			}
 
-			if (lookedEntity != null && (minDistance < distance || pos == null)) {
+			if (lookedEntity != null && minDistance < distance) {
 				foundEntity = lookedEntity;
 			}
 		}
@@ -101,10 +98,6 @@ public class HealthBarRenderer {
 		}
 
 		Vec3 look = e.getLookAngle();
-		if (look == null) {
-			return null;
-		}
-
 		return raycast(vec, look, e, len);
 	}
 
@@ -166,7 +159,7 @@ public class HealthBarRenderer {
 
 		if (NeatConfig.showOnlyFocused) {
 			Entity focused = getEntityLookedAt(mc.player);
-			if (focused != null && focused instanceof LivingEntity && focused.isAlive()) {
+			if (focused instanceof LivingEntity && focused.isAlive()) {
 				renderHealthBar((LivingEntity) focused, mc, poseStack, partialTicks, camera, cameraEntity);
 			}
 		} else {
@@ -177,7 +170,10 @@ public class HealthBarRenderer {
 			ClientLevel client = mc.level;
 			if (client != null) {
 				for (Entity entity : client.entitiesForRendering()) {
-					if (entity != null && entity instanceof LivingEntity && entity != cameraEntity && entity.isAlive() && !entity.getIndirectPassengers().iterator().hasNext() && entity.shouldRender(cameraPos.x(), cameraPos.y(), cameraPos.z()) && (entity.noCulling || frustum.isVisible(entity.getBoundingBox()))) {
+					if (entity instanceof LivingEntity && entity != cameraEntity && entity.isAlive()
+							&& !entity.getIndirectPassengers().iterator().hasNext()
+							&& entity.shouldRender(cameraPos.x(), cameraPos.y(), cameraPos.z())
+							&& (entity.noCulling || frustum.isVisible(entity.getBoundingBox()))) {
 						renderHealthBar((LivingEntity) entity, mc, poseStack, partialTicks, camera, cameraEntity);
 					}
 				}
