@@ -206,7 +206,7 @@ public class HealthBarRenderer {
 				float distance = passedEntity.distanceTo(viewPoint);
 				if (distance > NeatConfig.maxDistance || !passedEntity.hasLineOfSight(viewPoint) || entity.isInvisible())
 					break processing;
-				if (!NeatConfig.showOnBosses && !boss)
+				if (!NeatConfig.showOnBosses && boss)
 					break processing;
 				if (!NeatConfig.showOnPlayers && entity instanceof Player)
 					break processing;
