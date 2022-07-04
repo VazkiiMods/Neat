@@ -6,6 +6,8 @@ import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
+import vazkii.neat.mixin.AccessorRenderType;
+
 import static com.mojang.blaze3d.vertex.DefaultVertexFormat.*;
 
 public class NeatRenderType extends RenderStateShard {
@@ -25,6 +27,6 @@ public class NeatRenderType extends RenderStateShard {
 				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
 				.setLightmapState(LIGHTMAP)
 				.createCompositeState(false);
-		return RenderType.create("neat_health_bar", POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, true, true, renderTypeState);
+		return AccessorRenderType.neat_create("neat_health_bar", POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, true, true, renderTypeState);
 	}
 }

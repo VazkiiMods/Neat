@@ -1,112 +1,61 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        maven {
-            url = 'https://repo.spongepowered.org/repository/maven-public/'
-            content { includeGroup "org.spongepowered" }
-        }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-    }
-}
-
 plugins {
     id 'com.diffplug.spotless' version '5.12.5' apply false
 }
 
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'eclipse'
-apply plugin: "pmd"
-apply plugin: "com.diffplug.spotless"
-apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'pmd'
+    apply plugin: "com.diffplug.spotless"
+    apply plugin: 'maven-publish'
+    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    java.withSourcesJar()
+    archivesBaseName = "${mod_name}"
 
-version = "${project.version}-${project.build_number}"
-group = "vazkii.${project.mod_id}"
-archivesBaseName = project.mod_name
+    repositories {
+        mavenCentral()
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-compileJava.options.compilerArgs << "-Xlint:all,-classfile,-processing,-serial,-deprecation" << "-Werror"
-
-mixin {
-    add sourceSets.main, "neat.refmap.json"
-    config "neat.mixins.json"
-}
-
-pmd {
-    toolVersion '6.35.0'
-    incrementalAnalysis.set(true)
-    ruleSets.clear()
-    ruleSetFiles = rootProject.files("spotless/pmd-ruleset.xml")
-}
-
-spotless {
-    enforceCheck = false // workaround around jenkins having wrong line endings in some files
-    // we explicitly check in github actions builds
-    java {
-        indentWithTabs()
-        eclipse().configFile rootProject.file('spotless/eclipseformat.xml')
-        removeUnusedImports()
-        importOrderFile rootProject.file('spotless/eclipse.importorder')
-    }
-}
-
-minecraft {
-    mappings channel: "official", version: "${project.mc_version}"
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-
-    runs {
-        client {
-            workingDirectory project.file('run')
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                neat {
-                    source sourceSets.main
-                }
-            }
+        maven {
+            name = 'Sponge / Mixin'
+            url = 'https://repo.spongepowered.org/repository/maven-public/'
         }
+    }
 
-        server {
-            workingDirectory project.file('run')
-            property 'forge.logging.console.level', 'debug'
+    tasks.withType(JavaCompile).configureEach {
+        it.options.encoding = 'UTF-8'
+        it.options.release = 17
+    }
 
-            mods {
-                neat {
-                    source sourceSets.main
-                }
-            }
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        it.enabled = false
+    }
+
+    pmd {
+        toolVersion '6.35.0'
+        incrementalAnalysis.set(true)
+        ruleSets.clear()
+        ruleSetFiles = rootProject.files("spotless/pmd-ruleset.xml")
+    }
+
+    jar {
+        from "LICENSE.txt"
+
+        exclude "**/*.bat"
+        exclude "**/*.psd"
+        exclude "**/*.ase"
+        exclude "**/*.exe"
+        exclude "**/unused"
+
+        exclude ".cache"
+    }
+
+    spotless {
+        enforceCheck = false // workaround around jenkins having wrong line endings in some files
+        // we explicitly check in github actions builds
+        java {
+            indentWithTabs()
+            eclipse().configFile rootProject.file('spotless/eclipseformat.xml')
+            removeUnusedImports()
+            importOrderFile rootProject.file('spotless/eclipse.importorder')
         }
     }
 }
-
-dependencies {
-    minecraft "net.minecraftforge:forge:${project.mc_version}-${project.forge_version}"
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-}
-
-processResources {
-    filesMatching('META-INF/mods.toml') {
-        // replace version and mcversion
-        expand 'version': project.version
-    }
-}
-
-jar {
-     manifest {
-        attributes([
-            "Specification-Title": "${project.mod_id}",
-            "Specification-Vendor": "vazkii",
-            "Specification-Version": "1", // We are version 1 of ourselves
-            "Implementation-Title": "${project.mod_id}",
-            "Implementation-Version": "${project.version}",
-            "Implementation-Vendor" :"vazkii",
-        ])
-    }
-}
-
-defaultTasks 'clean', 'build'

@@ -16,7 +16,7 @@ public class NeatForgeInitializer {
 	public NeatForgeInitializer() {
 		ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (incoming, isNetwork) -> true));
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-		NeatConfig.init();
+		NeatForgeConfig.init();
 	}
 
 	public void setup(FMLClientSetupEvent event) {

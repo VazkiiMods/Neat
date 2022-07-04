@@ -1,0 +1,84 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        maven {
+            url = 'https://repo.spongepowered.org/repository/maven-public/'
+            content { includeGroup "org.spongepowered" }
+        }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'eclipse'
+apply plugin: 'org.spongepowered.mixin'
+
+version = "${project.neat_version}-${project.build_number}"
+
+mixin {
+    add sourceSets.main, "neat.refmap.json"
+    config "neat.mixins.json"
+}
+
+minecraft {
+    mappings channel: "official", version: "${project.mc_version}"
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        client {
+            workingDirectory project.file('../run')
+            property 'forge.logging.console.level', 'debug'
+            ideaModule "${rootProject.name}.${project.name}.main"
+
+            mods {
+                neat {
+                    source sourceSets.main
+                    source project(":Xplat").sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${project.mc_version}-${project.forge_version}"
+    compileOnly project(":Xplat")
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+}
+
+compileJava {
+    source(project(":Xplat").sourceSets.main.allSource)
+    options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-serial" << "-Werror"
+}
+
+sourcesJar {
+    from project(":Xplat").sourceSets.main.allJava
+}
+
+processResources {
+    from project(":Xplat").sourceSets.main.resources
+    inputs.property "version", project.version
+
+    filesMatching("META-INF/mods.toml") {
+        expand "version": project.version
+    }
+}
+
+jar {
+     manifest {
+        attributes([
+            "Specification-Title": "${project.mod_id}",
+            "Specification-Vendor": "vazkii",
+            "Specification-Version": "1", // We are version 1 of ourselves
+            "Implementation-Title": "${project.mod_id}",
+            "Implementation-Version": "${project.version}",
+            "Implementation-Vendor" :"vazkii",
+        ])
+    }
+}
+
+defaultTasks 'clean', 'build'

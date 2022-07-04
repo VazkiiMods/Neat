@@ -11,46 +11,14 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
-public class NeatConfig {
-
-	public static final String MOD_ID = "neat";
-	public static boolean draw = true;
-
-	public interface ConfigAccess {
-		int maxDistance();
-		boolean renderInF1();
-		double heightAbove();
-		boolean drawBackground();
-		int backgroundPadding();
-		int backgroundHeight();
-		int barHeight();
-		int plateSize();
-		int plateSizeBoss();
-		boolean showAttributes();
-		boolean showArmor();
-		boolean groupArmor();
-		boolean colorByType();
-		int hpTextHeight();
-		boolean showMaxHP();
-		boolean showCurrentHP();
-		boolean showPercentage();
-		boolean showOnPlayers();
-		boolean showOnBosses();
-		boolean showOnlyFocused();
-		boolean showFullHealth();
-		boolean enableDebugInfo();
-		List<String> blacklist();
-	}
-
-	public static ConfigAccess instance;
-
+public class NeatForgeConfig {
 	public static void init() {
 		Pair<ForgeNeatConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ForgeNeatConfig::new);
-		instance = specPair.getLeft();
+		NeatConfig.instance = specPair.getLeft();
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, specPair.getRight());
 	}
 
-	private static class ForgeNeatConfig implements ConfigAccess {
+	private static class ForgeNeatConfig implements NeatConfig.ConfigAccess {
 		private final ConfigValue<Integer> maxDistance;
 		private final ConfigValue<Boolean> renderInF1;
 		private final ConfigValue<Double> heightAbove;
@@ -225,5 +193,4 @@ public class NeatConfig {
 			return (List<String>) blacklist.get();
 		}
 	}
-
 }

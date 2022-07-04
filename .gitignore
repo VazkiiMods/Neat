@@ -3,7 +3,7 @@ Thumbs.db
 
 ## gradle
 /.gradle
-/build
+build/
 
 ## ForgeGradle
 /run
