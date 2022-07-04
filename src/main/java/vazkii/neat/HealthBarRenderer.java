@@ -1,30 +1,22 @@
 package vazkii.neat;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
@@ -35,9 +27,11 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import java.text.DecimalFormat;
 import java.util.*;
 
 public class HealthBarRenderer {
+	private static final DecimalFormat HEALTH_FORMAT = new DecimalFormat("#.##");
 
 	@Nullable
 	private static Entity getEntityLookedAt(Entity e) {
@@ -132,208 +126,174 @@ public class HealthBarRenderer {
 		}
 	}
 
-	public static void onRenderLevelLast(PoseStack poseStack, float partialTicks, Matrix4f projectionMatrix) {
-		Minecraft mc = Minecraft.getInstance();
+	private static boolean isBoss(Entity entity) {
+		// TODO inaccurate
+		return !entity.canChangeDimensions();
+	}
 
+	private static boolean shouldShowPlate(Entity entity, Entity cameraEntity) {
 		if ((!NeatConfig.renderInF1.get() && !Minecraft.renderNames()) || !NeatConfig.draw) {
+			return false;
+		}
+
+		if (!(entity instanceof LivingEntity living)) {
+			return false;
+		}
+
+		var id = Registry.ENTITY_TYPE.getKey(living.getType());
+		if (NeatConfig.blacklist.get().contains(id.toString())) {
+			return false;
+		}
+
+		float distance = living.distanceTo(cameraEntity);
+		if (distance > NeatConfig.maxDistance.get()
+				|| !living.hasLineOfSight(cameraEntity)
+				|| living.isInvisible()) {
+			return false;
+		}
+		if (!NeatConfig.showOnBosses.get() && isBoss(living)) {
+			return false;
+		}
+		if (!NeatConfig.showOnPlayers.get() && living instanceof Player) {
+			return false;
+		}
+		if (!NeatConfig.showFullHealth.get() && living.getHealth() >= living.getMaxHealth()) {
+			return false;
+		}
+		if (NeatConfig.showOnlyFocused.get() && getEntityLookedAt(cameraEntity) != entity) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public static void hookRender(Entity entity, PoseStack poseStack, MultiBufferSource buffers,
+			Quaternion cameraOrientation) {
+		final Minecraft mc = Minecraft.getInstance();
+
+		if (!(entity instanceof LivingEntity living) || !entity.getPassengers().isEmpty()) {
+			// TODO handle mob stacks properly
 			return;
 		}
 
-		Camera camera = mc.gameRenderer.getMainCamera();
-		Entity cameraEntity = camera.getEntity() != null ? camera.getEntity() : mc.player;
-
-		if (NeatConfig.showOnlyFocused.get()) {
-			Entity focused = getEntityLookedAt(mc.player);
-			if (focused instanceof LivingEntity && focused.isAlive()) {
-				renderHealthBar((LivingEntity) focused, mc, poseStack, partialTicks, camera, cameraEntity);
-			}
-		} else {
-			Vec3 cameraPos = camera.getPosition();
-			final Frustum frustum = new Frustum(poseStack.last().pose(), projectionMatrix);
-			frustum.prepare(cameraPos.x(), cameraPos.y(), cameraPos.z());
-
-			ClientLevel client = mc.level;
-			if (client != null) {
-				for (Entity entity : client.entitiesForRendering()) {
-					if (entity instanceof LivingEntity && entity != cameraEntity && entity.isAlive()
-							&& !entity.getIndirectPassengers().iterator().hasNext()
-							&& entity.shouldRender(cameraPos.x(), cameraPos.y(), cameraPos.z())
-							&& (entity.noCulling || frustum.isVisible(entity.getBoundingBox()))) {
-						renderHealthBar((LivingEntity) entity, mc, poseStack, partialTicks, camera, cameraEntity);
-					}
-				}
-			}
-		}
-	}
-
-	private static void renderHealthBar(LivingEntity passedEntity, Minecraft mc, PoseStack poseStack, float partialTicks, Camera camera, Entity viewPoint) {
-		Deque<LivingEntity> ridingStack = new ArrayDeque<>();
-
-		LivingEntity entity = passedEntity;
-		ridingStack.push(entity);
-
-		while (entity.getVehicle() != null && entity.getVehicle() instanceof LivingEntity) {
-			entity = (LivingEntity) entity.getVehicle();
-			ridingStack.push(entity);
+		if (!shouldShowPlate(entity, mc.gameRenderer.getMainCamera().getEntity())) {
+			return;
 		}
 
-		RenderSystem.setShader(GameRenderer::getPositionColorTexLightmapShader);
+		// Constants
+		final int light = 0xF000F0;
+		final float globalScale = 0.0267F;
+		final float textScale = 0.5F;
+		final int barHeight = NeatConfig.barHeight.get();
+		final boolean boss = isBoss(entity);
+		final String name = entity.hasCustomName()
+				? ChatFormatting.ITALIC + entity.getCustomName().getString()
+				: entity.getDisplayName().getString();
+		final float nameLen = mc.font.width(name) * textScale;
+		final float halfSize = Math.max(NeatConfig.plateSize.get(), nameLen / 2.0F + 10.0F);
+
 		poseStack.pushPose();
-		while (!ridingStack.isEmpty()) {
-			entity = ridingStack.pop();
-			boolean boss = !entity.canChangeDimensions();
+		poseStack.translate(0, entity.getBbHeight() + NeatConfig.heightAbove.get(), 0);
+		poseStack.mulPose(cameraOrientation);
 
-			String entityID = Registry.ENTITY_TYPE.getKey(entity.getType()).toString();
-			if (NeatConfig.blacklist.get().contains(entityID)) {
-				continue;
-			}
-
-			processing: {
-				float distance = passedEntity.distanceTo(viewPoint);
-				if (distance > NeatConfig.maxDistance.get() || !passedEntity.hasLineOfSight(viewPoint) || entity.isInvisible()) {
-					break processing;
-				}
-				if (!NeatConfig.showOnBosses.get() && boss) {
-					break processing;
-				}
-				if (!NeatConfig.showOnPlayers.get() && entity instanceof Player) {
-					break processing;
-				}
-				if (entity.getMaxHealth() <= 0) {
-					break processing;
-				}
-				if (!NeatConfig.showFullHealth.get() && entity.getHealth() == entity.getMaxHealth()) {
-					break processing;
-				}
-
-				double x = passedEntity.xo + (passedEntity.getX() - passedEntity.xo) * partialTicks;
-				double y = passedEntity.yo + (passedEntity.getY() - passedEntity.yo) * partialTicks;
-				double z = passedEntity.zo + (passedEntity.getZ() - passedEntity.zo) * partialTicks;
-
-				EntityRenderDispatcher renderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-				Vec3 renderPos = renderDispatcher.camera.getPosition();
-
-				poseStack.pushPose();
-				poseStack.translate((float) (x - renderPos.x()), (float) (y - renderPos.y() + passedEntity.getBbHeight() + NeatConfig.heightAbove.get()), (float) (z - renderPos.z()));
-				MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
-				final int light = 0xF000F0;
-				renderEntity(mc, poseStack, buffer, camera, entity, light, boss);
-				poseStack.popPose();
-
-				poseStack.translate(0.0D, -(NeatConfig.backgroundHeight.get() + NeatConfig.barHeight.get() + NeatConfig.backgroundPadding.get()), 0.0D);
-			}
-		}
-		poseStack.popPose();
-
-	}
-
-	private static void renderEntity(Minecraft mc, PoseStack poseStack, MultiBufferSource.BufferSource buffer, Camera camera, LivingEntity entity, int light, boolean boss) {
-		Quaternion rotation = camera.rotation().copy();
-		rotation.mul(-1.0F);
-		poseStack.mulPose(rotation);
-		float scale = 0.026666672F;
-		poseStack.scale(-scale, -scale, scale);
-		float health = Mth.clamp(entity.getHealth(), 0.0F, entity.getMaxHealth());
-		float percent = (health / entity.getMaxHealth()) * 100.0F;
-		float size = NeatConfig.plateSize.get();
-		float textScale = 0.5F;
-
-		String name = (entity.hasCustomName() ? entity.getCustomName() : entity.getDisplayName()).getString();
-		if (entity.hasCustomName()) {
-			name = ChatFormatting.ITALIC + name;
-		}
-
-		float namel = mc.font.width(name) * textScale;
-		if (namel + 20 > size * 2) {
-			size = namel / 2.0F + 10.0F;
-		}
-		float healthSize = size * (health / entity.getMaxHealth());
-		Matrix4f modelViewMatrix = poseStack.last().pose();
-		VertexConsumer builder = buffer.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
-		float padding = NeatConfig.backgroundPadding.get();
-		int bgHeight = NeatConfig.backgroundHeight.get();
-		int barHeight = NeatConfig.barHeight.get();
+		// Plate background, bars, and text operate with globalScale, but icons don't
+		poseStack.pushPose();
+		poseStack.scale(-globalScale, -globalScale, globalScale);
 
 		// Background
 		if (NeatConfig.drawBackground.get()) {
-			builder.vertex(modelViewMatrix, -size - padding, -bgHeight, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.0F).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, -size - padding, barHeight + padding, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.5F).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, size + padding, barHeight + padding, 0.01F).color(0, 0, 0, 64).uv(1.0F, 0.5F).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, size + padding, -bgHeight, 0.01F).color(0, 0, 0, 64).uv(1.0F, 0.0F).uv2(light).endVertex();
+			float padding = NeatConfig.backgroundPadding.get();
+			int bgHeight = NeatConfig.backgroundHeight.get();
+			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
+			builder.vertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.0F).uv2(light).endVertex();
+			builder.vertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.5F).uv2(light).endVertex();
+			builder.vertex(poseStack.last().pose(), halfSize + padding, barHeight + padding, 0.01F).color(0, 0, 0, 64).uv(1.0F, 0.5F).uv2(light).endVertex();
+			builder.vertex(poseStack.last().pose(), halfSize + padding, -bgHeight, 0.01F).color(0, 0, 0, 64).uv(1.0F, 0.0F).uv2(light).endVertex();
 		}
 
 		// Health Bar
-		int argb = getColor(entity, NeatConfig.colorByType.get(), boss);
-		int r = (argb >> 16) & 0xFF;
-		int g = (argb >> 8) & 0xFF;
-		int b = argb & 0xFF;
+		{
+			int argb = getColor(living, NeatConfig.colorByType.get(), boss);
+			int r = (argb >> 16) & 0xFF;
+			int g = (argb >> 8) & 0xFF;
+			int b = argb & 0xFF;
+			float healthHalfSize = halfSize * (living.getHealth() / living.getMaxHealth());
 
-		builder.vertex(modelViewMatrix, -size, 0, 0.001F).color(r, g, b, 127).uv(0.0F, 0.75F).uv2(light).endVertex();
-		builder.vertex(modelViewMatrix, -size, barHeight, 0.001F).color(r, g, b, 127).uv(0.0F, 1.0F).uv2(light).endVertex();
-		builder.vertex(modelViewMatrix, healthSize * 2 - size, barHeight, 0.001F).color(r, g, b, 127).uv(1.0F, 1.0F).uv2(light).endVertex();
-		builder.vertex(modelViewMatrix, healthSize * 2 - size, 0, 0.001F).color(r, g, b, 127).uv(1.0F, 0.75F).uv2(light).endVertex();
+			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
+			builder.vertex(poseStack.last().pose(), -halfSize, 0, 0.001F).color(r, g, b, 127).uv(0.0F, 0.75F).uv2(light).endVertex();
+			builder.vertex(poseStack.last().pose(), -halfSize, barHeight, 0.001F).color(r, g, b, 127).uv(0.0F, 1.0F).uv2(light).endVertex();
+			builder.vertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).color(r, g, b, 127).uv(1.0F, 1.0F).uv2(light).endVertex();
+			builder.vertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, 0, 0.001F).color(r, g, b, 127).uv(1.0F, 0.75F).uv2(light).endVertex();
 
-		//Health bar background
-		if (healthSize < size) {
-			builder.vertex(modelViewMatrix, -size + healthSize * 2, 0, 0.001F).color(0, 0, 0, 127).uv(0.0F, 0.5F).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, -size + healthSize * 2, barHeight, 0.001F).color(0, 0, 0, 127).uv(0.0F, 0.75F).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, size, barHeight, 0.001F).color(0, 0, 0, 127).uv(1.0F, 0.75F).uv2(light).endVertex();
-			builder.vertex(modelViewMatrix, size, 0, 0.001F).color(0, 0, 0, 127).uv(1.0F, 0.5F).uv2(light).endVertex();
+			// Blank part of the bar
+			if (healthHalfSize < halfSize) {
+				builder.vertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, 0, 0.001F).color(0, 0, 0, 127).uv(0.0F, 0.5F).uv2(light).endVertex();
+				builder.vertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).color(0, 0, 0, 127).uv(0.0F, 0.75F).uv2(light).endVertex();
+				builder.vertex(poseStack.last().pose(), halfSize, barHeight, 0.001F).color(0, 0, 0, 127).uv(1.0F, 0.75F).uv2(light).endVertex();
+				builder.vertex(poseStack.last().pose(), halfSize, 0, 0.001F).color(0, 0, 0, 127).uv(1.0F, 0.5F).uv2(light).endVertex();
+			}
 		}
 
+		// Text
 		{
-			int white = 0xFFFFFF;
-			int black = 0x000000;
-			poseStack.translate(-size, -4.5F, 0F);
-			poseStack.scale(textScale, textScale, textScale);
-			modelViewMatrix = poseStack.last().pose();
-			mc.font.drawInBatch(name, 0, 0, white, false, modelViewMatrix, buffer, false, black, light);
+			final int white = 0xFFFFFF;
+			final int black = 0;
 
-			float s1 = 0.75F;
-			poseStack.pushPose();
+			// Name
 			{
-				poseStack.scale(s1, s1, s1);
-				modelViewMatrix = poseStack.last().pose();
+				poseStack.pushPose();
+				poseStack.translate(-halfSize, -4.5F, 0F);
+				poseStack.scale(textScale, textScale, textScale);
+				mc.font.drawInBatch(name, 0, 0, white, false, poseStack.last().pose(), buffers, false, black, light);
+				poseStack.popPose();
+			}
+
+			// Health values (and debug ID)
+			{
+				final float healthValueTextScale = 0.75F * textScale;
+				poseStack.pushPose();
+				poseStack.translate(-halfSize, -4.5F, 0F);
+				poseStack.scale(healthValueTextScale, healthValueTextScale, healthValueTextScale);
 
 				int h = NeatConfig.hpTextHeight.get();
-				String maxHpStr = ChatFormatting.BOLD + "" + Math.round(entity.getMaxHealth() * 100.0) / 100.0;
-				String hpStr = "" + Math.round(health * 100.0) / 100.0;
-				String percStr = (int) percent + "%";
-
-				if (maxHpStr.endsWith(".00")) {
-					maxHpStr = maxHpStr.substring(0, maxHpStr.length() - 3);
-				}
-				if (hpStr.endsWith(".00")) {
-					hpStr = hpStr.substring(0, hpStr.length() - 3);
-				}
 
 				if (NeatConfig.showCurrentHP.get()) {
-					mc.font.drawInBatch(hpStr, 2, h, white, false, modelViewMatrix, buffer, false, black, light);
+					String hpStr = HEALTH_FORMAT.format(living.getHealth());
+					mc.font.drawInBatch(hpStr, 2, h, white, false, poseStack.last().pose(), buffers, false, black, light);
 				}
 				if (NeatConfig.showMaxHP.get()) {
-					mc.font.drawInBatch(maxHpStr, (int) (size / (textScale * s1) * 2) - 2 - mc.font.width(maxHpStr), h, white, false, modelViewMatrix, buffer, false, black, light);
+					String maxHpStr = ChatFormatting.BOLD + HEALTH_FORMAT.format(living.getMaxHealth());
+					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, white, false, poseStack.last().pose(), buffers, false, black, light);
 				}
 				if (NeatConfig.showPercentage.get()) {
-					mc.font.drawInBatch(percStr, (int) (size / (textScale * s1)) - mc.font.width(percStr) / 2, h, white, false, modelViewMatrix, buffer, false, black, light);
+					String percStr = (int) (100 * living.getHealth() / living.getMaxHealth()) + "%";
+					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, white, false, poseStack.last().pose(), buffers, false, black, light);
 				}
 				if (NeatConfig.enableDebugInfo.get() && mc.options.renderDebug) {
 					var id = Registry.ENTITY_TYPE.getKey(entity.getType());
-					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, modelViewMatrix, buffer, false, black, light);
+					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, poseStack.last().pose(), buffers, false, black, light);
 				}
+				poseStack.popPose();
 			}
-			poseStack.popPose();
+		}
 
+		poseStack.popPose(); // Remove globalScale
+
+		// Icons
+		{
+			final float zBump = -0.1F;
 			poseStack.pushPose();
-			int iconOffset = 0;
-			s1 = 0.5F;
-			poseStack.scale(s1, s1, s1);
-			poseStack.translate(size / (textScale * s1) * 2, 0F, 0F);
+
+			float iconOffset = 2.85F;
+			float zShift = 0F;
 			if (NeatConfig.showAttributes.get()) {
-				renderIcon(mc, iconOffset, 0, getIcon(entity, boss), poseStack, buffer, light);
-				iconOffset -= 16;
+				var icon = getIcon(living, boss);
+				renderIcon(icon, poseStack, buffers, globalScale, halfSize, iconOffset, zShift);
+				iconOffset += 5F;
+				zShift += zBump;
 			}
 
-			int armor = entity.getArmorValue();
+			int armor = living.getArmorValue();
 			if (armor > 0 && NeatConfig.showArmor.get()) {
 				int ironArmor = armor % 5;
 				int diamondArmor = armor / 5;
@@ -344,52 +304,42 @@ public class HealthBarRenderer {
 
 				var iron = new ItemStack(Items.IRON_CHESTPLATE);
 				for (int i = 0; i < ironArmor; i++) {
-					renderIcon(mc, iconOffset, 0, iron, poseStack, buffer, light);
-					iconOffset -= 4;
+					renderIcon(iron, poseStack, buffers, globalScale, halfSize, iconOffset, zShift);
+					iconOffset += 1F;
+					zShift += zBump;
 				}
 
 				var diamond = new ItemStack(Items.DIAMOND_CHESTPLATE);
 				for (int i = 0; i < diamondArmor; i++) {
-					renderIcon(mc, iconOffset, 0, diamond, poseStack, buffer, light);
-					iconOffset -= 4;
+					renderIcon(diamond, poseStack, buffers, globalScale, halfSize, iconOffset, zShift);
+					iconOffset += 1F;
+					zShift += zBump;
 				}
 			}
+
 			poseStack.popPose();
 		}
+
+		poseStack.popPose();
 	}
 
-	private static void renderIcon(Minecraft mc, int vertexX, int vertexY, @Nonnull ItemStack icon, PoseStack poseStack, MultiBufferSource buffer, int light) {
-		poseStack.pushPose();
-		poseStack.mulPose(Vector3f.ZP.rotationDegrees(-90));
-		poseStack.translate(vertexY - 16, vertexX - 16, 0.0D);
-		poseStack.scale(16.0F, 16.0F, 1.0F);
-		try {
-			ResourceLocation registryName = Registry.ITEM.getKey(icon.getItem());
-			TextureAtlasSprite sprite = mc.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-					.apply(new ResourceLocation(registryName.getNamespace(), "item/" + registryName.getPath()));
-			Matrix4f modelViewMatrix = poseStack.last().pose();
-			if (icon.isEmpty()) { //Wonky workaround to make text stay in position & make empty icon not rendering
-				VertexConsumer builder = buffer.getBuffer(NeatRenderType.NO_ICON_TYPE);
-				builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-				builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-				builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-				builder.vertex(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-			} else {
-				VertexConsumer builder = buffer.getBuffer(NeatRenderType.BAR_ATLAS_TYPE);
-				builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU0(), sprite.getV1()).uv2(light).endVertex();
-				builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU1(), sprite.getV1()).uv2(light).endVertex();
-				builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU1(), sprite.getV0()).uv2(light).endVertex();
-				builder.vertex(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(255, 255, 255, 255).uv(sprite.getU0(), sprite.getV0()).uv2(light).endVertex();
-			}
-			//Wonky workaround for making corner icons stay in position
-			VertexConsumer builder = buffer.getBuffer(NeatRenderType.NO_ICON_TYPE);
-			builder.vertex(modelViewMatrix, 0.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-			builder.vertex(modelViewMatrix, 0.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-			builder.vertex(modelViewMatrix, 1.0F, 1.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-			builder.vertex(modelViewMatrix, 1.0F, 0.0F, 0.0F).color(0, 0, 0, 0).endVertex();
-		} catch (Exception ignored) {
-			// Swallow
-		} finally {
+	private static void renderIcon(ItemStack icon, PoseStack poseStack, MultiBufferSource buffers, float globalScale, float halfSize, float leftShift, float zShift) {
+		if (!icon.isEmpty()) {
+			final float iconScale = 0.12F;
+			poseStack.pushPose();
+			// halfSize and co. are units operating under the assumption of globalScale,
+			// but in the icon rendering section we don't use globalScale, so we need
+			// to manually multiply it in to ensure the units line up.
+			float dx = (halfSize - leftShift) * globalScale;
+			float dy = 3F * globalScale;
+			float dz = zShift * globalScale;
+			// Need to negate X due to our rotation below
+			poseStack.translate(-dx, dy, dz);
+			poseStack.scale(iconScale, iconScale, iconScale);
+			poseStack.mulPose(Vector3f.YP.rotationDegrees(180F));
+			Minecraft.getInstance().getItemRenderer()
+					.renderStatic(icon, ItemTransforms.TransformType.NONE,
+							0xF000F0, OverlayTexture.NO_OVERLAY, poseStack, buffers, 0);
 			poseStack.popPose();
 		}
 	}
