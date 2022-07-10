@@ -4,13 +4,15 @@
   "version": "${version}",
 
   "name": "Neat",
-  "description": "Botania is a tech mod themed around natural magic",
+  "description": "Minimalistic Functional Unit Plates for the modern Minecrafter",
   "authors": [
     "Vazkii",
     "williewillus",
     "Alwinfy"
   ],
   "contact": {
+    "irc": "ircs://irc.esper.net:6697",
+    "email": "~williewillus/violet-moon@lists.sr.ht",
     "sources": "https://github.com/VazkiiMods/Neat",
     "issues": "https://github.com/VazkiiMods/Neat/issues"
   },
