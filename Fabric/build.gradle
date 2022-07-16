@@ -2,7 +2,7 @@ plugins {
     id 'fabric-loom' version '0.12-SNAPSHOT'
 }
 
-version = "${neat_version}-${build_number}-FABRIC"
+version = "${mc_version}-${build_number}-FABRIC"
 
 loom {
     accessWidenerPath = file("src/main/resources/neat.accesswidener")

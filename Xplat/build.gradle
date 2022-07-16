@@ -4,7 +4,7 @@ plugins {
 }
 
 archivesBaseName = "${project.mod_name}-xplat"
-version = "${project.neat_version}-${project.build_number}"
+version = "${project.mc_version}-${project.build_number}"
 
 minecraft {
     version(project.mc_version)

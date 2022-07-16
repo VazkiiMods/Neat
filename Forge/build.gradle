@@ -17,7 +17,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'org.spongepowered.mixin'
 
-version = "${project.neat_version}-${project.build_number}"
+version = "${project.mc_version}-${project.build_number}"
 
 mixin {
     add sourceSets.main, "neat.refmap.json"
