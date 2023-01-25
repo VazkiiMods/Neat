@@ -217,7 +217,10 @@ public class HealthBarRenderer {
 			int r = (argb >> 16) & 0xFF;
 			int g = (argb >> 8) & 0xFF;
 			int b = argb & 0xFF;
-			float healthHalfSize = halfSize * (living.getHealth() / living.getMaxHealth());
+			// There are scenarios in vanilla where the current health
+			// can temporarily exceed the max health.
+			float maxHealth = Math.max(living.getHealth(), living.getMaxHealth());
+			float healthHalfSize = halfSize * (living.getHealth() / maxHealth);
 
 			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
 			builder.vertex(poseStack.last().pose(), -halfSize, 0, 0.001F).color(r, g, b, 127).uv(0.0F, 0.75F).uv2(light).endVertex();
