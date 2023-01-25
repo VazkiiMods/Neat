@@ -1,12 +1,12 @@
 package vazkii.neat.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Quaternion;
 
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
 
+import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,8 +17,7 @@ import vazkii.neat.HealthBarRenderer;
 
 @Mixin(EntityRenderDispatcher.class)
 public abstract class EntityRenderDispatcherMixin {
-	@Shadow
-	public abstract Quaternion cameraOrientation();
+	@Shadow public abstract Quaternionf cameraOrientation();
 
 	/**
 	 * Hooks right after the main entity renderer runs.

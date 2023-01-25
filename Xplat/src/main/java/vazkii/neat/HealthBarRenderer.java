@@ -2,15 +2,14 @@ package vazkii.neat;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,6 +22,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -140,7 +140,7 @@ public class HealthBarRenderer {
 			return false;
 		}
 
-		var id = Registry.ENTITY_TYPE.getKey(living.getType());
+		var id = BuiltInRegistries.ENTITY_TYPE.getKey(living.getType());
 		if (NeatConfig.instance.blacklist().contains(id.toString())) {
 			return false;
 		}
@@ -168,7 +168,7 @@ public class HealthBarRenderer {
 	}
 
 	public static void hookRender(Entity entity, PoseStack poseStack, MultiBufferSource buffers,
-			Quaternion cameraOrientation) {
+			Quaternionf cameraOrientation) {
 		final Minecraft mc = Minecraft.getInstance();
 
 		if (!(entity instanceof LivingEntity living) || !entity.getPassengers().isEmpty()) {
@@ -270,7 +270,7 @@ public class HealthBarRenderer {
 					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, white, false, poseStack.last().pose(), buffers, false, black, light);
 				}
 				if (NeatConfig.instance.enableDebugInfo() && mc.options.renderDebug) {
-					var id = Registry.ENTITY_TYPE.getKey(entity.getType());
+					var id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
 					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, poseStack.last().pose(), buffers, false, black, light);
 				}
 				poseStack.popPose();
@@ -336,7 +336,7 @@ public class HealthBarRenderer {
 			// Need to negate X due to our rotation below
 			poseStack.translate(-dx, dy, dz);
 			poseStack.scale(iconScale, iconScale, iconScale);
-			poseStack.mulPose(Vector3f.YP.rotationDegrees(180F));
+			poseStack.mulPose(Axis.YP.rotationDegrees(180F));
 			Minecraft.getInstance().getItemRenderer()
 					.renderStatic(icon, ItemTransforms.TransformType.NONE,
 							0xF000F0, OverlayTexture.NO_OVERLAY, poseStack, buffers, 0);

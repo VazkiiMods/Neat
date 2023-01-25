@@ -36,8 +36,8 @@ dependencies {
     minecraft "com.mojang:minecraft:${mc_version}"
     mappings loom.officialMojangMappings()
 
-    modImplementation "net.fabricmc:fabric-loader:0.14.8"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.57.0+1.19"
+    modImplementation "net.fabricmc:fabric-loader:0.14.13"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.73.0+1.19.3"
 
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     compileOnly project(":Xplat")
