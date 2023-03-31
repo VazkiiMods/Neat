@@ -17,7 +17,8 @@ import vazkii.neat.HealthBarRenderer;
 
 @Mixin(EntityRenderDispatcher.class)
 public abstract class EntityRenderDispatcherMixin {
-	@Shadow public abstract Quaternionf cameraOrientation();
+	@Shadow
+	public abstract Quaternionf cameraOrientation();
 
 	/**
 	 * Hooks right after the main entity renderer runs.

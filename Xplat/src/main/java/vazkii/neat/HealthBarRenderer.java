@@ -6,8 +6,8 @@ import com.mojang.math.Axis;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
@@ -16,12 +16,15 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+
 import org.joml.Quaternionf;
 
 import javax.annotation.Nonnull;
@@ -247,7 +250,7 @@ public class HealthBarRenderer {
 				poseStack.pushPose();
 				poseStack.translate(-halfSize, -4.5F, 0F);
 				poseStack.scale(textScale, textScale, textScale);
-				mc.font.drawInBatch(name, 0, 0, white, false, poseStack.last().pose(), buffers, false, black, light);
+				mc.font.drawInBatch(name, 0, 0, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				poseStack.popPose();
 			}
 
@@ -262,19 +265,19 @@ public class HealthBarRenderer {
 
 				if (NeatConfig.instance.showCurrentHP()) {
 					String hpStr = HEALTH_FORMAT.format(living.getHealth());
-					mc.font.drawInBatch(hpStr, 2, h, white, false, poseStack.last().pose(), buffers, false, black, light);
+					mc.font.drawInBatch(hpStr, 2, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.showMaxHP()) {
 					String maxHpStr = ChatFormatting.BOLD + HEALTH_FORMAT.format(living.getMaxHealth());
-					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, white, false, poseStack.last().pose(), buffers, false, black, light);
+					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.showPercentage()) {
 					String percStr = (int) (100 * living.getHealth() / living.getMaxHealth()) + "%";
-					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, white, false, poseStack.last().pose(), buffers, false, black, light);
+					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.enableDebugInfo() && mc.options.renderDebug) {
 					var id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
-					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, poseStack.last().pose(), buffers, false, black, light);
+					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				poseStack.popPose();
 			}
@@ -291,7 +294,8 @@ public class HealthBarRenderer {
 			float zShift = 0F;
 			if (NeatConfig.instance.showAttributes()) {
 				var icon = getIcon(living, boss);
-				renderIcon(icon, poseStack, buffers, globalScale, halfSize, iconOffset, zShift);
+				renderIcon(entity.level, icon, poseStack, buffers,
+						globalScale, halfSize, iconOffset, zShift);
 				iconOffset += 5F;
 				zShift += zBump;
 			}
@@ -307,14 +311,16 @@ public class HealthBarRenderer {
 
 				var iron = new ItemStack(Items.IRON_CHESTPLATE);
 				for (int i = 0; i < ironArmor; i++) {
-					renderIcon(iron, poseStack, buffers, globalScale, halfSize, iconOffset, zShift);
+					renderIcon(entity.level, iron, poseStack, buffers,
+							globalScale, halfSize, iconOffset, zShift);
 					iconOffset += 1F;
 					zShift += zBump;
 				}
 
 				var diamond = new ItemStack(Items.DIAMOND_CHESTPLATE);
 				for (int i = 0; i < diamondArmor; i++) {
-					renderIcon(diamond, poseStack, buffers, globalScale, halfSize, iconOffset, zShift);
+					renderIcon(entity.level, diamond, poseStack, buffers,
+							globalScale, halfSize, iconOffset, zShift);
 					iconOffset += 1F;
 					zShift += zBump;
 				}
@@ -326,7 +332,8 @@ public class HealthBarRenderer {
 		poseStack.popPose();
 	}
 
-	private static void renderIcon(ItemStack icon, PoseStack poseStack, MultiBufferSource buffers, float globalScale, float halfSize, float leftShift, float zShift) {
+	private static void renderIcon(Level level, ItemStack icon, PoseStack poseStack,
+			MultiBufferSource buffers, float globalScale, float halfSize, float leftShift, float zShift) {
 		if (!icon.isEmpty()) {
 			final float iconScale = 0.12F;
 			poseStack.pushPose();
@@ -341,8 +348,8 @@ public class HealthBarRenderer {
 			poseStack.scale(iconScale, iconScale, iconScale);
 			poseStack.mulPose(Axis.YP.rotationDegrees(180F));
 			Minecraft.getInstance().getItemRenderer()
-					.renderStatic(icon, ItemTransforms.TransformType.NONE,
-							0xF000F0, OverlayTexture.NO_OVERLAY, poseStack, buffers, 0);
+					.renderStatic(icon, ItemDisplayContext.NONE, 0xF000F0,
+							OverlayTexture.NO_OVERLAY, poseStack, buffers, level, 0);
 			poseStack.popPose();
 		}
 	}
