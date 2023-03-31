@@ -39,7 +39,6 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:0.14.14"
     modImplementation "net.fabricmc.fabric-api:fabric-api:0.76.0+1.19.4"
 
-    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
     compileOnly project(":Xplat")
 
     modImplementation "me.zeroeightsix:fiber:0.23.0-2"

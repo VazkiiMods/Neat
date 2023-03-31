@@ -27,16 +27,12 @@ import net.minecraft.world.phys.Vec3;
 
 import org.joml.Quaternionf;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import java.text.DecimalFormat;
 import java.util.*;
 
 public class HealthBarRenderer {
 	private static final DecimalFormat HEALTH_FORMAT = new DecimalFormat("#.##");
 
-	@Nullable
 	private static Entity getEntityLookedAt(Entity e) {
 		Entity foundEntity = null;
 		final double finalDistance = 32;
@@ -91,7 +87,6 @@ public class HealthBarRenderer {
 		return e.level.clip(new ClipContext(origin, next, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, e));
 	}
 
-	@Nonnull
 	private static ItemStack getIcon(LivingEntity entity, boolean boss) {
 		if (boss) {
 			return new ItemStack(Items.NETHER_STAR);
