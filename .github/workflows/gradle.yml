@@ -1,6 +1,6 @@
 name: Java CI
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
@@ -14,7 +14,12 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-    - uses: gradle/wrapper-validation-action@v1
+    - name: Validate gradlew integrity
+      uses: gradle/wrapper-validation-action@v1
+    - name: Import signing key
+      uses: actions/import-gpg@v2
+      with:
+        gpg_private_key: ${{ secrets.VIOLET_MOON_SIGNING_KEY }}
     # - name: Cache
     #   uses: actions/cache@v2
     #   with:
@@ -28,12 +33,20 @@ jobs:
       if: failure()
       with:
         path: '**/reports/pmd/main.xml'
-    - name: Archive Forge Binaries
+    # TODO: Both this find command as well as archiving with a glob below is a kludge,
+    # because github then compresses the folder before uploading it.
+    # Ideally we assemble the version number here in the github action and sign/archive
+    # the two release binaries specifically.
+    - name: Sign jars
+      run: |
+        find Forge/build/libs Fabric/build/libs -type f -name '*.jar' -not -name '*-sources.jar' \
+          -exec gpg --local-user "Violet Moon Signing Key" --armor --detach-sign {} \;
+    - name: Archive Forge Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: Forge
         path: Forge/build/libs/*.jar
-    - name: Archive Fabric Binaries
+    - name: Archive Fabric Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: Fabric
