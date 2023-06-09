@@ -17,9 +17,9 @@ jobs:
     - name: Validate gradlew integrity
       uses: gradle/wrapper-validation-action@v1
     - name: Import signing key
-      uses: actions/import-gpg@v2
-      with:
-        gpg_private_key: ${{ secrets.VIOLET_MOON_SIGNING_KEY }}
+      env:
+        SIGNING_KEY: ${{ secrets.VIOLET_MOON_SIGNING_KEY }}
+      run: echo "${SIGNING_KEY}" | gpg --import -
     # - name: Cache
     #   uses: actions/cache@v2
     #   with:
