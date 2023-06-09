@@ -24,6 +24,11 @@ subprojects {
         it.enabled = false
     }
 
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+
     pmd {
         toolVersion '6.35.0'
         incrementalAnalysis.set(true)

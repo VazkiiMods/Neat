@@ -15,12 +15,12 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
     - uses: gradle/wrapper-validation-action@v1
-    - name: Cache
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/.gradle/caches
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle', '**/gradle-wrapper.properties') }}
+    # - name: Cache
+    #   uses: actions/cache@v2
+    #   with:
+    #     path: |
+    #       ~/.gradle/caches
+    #     key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle', '**/gradle-wrapper.properties') }}
     - name: Build with Gradle
       run: ./gradlew pmdMain spotlessJavaCheck build
     - name: PMD report
