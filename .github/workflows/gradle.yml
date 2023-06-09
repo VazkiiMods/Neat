@@ -20,12 +20,12 @@ jobs:
       env:
         SIGNING_KEY: ${{ secrets.VIOLET_MOON_SIGNING_KEY }}
       run: echo "${SIGNING_KEY}" | gpg --import -
-    # - name: Cache
-    #   uses: actions/cache@v2
-    #   with:
-    #     path: |
-    #       ~/.gradle/caches
-    #     key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle', '**/gradle-wrapper.properties') }}
+    - name: Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/build.gradle', '**/gradle-wrapper.properties') }}
     - name: Build with Gradle
       run: ./gradlew pmdMain spotlessJavaCheck build
     - name: PMD report
