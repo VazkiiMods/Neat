@@ -45,11 +45,11 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Forge
-        path: Forge/build/libs/*.jar
+        path: Forge/build/libs/*
     - name: Archive Fabric Artifacts
       uses: actions/upload-artifact@v2
       with:
         name: Fabric
-        path: Fabric/build/libs/*.jar
+        path: Fabric/build/libs/*
     - name: Cleanup
       run: ./gradlew --stop
