@@ -78,29 +78,97 @@ public final class NeatFiberConfig {
 		private final PropertyMirror<List<String>> blacklist = PropertyMirror.create(ConfigTypes.makeList(STRING));
 
 		public ConfigTree configure(ConfigTreeBuilder builder) {
-			builder.beginValue("maxDistance", INTEGER, 24).finishValue(maxDistance::mirror)
-					.beginValue("renderInF1", BOOLEAN, false).finishValue(renderInF1::mirror)
-					.beginValue("heightAbove", DOUBLE, 0.6).finishValue(heightAbove::mirror)
-					.beginValue("drawBackground", BOOLEAN, true).finishValue(drawBackground::mirror)
-					.beginValue("backgroundPadding", INTEGER, 2).finishValue(backgroundPadding::mirror)
-					.beginValue("backgroundHeight", INTEGER, 6).finishValue(backgroundHeight::mirror)
-					.beginValue("barHeight", INTEGER, 4).finishValue(barHeight::mirror)
-					.beginValue("plateSize", INTEGER, 25).finishValue(plateSize::mirror)
-					.beginValue("plateSizeBoss", INTEGER, 50).finishValue(plateSizeBoss::mirror)
-					.beginValue("showAttributes", BOOLEAN, true).finishValue(showAttributes::mirror)
-					.beginValue("showArmor", BOOLEAN, true).finishValue(showArmor::mirror)
-					.beginValue("groupArmor", BOOLEAN, true).finishValue(groupArmor::mirror)
-					.beginValue("colorByType", BOOLEAN, false).finishValue(colorByType::mirror)
-					.beginValue("hpTextHeight", INTEGER, 14).finishValue(hpTextHeight::mirror)
-					.beginValue("showMaxHP", BOOLEAN, true).finishValue(showMaxHP::mirror)
-					.beginValue("showCurrentHP", BOOLEAN, true).finishValue(showCurrentHP::mirror)
-					.beginValue("showPercentage", BOOLEAN, true).finishValue(showPercentage::mirror)
-					.beginValue("showOnPlayers", BOOLEAN, true).finishValue(showOnPlayers::mirror)
-					.beginValue("showOnBosses", BOOLEAN, true).finishValue(showOnBosses::mirror)
-					.beginValue("showOnlyFocused", BOOLEAN, false).finishValue(showOnlyFocused::mirror)
-					.beginValue("showFullHealth", BOOLEAN, true).finishValue(showFullHealth::mirror)
-					.beginValue("enableDebugInfo", BOOLEAN, true).finishValue(enableDebugInfo::mirror)
-					.beginValue("blacklist", ConfigTypes.makeList(STRING), NeatConfig.DEFAULT_DISABLED).finishValue(blacklist::mirror);
+			builder.beginValue("maxDistance", INTEGER, 24)
+					.withComment("Maximum distance in blocks at which health bars should render")
+					.finishValue(maxDistance::mirror)
+
+					.beginValue("renderInF1", BOOLEAN, false)
+					.withComment("Whether health bars should render when the HUD is disabled with F1")
+					.finishValue(renderInF1::mirror)
+
+					.beginValue("heightAbove", DOUBLE, 0.6)
+					.withComment("How far above the mob health bars should render")
+					.finishValue(heightAbove::mirror)
+
+					.beginValue("drawBackground", BOOLEAN, true)
+					.withComment("Whether the gray background plate should be drawn")
+					.finishValue(drawBackground::mirror)
+
+					.beginValue("backgroundPadding", INTEGER, 2)
+					.withComment("Amount of extra padding space around the background plate")
+					.finishValue(backgroundPadding::mirror)
+
+					.beginValue("backgroundHeight", INTEGER, 6)
+					.withComment("How tall the background plate should be")
+					.finishValue(backgroundHeight::mirror)
+
+					.beginValue("barHeight", INTEGER, 4)
+					.withComment("How tall the health bar should be")
+					.finishValue(barHeight::mirror)
+
+					.beginValue("plateSize", INTEGER, 25)
+					.withComment("How wide the health bar should be. If the entity has a long name, the bar will increase in size to match it.")
+					.finishValue(plateSize::mirror)
+
+					.beginValue("plateSizeBoss", INTEGER, 50)
+					.withComment("plateSize but for bosses")
+					.finishValue(plateSizeBoss::mirror)
+
+					.beginValue("showAttributes", BOOLEAN, true)
+					.withComment("Show mob attributes such as arthropod or undead")
+					.finishValue(showAttributes::mirror)
+
+					.beginValue("showArmor", BOOLEAN, true)
+					.withComment("Show armor points")
+					.finishValue(showArmor::mirror)
+
+					.beginValue("groupArmor", BOOLEAN, true)
+					.withComment("Group armor points into diamond icons")
+					.finishValue(groupArmor::mirror)
+
+					.beginValue("colorByType", BOOLEAN, false)
+					.withComment("Color the bar differently depending on whether the entity is hostile or is a boss")
+					.finishValue(colorByType::mirror)
+
+					.beginValue("hpTextHeight", INTEGER, 14)
+					.withComment("Height of the text on the health bar")
+					.finishValue(hpTextHeight::mirror)
+
+					.beginValue("showMaxHP", BOOLEAN, true)
+					.withComment("Whether the maximum health of the mob should be shown")
+					.finishValue(showMaxHP::mirror)
+
+					.beginValue("showCurrentHP", BOOLEAN, true)
+					.withComment("Whether the current health of the mob should be shown")
+					.finishValue(showCurrentHP::mirror)
+
+					.beginValue("showPercentage", BOOLEAN, true)
+					.withComment("Whether the percentage health of the mob should be shown")
+					.finishValue(showPercentage::mirror)
+
+					.beginValue("showOnPlayers", BOOLEAN, true)
+					.withComment("Whether bars on players should be shown")
+					.finishValue(showOnPlayers::mirror)
+
+					.beginValue("showOnBosses", BOOLEAN, true)
+					.withComment("Whether bars on bosses should be shown")
+					.finishValue(showOnBosses::mirror)
+
+					.beginValue("showOnlyFocused", BOOLEAN, false)
+					.withComment("Only show bars for mobs you are targeting")
+					.finishValue(showOnlyFocused::mirror)
+
+					.beginValue("showFullHealth", BOOLEAN, true)
+					.withComment("Show bars for mobs that are at full health")
+					.finishValue(showFullHealth::mirror)
+
+					.beginValue("enableDebugInfo", BOOLEAN, true)
+					.withComment("Show extra debug info on the bar when F3 is enabled")
+					.finishValue(enableDebugInfo::mirror)
+
+					.beginValue("blacklist", ConfigTypes.makeList(STRING), NeatConfig.DEFAULT_DISABLED)
+					.withComment("Entity ID's that should not have bars rendered")
+					.finishValue(blacklist::mirror);
 
 			return builder.build();
 		}
