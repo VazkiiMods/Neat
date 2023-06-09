@@ -1,6 +1,10 @@
 plugins {
     id('java')
-    id('org.spongepowered.gradle.vanilla') version '0.2.1-SNAPSHOT'
+    // Unfortunately, VG has not published a new non-SNAPSHOT version since 2021.
+    // This may break if this snapshot gets garbage-collected. In that case, visit
+    // https://repo.spongepowered.org/service/rest/repository/browse/maven-public/org/spongepowered/vanillagradle/
+    // (or wherever their maven is now) and pick another snapshot version.
+    id('org.spongepowered.gradle.vanilla') version '0.2.1-20230603.203956-54' 
 }
 
 archivesBaseName = "${project.mod_name}-xplat"

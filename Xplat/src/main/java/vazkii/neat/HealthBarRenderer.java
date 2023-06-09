@@ -44,7 +44,7 @@ public class HealthBarRenderer {
 		Vec3 lookVector = e.getLookAngle();
 		Vec3 reachVector = positionVector.add(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance);
 
-		List<Entity> entitiesInBoundingBox = e.getLevel().getEntities(e,
+		List<Entity> entitiesInBoundingBox = e.level().getEntities(e,
 				e.getBoundingBox().inflate(lookVector.x * finalDistance, lookVector.y * finalDistance, lookVector.z * finalDistance)
 						.expandTowards(1F, 1F, 1F));
 		double minDistance = distance;
@@ -79,12 +79,10 @@ public class HealthBarRenderer {
 	}
 
 	private static HitResult raycast(Entity e, double len) {
-		return raycast(e.getEyePosition(), e.getLookAngle(), e, len);
-	}
-
-	private static HitResult raycast(Vec3 origin, Vec3 ray, Entity e, double len) {
+		Vec3 origin = e.getEyePosition();
+		Vec3 ray = e.getLookAngle();
 		Vec3 next = origin.add(ray.normalize().scale(len));
-		return e.level.clip(new ClipContext(origin, next, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, e));
+		return e.level().clip(new ClipContext(origin, next, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, e));
 	}
 
 	private static ItemStack getIcon(LivingEntity entity, boolean boss) {
@@ -289,7 +287,7 @@ public class HealthBarRenderer {
 			float zShift = 0F;
 			if (NeatConfig.instance.showAttributes()) {
 				var icon = getIcon(living, boss);
-				renderIcon(entity.level, icon, poseStack, buffers,
+				renderIcon(entity.level(), icon, poseStack, buffers,
 						globalScale, halfSize, iconOffset, zShift);
 				iconOffset += 5F;
 				zShift += zBump;
@@ -306,7 +304,7 @@ public class HealthBarRenderer {
 
 				var iron = new ItemStack(Items.IRON_CHESTPLATE);
 				for (int i = 0; i < ironArmor; i++) {
-					renderIcon(entity.level, iron, poseStack, buffers,
+					renderIcon(entity.level(), iron, poseStack, buffers,
 							globalScale, halfSize, iconOffset, zShift);
 					iconOffset += 1F;
 					zShift += zBump;
@@ -314,7 +312,7 @@ public class HealthBarRenderer {
 
 				var diamond = new ItemStack(Items.DIAMOND_CHESTPLATE);
 				for (int i = 0; i < diamondArmor; i++) {
-					renderIcon(entity.level, diamond, poseStack, buffers,
+					renderIcon(entity.level(), diamond, poseStack, buffers,
 							globalScale, halfSize, iconOffset, zShift);
 					iconOffset += 1F;
 					zShift += zBump;
