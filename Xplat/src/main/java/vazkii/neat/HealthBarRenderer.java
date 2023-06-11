@@ -10,8 +10,12 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.monster.Monster;
@@ -123,9 +127,14 @@ public class HealthBarRenderer {
 		}
 	}
 
+	private static final TagKey<EntityType<?>> FORGE_BOSS_TAG =
+			TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation("forge", "bosses"));
+
+	private static final TagKey<EntityType<?>> FABRIC_BOSS_TAG =
+			TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation("c", "bosses"));
+
 	private static boolean isBoss(Entity entity) {
-		// TODO inaccurate
-		return !entity.canChangeDimensions();
+		return entity.getType().is(FORGE_BOSS_TAG) || entity.getType().is(FABRIC_BOSS_TAG);
 	}
 
 	private static boolean shouldShowPlate(LivingEntity living, Entity cameraEntity) {
