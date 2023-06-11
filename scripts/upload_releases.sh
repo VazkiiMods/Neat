@@ -39,7 +39,7 @@ function release_modrinth() {
 		}
 	],
 	"version_type": "release",
-	"loaders": ["fabric"],
+	"loaders": ["fabric", "quilt"],
 	"featured": false,
 	"project_id": "Ins7SzzR",
 	"file_parts": [
