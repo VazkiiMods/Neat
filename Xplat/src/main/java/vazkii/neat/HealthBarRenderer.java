@@ -24,6 +24,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.Team;
 
 import org.joml.Quaternionf;
 
@@ -127,12 +128,12 @@ public class HealthBarRenderer {
 		return !entity.canChangeDimensions();
 	}
 
-	private static boolean shouldShowPlate(Entity entity, Entity cameraEntity) {
-		if ((!NeatConfig.instance.renderInF1() && !Minecraft.renderNames()) || !NeatConfig.draw) {
+	private static boolean shouldShowPlate(LivingEntity living, Entity cameraEntity) {
+		if (living == cameraEntity) {
 			return false;
 		}
 
-		if (!(entity instanceof LivingEntity living)) {
+		if ((!NeatConfig.instance.renderInF1() && !Minecraft.renderNames()) || !NeatConfig.draw) {
 			return false;
 		}
 
@@ -143,8 +144,7 @@ public class HealthBarRenderer {
 
 		float distance = living.distanceTo(cameraEntity);
 		if (distance > NeatConfig.instance.maxDistance()
-				|| !living.hasLineOfSight(cameraEntity)
-				|| living.isInvisible()) {
+				|| !living.hasLineOfSight(cameraEntity)) {
 			return false;
 		}
 		if (!NeatConfig.instance.showOnBosses() && isBoss(living)) {
@@ -156,23 +156,38 @@ public class HealthBarRenderer {
 		if (!NeatConfig.instance.showFullHealth() && living.getHealth() >= living.getMaxHealth()) {
 			return false;
 		}
-		if (NeatConfig.instance.showOnlyFocused() && getEntityLookedAt(cameraEntity) != entity) {
+		if (NeatConfig.instance.showOnlyFocused() && getEntityLookedAt(cameraEntity) != living) {
 			return false;
 		}
 
-		return true;
+		boolean visible = true;
+		if (cameraEntity instanceof Player cameraPlayer) {
+			visible = !living.isInvisibleTo(cameraPlayer);
+		}
+		Team livingTeam = living.getTeam();
+		Team cameraTeam = cameraEntity.getTeam();
+		if (livingTeam != null) {
+			return switch (livingTeam.getNameTagVisibility()) {
+				case ALWAYS -> visible;
+				case NEVER -> false;
+				case HIDE_FOR_OTHER_TEAMS -> cameraTeam == null ? visible : livingTeam.isAlliedTo(cameraTeam) && (livingTeam.canSeeFriendlyInvisibles() || visible);
+				case HIDE_FOR_OWN_TEAM -> cameraTeam == null ? visible : !livingTeam.isAlliedTo(cameraTeam) && visible;
+			};
+		}
+
+		return visible;
 	}
 
 	public static void hookRender(Entity entity, PoseStack poseStack, MultiBufferSource buffers,
 			Quaternionf cameraOrientation) {
 		final Minecraft mc = Minecraft.getInstance();
 
-		if (!(entity instanceof LivingEntity living) || !entity.getPassengers().isEmpty()) {
+		if (!(entity instanceof LivingEntity living) || !living.getPassengers().isEmpty()) {
 			// TODO handle mob stacks properly
 			return;
 		}
 
-		if (!shouldShowPlate(entity, mc.gameRenderer.getMainCamera().getEntity())) {
+		if (!shouldShowPlate(living, mc.gameRenderer.getMainCamera().getEntity())) {
 			return;
 		}
 
@@ -181,15 +196,15 @@ public class HealthBarRenderer {
 		final float globalScale = 0.0267F;
 		final float textScale = 0.5F;
 		final int barHeight = NeatConfig.instance.barHeight();
-		final boolean boss = isBoss(entity);
-		final String name = entity.hasCustomName()
-				? ChatFormatting.ITALIC + entity.getCustomName().getString()
-				: entity.getDisplayName().getString();
+		final boolean boss = isBoss(living);
+		final String name = living.hasCustomName()
+				? ChatFormatting.ITALIC + living.getCustomName().getString()
+				: living.getDisplayName().getString();
 		final float nameLen = mc.font.width(name) * textScale;
 		final float halfSize = Math.max(NeatConfig.instance.plateSize(), nameLen / 2.0F + 10.0F);
 
 		poseStack.pushPose();
-		poseStack.translate(0, entity.getBbHeight() + NeatConfig.instance.heightAbove(), 0);
+		poseStack.translate(0, living.getBbHeight() + NeatConfig.instance.heightAbove(), 0);
 		poseStack.mulPose(cameraOrientation);
 
 		// Plate background, bars, and text operate with globalScale, but icons don't
@@ -269,7 +284,7 @@ public class HealthBarRenderer {
 					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.enableDebugInfo() && mc.options.renderDebug) {
-					var id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+					var id = BuiltInRegistries.ENTITY_TYPE.getKey(living.getType());
 					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				poseStack.popPose();
@@ -287,7 +302,7 @@ public class HealthBarRenderer {
 			float zShift = 0F;
 			if (NeatConfig.instance.showAttributes()) {
 				var icon = getIcon(living, boss);
-				renderIcon(entity.level(), icon, poseStack, buffers,
+				renderIcon(living.level(), icon, poseStack, buffers,
 						globalScale, halfSize, iconOffset, zShift);
 				iconOffset += 5F;
 				zShift += zBump;
@@ -304,7 +319,7 @@ public class HealthBarRenderer {
 
 				var iron = new ItemStack(Items.IRON_CHESTPLATE);
 				for (int i = 0; i < ironArmor; i++) {
-					renderIcon(entity.level(), iron, poseStack, buffers,
+					renderIcon(living.level(), iron, poseStack, buffers,
 							globalScale, halfSize, iconOffset, zShift);
 					iconOffset += 1F;
 					zShift += zBump;
@@ -312,7 +327,7 @@ public class HealthBarRenderer {
 
 				var diamond = new ItemStack(Items.DIAMOND_CHESTPLATE);
 				for (int i = 0; i < diamondArmor; i++) {
-					renderIcon(entity.level(), diamond, poseStack, buffers,
+					renderIcon(living.level(), diamond, poseStack, buffers,
 							globalScale, halfSize, iconOffset, zShift);
 					iconOffset += 1F;
 					zShift += zBump;
