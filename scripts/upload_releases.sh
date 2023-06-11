@@ -140,6 +140,7 @@ $CURSEFORGE_GAME_VERSION]"
 		 -H "X-Api-Token: $CURSEFORGE_TOKEN" \
 		 -F "metadata=$CURSEFORGE_FABRIC_SPEC" \
 		 -F "file=@$FABRIC_JAR"
+	# TODO: Upload the asc as an 'Additional file'
 
 	echo >&2 'Uploading Forge Jar to CurseForge'
 	local CURSEFORGE_FORGE_SPEC
@@ -165,6 +166,7 @@ $CURSEFORGE_GAME_VERSION]"
 		 -H "X-Api-Token: $CURSEFORGE_TOKEN" \
 		 -F "metadata=$CURSEFORGE_FORGE_SPEC" \
 		 -F "file=@$FORGE_JAR"
+	# TODO: Upload the asc as an 'Additional file'
 }
 
 release_github
