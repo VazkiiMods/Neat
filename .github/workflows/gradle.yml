@@ -14,10 +14,6 @@ jobs:
         java-version: '17'
     - name: Validate gradlew integrity
       uses: gradle/wrapper-validation-action@v1
-    - name: Import signing key
-      env:
-        SIGNING_KEY: ${{ secrets.VIOLET_MOON_SIGNING_KEY }}
-      run: echo "${SIGNING_KEY}" | gpg --import -
     - name: Cache
       uses: actions/cache@v2
       with:
@@ -42,7 +38,10 @@ jobs:
         echo "forge=Forge/build/libs/Neat-${MC}-${BUILD}-FORGE.jar" >> "$GITHUB_OUTPUT"
         echo "fabric=Fabric/build/libs/Neat-${MC}-${BUILD}-FABRIC.jar" >> "$GITHUB_OUTPUT"
     - name: Sign jars
+      env:
+        SIGNING_KEY: ${{ secrets.VIOLET_MOON_SIGNING_KEY }}
       run: |
+        echo "${SIGNING_KEY}" | gpg --import -
         gpg --local-user "Violet Moon Signing Key" --armor \
           --detach-sign ${{ steps.calculate_artifact_names.outputs.forge }}
         gpg --local-user "Violet Moon Signing Key" --armor \
