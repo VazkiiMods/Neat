@@ -16,7 +16,6 @@ function release_github() {
 	   -H "Accept: application/vnd.github+json" \
 	   -H "X-GitHub-Api-Version: 2022-11-28" \
 	   /repos/VazkiiMods/Neat/releases \
-	   -F prerelease=true \
 	   -f tag_name="${TAGNAME}")"
 	GH_RELEASE_PAGE=$(echo "$GH_RELEASE_RESPONSE" | jq -r .html_url)
 
@@ -39,7 +38,7 @@ function release_modrinth() {
 			"dependency_type": "required"
 		}
 	],
-	"version_type": "alpha",
+	"version_type": "release",
 	"loaders": ["fabric"],
 	"featured": false,
 	"project_id": "Ins7SzzR",
@@ -66,7 +65,7 @@ EOF
 	MODRINTH_FORGE_SPEC=$(cat <<EOF
 {
 	"dependencies": [],
-	"version_type": "alpha",
+	"version_type": "release",
 	"loaders": ["forge"],
 	"featured": false,
 	"project_id": "Ins7SzzR",
