@@ -1,6 +1,6 @@
 name: Java CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -40,7 +40,7 @@ jobs:
     - name: Sign jars
       env:
         SIGNING_KEY: ${{ secrets.VIOLET_MOON_SIGNING_KEY }}
-      if: ${{ env.SIGNING_KEY != '' }
+      if: ${{ env.SIGNING_KEY != '' }}
       run: |
         echo "${SIGNING_KEY}" | gpg --import -
         gpg --local-user "Violet Moon Signing Key" --armor \
