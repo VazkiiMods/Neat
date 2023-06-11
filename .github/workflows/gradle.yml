@@ -64,6 +64,7 @@ jobs:
     - name: Upload Releases
       if: startsWith(github.ref, 'refs/tags/release-')
       env:
+        GH_TOKEN: ${{ github.token }}
         GIT_REF: ${{ github.ref }}
         FABRIC_JAR: ${{ steps.calculate_artifact_names.outputs.fabric }}
         FORGE_JAR: ${{ steps.calculate_artifact_names.outputs.forge }}
