@@ -4,9 +4,7 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK
@@ -33,23 +31,39 @@ jobs:
       if: failure()
       with:
         path: '**/reports/pmd/main.xml'
-    # TODO: Both this find command as well as archiving with a glob below is a kludge,
-    # because github then compresses the folder before uploading it.
-    # Ideally we assemble the version number here in the github action and sign/archive
-    # the two release binaries specifically.
+    - name: Stop Gradle
+      run: |
+        ./gradlew stop
+    - name: Calculate artifact names
+      id: calculate_artifact_names
+      run: |
+        MC=$(awk -F '=' '/mc_version/ { print $2; }' gradle.properties)
+        BUILD=$(awk -F '=' '/build_number/ { print $2; }' gradle.properties)
+        echo "forge=Forge/build/libs/Neat-${MC}-${BUILD}-FORGE.jar" >> "$GITHUB_OUTPUT"
+        echo "fabric=Fabric/build/libs/Neat-${MC}-${BUILD}-FABRIC.jar" >> "$GITHUB_OUTPUT"
     - name: Sign jars
       run: |
-        find Forge/build/libs Fabric/build/libs -type f -name '*.jar' -not -name '*-sources.jar' \
-          -exec gpg --local-user "Violet Moon Signing Key" --armor --detach-sign {} \;
-    - name: Archive Forge Artifacts
+        gpg --local-user "Violet Moon Signing Key" --armor \
+          --detach-sign ${{ steps.calculate_artifact_names.outputs.forge }}
+        gpg --local-user "Violet Moon Signing Key" --armor \
+          --detach-sign ${{ steps.calculate_artifact_names.outputs.fabric }}
+    - name: Archive Forge Jar
       uses: actions/upload-artifact@v2
       with:
-        name: Forge
-        path: Forge/build/libs/*
-    - name: Archive Fabric Artifacts
+        name: Forge Jar
+        path: ${{ steps.calculate_artifact_names.outputs.forge }}
+    - name: Archive Forge Signature
       uses: actions/upload-artifact@v2
       with:
-        name: Fabric
-        path: Fabric/build/libs/*
-    - name: Cleanup
-      run: ./gradlew --stop
+        name: Forge Signature
+        path: ${{ steps.calculate_artifact_names.outputs.forge }}.asc
+    - name: Archive Fabric Jar
+      uses: actions/upload-artifact@v2
+      with:
+        name: Fabric Jar
+        path: ${{ steps.calculate_artifact_names.outputs.fabric }}
+    - name: Archive Fabric Signature
+      uses: actions/upload-artifact@v2
+      with:
+        name: Fabric Signature
+        path: ${{ steps.calculate_artifact_names.outputs.fabric }}.asc
