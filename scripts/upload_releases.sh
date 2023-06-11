@@ -91,7 +91,7 @@ EOF
 function release_curseforge() {
 	# Java versions, Loaders, and Environment tags are actually "game versions" (lmfao), as are real game versions.
 
-	# Hardcoded from https://minecraft.curseforge.com/api/game/version-types (which is undocumented, btw)
+	# Hardcoded from https://minecraft.curseforge.com/api/game/versions
 	# I'm not betting on these changing any time soon, so hardcoding is ok
 	local CURSEFORGE_JAVA_VERSION=8326 # Java 17
 	local CURSEFORGE_FABRIC_VERSION=7499
