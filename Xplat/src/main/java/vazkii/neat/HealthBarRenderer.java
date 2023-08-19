@@ -191,7 +191,7 @@ public class HealthBarRenderer {
 			Quaternionf cameraOrientation) {
 		final Minecraft mc = Minecraft.getInstance();
 
-		if (!(entity instanceof LivingEntity living) || !living.getPassengers().isEmpty()) {
+		if (!(entity instanceof LivingEntity living) || (!living.getPassengers().isEmpty() && living.getPassengers().get(0) instanceof LivingEntity)) {
 			// TODO handle mob stacks properly
 			return;
 		}
