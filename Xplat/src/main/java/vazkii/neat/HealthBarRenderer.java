@@ -153,7 +153,8 @@ public class HealthBarRenderer {
 
 		float distance = living.distanceTo(cameraEntity);
 		if (distance > NeatConfig.instance.maxDistance()
-				|| !living.hasLineOfSight(cameraEntity)) {
+				|| (distance > NeatConfig.instance.maxDistanceWithoutLineOfSight()
+					&& !living.hasLineOfSight(cameraEntity))) {
 			return false;
 		}
 		if (!NeatConfig.instance.showOnBosses() && isBoss(living)) {
@@ -170,8 +171,22 @@ public class HealthBarRenderer {
 		}
 
 		boolean visible = true;
-		if (cameraEntity instanceof Player cameraPlayer) {
-			visible = !living.isInvisibleTo(cameraPlayer);
+		if (cameraEntity instanceof Player cameraPlayer
+			&& living.isInvisibleTo(cameraPlayer)) {
+			boolean	wearingThings = false;
+			for (ItemStack armorSlot : living.getArmorSlots()) {
+				if (!armorSlot.isEmpty()) {
+					wearingThings = true;
+				}
+			}
+			for (ItemStack handSlot : living.getHandSlots()) {
+				if (!handSlot.isEmpty()) {
+					wearingThings = true;
+				}
+			}
+			if (!wearingThings) {
+				visible = false;
+			}
 		}
 		Team livingTeam = living.getTeam();
 		Team cameraTeam = cameraEntity.getTeam();
@@ -191,8 +206,7 @@ public class HealthBarRenderer {
 			Quaternionf cameraOrientation) {
 		final Minecraft mc = Minecraft.getInstance();
 
-		if (!(entity instanceof LivingEntity living) || (!living.getPassengers().isEmpty() && living.getPassengers().get(0) instanceof LivingEntity)) {
-			// TODO handle mob stacks properly
+		if (!(entity instanceof LivingEntity living)) {
 			return;
 		}
 
@@ -206,9 +220,7 @@ public class HealthBarRenderer {
 		final float textScale = 0.5F;
 		final int barHeight = NeatConfig.instance.barHeight();
 		final boolean boss = isBoss(living);
-		final String name = living.hasCustomName()
-				? ChatFormatting.ITALIC + living.getCustomName().getString()
-				: living.getDisplayName().getString();
+		final String name = living.getDisplayName().getString();
 		final float nameLen = mc.font.width(name) * textScale;
 		final float halfSize = Math.max(NeatConfig.instance.plateSize(), nameLen / 2.0F + 10.0F);
 
