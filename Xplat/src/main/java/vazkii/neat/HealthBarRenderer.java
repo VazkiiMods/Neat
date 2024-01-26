@@ -154,7 +154,7 @@ public class HealthBarRenderer {
 		float distance = living.distanceTo(cameraEntity);
 		if (distance > NeatConfig.instance.maxDistance()
 				|| (distance > NeatConfig.instance.maxDistanceWithoutLineOfSight()
-					&& !living.hasLineOfSight(cameraEntity))) {
+						&& !living.hasLineOfSight(cameraEntity))) {
 			return false;
 		}
 		if (!NeatConfig.instance.showOnBosses() && isBoss(living)) {
@@ -172,8 +172,8 @@ public class HealthBarRenderer {
 
 		boolean visible = true;
 		if (cameraEntity instanceof Player cameraPlayer
-			&& living.isInvisibleTo(cameraPlayer)) {
-			boolean	wearingThings = false;
+				&& living.isInvisibleTo(cameraPlayer)) {
+			boolean wearingThings = false;
 			for (ItemStack armorSlot : living.getArmorSlots()) {
 				if (!armorSlot.isEmpty()) {
 					wearingThings = true;
