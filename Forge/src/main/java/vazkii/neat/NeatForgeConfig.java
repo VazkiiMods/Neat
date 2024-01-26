@@ -18,6 +18,7 @@ public class NeatForgeConfig {
 
 	private static class ForgeNeatConfig implements NeatConfig.ConfigAccess {
 		private final ConfigValue<Integer> maxDistance;
+		private final ConfigValue<Integer> maxDistanceWithoutLineOfSight;
 		private final ConfigValue<Boolean> renderInF1;
 		private final ConfigValue<Double> heightAbove;
 		private final ConfigValue<Boolean> drawBackground;
@@ -45,6 +46,7 @@ public class NeatForgeConfig {
 			builder.push("general");
 
 			maxDistance = builder.define("Max Distance", 24);
+			maxDistanceWithoutLineOfSight = builder.define("Max Distance Without Line of Sight", 8);
 			renderInF1 = builder.define("Render with Interface Disabled (F1)", false);
 			heightAbove = builder.define("Height Above Mob", 0.6);
 			drawBackground = builder.define("Draw Background", true);
@@ -75,6 +77,11 @@ public class NeatForgeConfig {
 		@Override
 		public int maxDistance() {
 			return maxDistance.get();
+		}
+
+		@Override
+		public int maxDistanceWithoutLineOfSight() {
+			return maxDistanceWithoutLineOfSight.get();
 		}
 
 		@Override

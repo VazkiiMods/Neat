@@ -54,6 +54,7 @@ public final class NeatFiberConfig {
 
 	private static class Client implements NeatConfig.ConfigAccess {
 		private final PropertyMirror<Integer> maxDistance = PropertyMirror.create(INTEGER);
+		private final PropertyMirror<Integer> maxDistanceWithoutLineOfSight = PropertyMirror.create(INTEGER);
 		private final PropertyMirror<Boolean> renderInF1 = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Double> heightAbove = PropertyMirror.create(DOUBLE);
 		private final PropertyMirror<Boolean> drawBackground = PropertyMirror.create(BOOLEAN);
@@ -81,6 +82,10 @@ public final class NeatFiberConfig {
 			builder.beginValue("maxDistance", INTEGER, 24)
 					.withComment("Maximum distance in blocks at which health bars should render")
 					.finishValue(maxDistance::mirror)
+
+					.beginValue("maxDistanceWithoutLineOfSight", INTEGER, 8)
+					.withComment("Maximum distance in blocks at which health bars should render without line of sight")
+					.finishValue(maxDistanceWithoutLineOfSight::mirror)
 
 					.beginValue("renderInF1", BOOLEAN, false)
 					.withComment("Whether health bars should render when the HUD is disabled with F1")
@@ -176,6 +181,11 @@ public final class NeatFiberConfig {
 		@Override
 		public int maxDistance() {
 			return maxDistance.getValue();
+		}
+
+		@Override
+		public int maxDistanceWithoutLineOfSight() {
+			return maxDistanceWithoutLineOfSight.getValue();
 		}
 
 		@Override

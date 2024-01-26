@@ -9,6 +9,7 @@ public class NeatConfig {
 
 	public interface ConfigAccess {
 		int maxDistance();
+		int maxDistanceWithoutLineOfSight();
 		boolean renderInF1();
 		double heightAbove();
 		boolean drawBackground();
