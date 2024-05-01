@@ -4,7 +4,7 @@ plugins {
     // This may break if this snapshot gets garbage-collected. In that case, visit
     // https://repo.spongepowered.org/service/rest/repository/browse/maven-public/org/spongepowered/vanillagradle/
     // (or wherever their maven is now) and pick another snapshot version.
-    id('org.spongepowered.gradle.vanilla') version '0.2.1-20230603.203956-54' 
+    id('org.spongepowered.gradle.vanilla') version '0.2.1-20240410.152240-79'
 }
 
 archivesBaseName = "${project.mod_name}-xplat"
@@ -15,6 +15,13 @@ minecraft {
     accessWideners 'src/main/resources/neat_xplat.accesswidener'
 }
 
+repositories {
+    maven {
+        name = 'Sponge Snapshots'
+        url = 'https://repo.spongepowered.org/repository/maven-snapshots/'
+    }
+}
+
 dependencies {
-    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
+    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.6-20240121.184834-1'
 }
