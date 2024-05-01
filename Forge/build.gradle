@@ -15,9 +15,12 @@ buildscript {
     }
 }
 
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'eclipse'
-apply plugin: 'org.spongepowered.mixin'
+plugins {
+    id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
+    id 'org.spongepowered.mixin' version '0.7-20230803.124500-3'
+    id 'eclipse'
+    id 'idea'
+}
 
 version = "${project.mc_version}-${project.build_number}-FORGE"
 
@@ -46,10 +49,18 @@ minecraft {
     }
 }
 
+repositories {
+    maven {
+        name = 'Sponge Snapshots'
+        url = 'https://repo.spongepowered.org/repository/maven-snapshots/'
+    }
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:${project.mc_version}-${project.forge_version}"
+    implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
     compileOnly project(":Xplat")
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    annotationProcessor 'org.spongepowered:mixin:0.8.6-20240121.184834-1:processor'
 }
 
 compileJava {
@@ -71,14 +82,14 @@ processResources {
 }
 
 jar {
-     manifest {
+    manifest {
         attributes([
-            "Specification-Title": "${project.mod_id}",
-            "Specification-Vendor": "vazkii",
-            "Specification-Version": "1", // We are version 1 of ourselves
-            "Implementation-Title": "${project.mod_id}",
-            "Implementation-Version": "${project.version}",
-            "Implementation-Vendor" :"vazkii",
+                "Specification-Title"   : "${project.mod_id}",
+                "Specification-Vendor"  : "vazkii",
+                "Specification-Version" : "1", // We are version 1 of ourselves
+                "Implementation-Title"  : "${project.mod_id}",
+                "Implementation-Version": "${project.version}",
+                "Implementation-Vendor" : "vazkii",
         ])
     }
 }

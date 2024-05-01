@@ -4,12 +4,8 @@ pluginManagement {
             name = 'Sponge Public'
             url = 'https://repo.spongepowered.org/repository/maven-public/'
         }
-        maven {
-            name = 'Sponge Snapshots'
-            url = 'https://repo.spongepowered.org/repository/maven-snapshots/'
-        }
         gradlePluginPortal()
     }
 }
 rootProject.name = 'Neat'
-include("Xplat", "Fabric")
+include("Xplat", "Fabric", "Forge")
