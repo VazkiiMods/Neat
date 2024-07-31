@@ -1,23 +1,23 @@
 package vazkii.neat;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -94,10 +94,10 @@ public class HealthBarRenderer {
 		if (boss) {
 			return new ItemStack(Items.NETHER_STAR);
 		}
-		MobType type = entity.getMobType();
-		if (type == MobType.ARTHROPOD) {
+		EntityType<?> type = entity.getType();
+		if (type.is(EntityTypeTags.ARTHROPOD)) {
 			return new ItemStack(Items.SPIDER_EYE);
-		} else if (type == MobType.UNDEAD) {
+		} else if (type.is(EntityTypeTags.UNDEAD)) {
 			return new ItemStack(Items.ROTTEN_FLESH);
 		} else {
 			return ItemStack.EMPTY;
@@ -128,10 +128,10 @@ public class HealthBarRenderer {
 	}
 
 	private static final TagKey<EntityType<?>> FORGE_BOSS_TAG =
-			TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation("forge", "bosses"));
+			TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("forge", "bosses"));
 
 	private static final TagKey<EntityType<?>> FABRIC_BOSS_TAG =
-			TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation("c", "bosses"));
+			TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("c", "bosses"));
 
 	private static boolean isBoss(Entity entity) {
 		return entity.getType().is(FORGE_BOSS_TAG) || entity.getType().is(FABRIC_BOSS_TAG);
@@ -225,10 +225,11 @@ public class HealthBarRenderer {
 			float padding = NeatConfig.instance.backgroundPadding();
 			int bgHeight = NeatConfig.instance.backgroundHeight();
 			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
-			builder.vertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.0F).uv2(light).endVertex();
-			builder.vertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.5F).uv2(light).endVertex();
-			builder.vertex(poseStack.last().pose(), halfSize + padding, barHeight + padding, 0.01F).color(0, 0, 0, 64).uv(1.0F, 0.5F).uv2(light).endVertex();
-			builder.vertex(poseStack.last().pose(), halfSize + padding, -bgHeight, 0.01F).color(0, 0, 0, 64).uv(1.0F, 0.0F).uv2(light).endVertex();
+			//VertexConsumer builder = buffers.getBuffer(RenderType.LINES);
+			builder.addVertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).setColor(0, 0, 0, 64).setUv(0.0F, 0.0F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 64).setUv(0.0F, 0.5F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), halfSize + padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 64).setUv(1.0F, 0.5F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), halfSize + padding, -bgHeight, 0.01F).setColor(0, 0, 0, 64).setUv(1.0F, 0.0F).setLight(light);
 		}
 
 		// Health Bar
@@ -243,17 +244,18 @@ public class HealthBarRenderer {
 			float healthHalfSize = halfSize * (living.getHealth() / maxHealth);
 
 			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
-			builder.vertex(poseStack.last().pose(), -halfSize, 0, 0.001F).color(r, g, b, 127).uv(0.0F, 0.75F).uv2(light).endVertex();
-			builder.vertex(poseStack.last().pose(), -halfSize, barHeight, 0.001F).color(r, g, b, 127).uv(0.0F, 1.0F).uv2(light).endVertex();
-			builder.vertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).color(r, g, b, 127).uv(1.0F, 1.0F).uv2(light).endVertex();
-			builder.vertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, 0, 0.001F).color(r, g, b, 127).uv(1.0F, 0.75F).uv2(light).endVertex();
+			//VertexConsumer builder = buffers.getBuffer(RenderType.LINES);
+			builder.addVertex(poseStack.last().pose(), -halfSize, 0, 0.001F).setColor(r, g, b, 127).setUv(0.0F, 0.75F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), -halfSize, barHeight, 0.001F).setColor(r, g, b, 127).setUv(0.0F, 1.0F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).setColor(r, g, b, 127).setUv(1.0F, 1.0F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, 0, 0.001F).setColor(r, g, b, 127).setUv(1.0F, 0.75F).setLight(light);
 
 			// Blank part of the bar
 			if (healthHalfSize < halfSize) {
-				builder.vertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, 0, 0.001F).color(0, 0, 0, 127).uv(0.0F, 0.5F).uv2(light).endVertex();
-				builder.vertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).color(0, 0, 0, 127).uv(0.0F, 0.75F).uv2(light).endVertex();
-				builder.vertex(poseStack.last().pose(), halfSize, barHeight, 0.001F).color(0, 0, 0, 127).uv(1.0F, 0.75F).uv2(light).endVertex();
-				builder.vertex(poseStack.last().pose(), halfSize, 0, 0.001F).color(0, 0, 0, 127).uv(1.0F, 0.5F).uv2(light).endVertex();
+				builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, 0, 0.001F).setColor(0, 0, 0, 127).setUv(0.0F, 0.5F).setLight(light);
+				builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).setColor(0, 0, 0, 127).setUv(0.0F, 0.75F).setLight(light);
+				builder.addVertex(poseStack.last().pose(), halfSize, barHeight, 0.001F).setColor(0, 0, 0, 127).setUv(1.0F, 0.75F).setLight(light);
+				builder.addVertex(poseStack.last().pose(), halfSize, 0, 0.001F).setColor(0, 0, 0, 127).setUv(1.0F, 0.5F).setLight(light);
 			}
 		}
 
@@ -292,7 +294,7 @@ public class HealthBarRenderer {
 					String percStr = (int) (100 * living.getHealth() / living.getMaxHealth()) + "%";
 					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
-				if (NeatConfig.instance.enableDebugInfo() && mc.options.renderDebug) {
+				if (NeatConfig.instance.enableDebugInfo() && mc.getDebugOverlay().showDebugScreen()) {
 					var id = BuiltInRegistries.ENTITY_TYPE.getKey(living.getType());
 					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}

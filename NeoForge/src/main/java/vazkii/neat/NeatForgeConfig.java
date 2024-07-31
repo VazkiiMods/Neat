@@ -1,47 +1,48 @@
 package vazkii.neat;
 
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.config.ModConfig;
 
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
 public class NeatForgeConfig {
-	public static void init() {
-		Pair<ForgeNeatConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ForgeNeatConfig::new);
+	public static void init(ModContainer container) {
+		Pair<ForgeNeatConfig, ModConfigSpec> specPair = new ModConfigSpec.Builder().configure(ForgeNeatConfig::new);
 		NeatConfig.instance = specPair.getLeft();
-		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, specPair.getRight());
+		container.registerConfig(ModConfig.Type.CLIENT, specPair.getRight());
+		//TODO consider using the build-in config ui of neoforge
 	}
 
 	private static class ForgeNeatConfig implements NeatConfig.ConfigAccess {
-		private final ConfigValue<Integer> maxDistance;
-		private final ConfigValue<Boolean> renderInF1;
-		private final ConfigValue<Double> heightAbove;
-		private final ConfigValue<Boolean> drawBackground;
-		private final ConfigValue<Integer> backgroundPadding;
-		private final ConfigValue<Integer> backgroundHeight;
-		private final ConfigValue<Integer> barHeight;
-		private final ConfigValue<Integer> plateSize;
-		private final ConfigValue<Integer> plateSizeBoss;
-		private final ConfigValue<Boolean> showAttributes;
-		private final ConfigValue<Boolean> showArmor;
-		private final ConfigValue<Boolean> groupArmor;
-		private final ConfigValue<Boolean> colorByType;
-		private final ConfigValue<Integer> hpTextHeight;
-		private final ConfigValue<Boolean> showMaxHP;
-		private final ConfigValue<Boolean> showCurrentHP;
-		private final ConfigValue<Boolean> showPercentage;
-		private final ConfigValue<Boolean> showOnPlayers;
-		private final ConfigValue<Boolean> showOnBosses;
-		private final ConfigValue<Boolean> showOnlyFocused;
-		private final ConfigValue<Boolean> showFullHealth;
-		private final ConfigValue<Boolean> enableDebugInfo;
-		private final ConfigValue<List<? extends String>> blacklist;
+		private final ModConfigSpec.ConfigValue<Integer> maxDistance;
+		private final ModConfigSpec.ConfigValue<Boolean> renderInF1;
+		private final ModConfigSpec.ConfigValue<Double> heightAbove;
+		private final ModConfigSpec.ConfigValue<Boolean> drawBackground;
+		private final ModConfigSpec.ConfigValue<Integer> backgroundPadding;
+		private final ModConfigSpec.ConfigValue<Integer> backgroundHeight;
+		private final ModConfigSpec.ConfigValue<Integer> barHeight;
+		private final ModConfigSpec.ConfigValue<Integer> plateSize;
+		private final ModConfigSpec.ConfigValue<Integer> plateSizeBoss;
+		private final ModConfigSpec.ConfigValue<Boolean> showAttributes;
+		private final ModConfigSpec.ConfigValue<Boolean> showArmor;
+		private final ModConfigSpec.ConfigValue<Boolean> groupArmor;
+		private final ModConfigSpec.ConfigValue<Boolean> colorByType;
+		private final ModConfigSpec.ConfigValue<Integer> hpTextHeight;
+		private final ModConfigSpec.ConfigValue<Boolean> showMaxHP;
+		private final ModConfigSpec.ConfigValue<Boolean> showCurrentHP;
+		private final ModConfigSpec.ConfigValue<Boolean> showPercentage;
+		private final ModConfigSpec.ConfigValue<Boolean> showOnPlayers;
+		private final ModConfigSpec.ConfigValue<Boolean> showOnBosses;
+		private final ModConfigSpec.ConfigValue<Boolean> showOnlyFocused;
+		private final ModConfigSpec.ConfigValue<Boolean> showFullHealth;
+		private final ModConfigSpec.ConfigValue<Boolean> enableDebugInfo;
+		private final ModConfigSpec.ConfigValue<List<? extends String>> blacklist;
 
-		public ForgeNeatConfig(ForgeConfigSpec.Builder builder) {
+		public ForgeNeatConfig(ModConfigSpec.Builder builder) {
 			builder.push("general");
 
 			maxDistance = builder.define("Max Distance", 24);
