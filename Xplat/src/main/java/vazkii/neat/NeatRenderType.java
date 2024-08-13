@@ -20,7 +20,6 @@ public class NeatRenderType extends RenderStateShard {
 		super(string, r, r1);
 	}
 
-	//TODO fix rendering
 	private static RenderType getHealthBarType() {
 		RenderType.CompositeState renderTypeState = RenderType.CompositeState.builder()
 				.setShaderState(POSITION_COLOR_TEX_LIGHTMAP_SHADER)
@@ -29,6 +28,6 @@ public class NeatRenderType extends RenderStateShard {
 				.setCullState(NO_CULL)
 				.setLightmapState(LIGHTMAP)
 				.createCompositeState(false);
-		return AccessorRenderType.neat_create("neat_health_bar", POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, true, true, renderTypeState);
+		return AccessorRenderType.neat_create("neat_health_bar", POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, true, false, renderTypeState);
 	}
 }
