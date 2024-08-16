@@ -7,7 +7,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -227,7 +226,6 @@ public class HealthBarRenderer {
 		if (NeatConfig.instance.drawBackground()) {
 			float padding = NeatConfig.instance.backgroundPadding();
 			int bgHeight = NeatConfig.instance.backgroundHeight();
-
 
 			builder.addVertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.0F).setLight(light);
 			builder.addVertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.5F).setLight(light);
