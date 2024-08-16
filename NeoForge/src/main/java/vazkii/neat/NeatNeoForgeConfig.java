@@ -1,20 +1,18 @@
 package vazkii.neat;
 
-
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
-public class NeatForgeConfig {
+public class NeatNeoForgeConfig {
 	public static void init(ModContainer container) {
 		Pair<ForgeNeatConfig, ModConfigSpec> specPair = new ModConfigSpec.Builder().configure(ForgeNeatConfig::new);
 		NeatConfig.instance = specPair.getLeft();
 		container.registerConfig(ModConfig.Type.CLIENT, specPair.getRight());
-		//TODO consider using the build-in config ui of neoforge
 	}
 
 	private static class ForgeNeatConfig implements NeatConfig.ConfigAccess {

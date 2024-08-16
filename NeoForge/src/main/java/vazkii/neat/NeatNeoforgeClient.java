@@ -14,12 +14,12 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 @EventBusSubscriber(modid = NeatConfig.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class NeatNeoforgeClient {
 
-    public NeatNeoforgeClient(IEventBus bus, ModContainer modContainer) {
-        modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
-    }
+	public NeatNeoforgeClient(IEventBus bus, ModContainer modContainer) {
+		modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+	}
 
-    @SubscribeEvent
-    public static void registerKey(RegisterKeyMappingsEvent event) {
-        event.register(ToggleKeybind.KEY);
-    }
+	@SubscribeEvent
+	public static void registerKey(RegisterKeyMappingsEvent event) {
+		event.register(ToggleKeybind.KEY);
+	}
 }
