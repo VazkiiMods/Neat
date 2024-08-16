@@ -15,5 +15,10 @@ modId="neoforge"
 type="required"
 versionRange="[21.0.143,)"
 
+[[dependencies.neat]]
+modId="minecraft"
+type="required"
+versionRange="[1.21,)"
+
 [[mixins]]
 config="neat.mixins.json"

@@ -45,30 +45,30 @@ public class NeatForgeConfig {
 		public ForgeNeatConfig(ModConfigSpec.Builder builder) {
 			builder.push("general");
 
-			maxDistance = builder.define("Max Distance", 24);
-			renderInF1 = builder.define("Render with Interface Disabled (F1)", false);
-			heightAbove = builder.define("Height Above Mob", 0.6);
-			drawBackground = builder.define("Draw Background", true);
-			backgroundPadding = builder.define("Background Padding", 2);
-			backgroundHeight = builder.define("Background Height", 6);
-			barHeight = builder.define("Health Bar Height", 4);
-			plateSize = builder.define("Plate Size", 25);
-			plateSizeBoss = builder.define("Plate Size (Boss)", 50);
-			showAttributes = builder.define("Show Attributes", true);
-			showArmor = builder.define("Show Armor", true);
-			groupArmor = builder.define("Group Armor (condense 5 iron icons into 1 diamond icon)", true);
-			colorByType = builder.define("Color Health Bar by Type (instead of health percentage)", false);
-			hpTextHeight = builder.define("HP Text Height", 14);
-			showMaxHP = builder.define("Show Max HP", true);
-			showCurrentHP = builder.define("Show Current HP", true);
-			showPercentage = builder.define("Show HP Percentage", true);
-			showOnPlayers = builder.define("Display on Players", true);
-			showOnBosses = builder.define("Display on Bosses", true);
-			showOnlyFocused = builder.define("Only show the health bar for the entity looked at", false);
-			showFullHealth = builder.define("Show entities with full health", true);
-			enableDebugInfo = builder.define("Show Debug Info with F3", true);
+			maxDistance = builder.define("max_distance", 24);
+			renderInF1 = builder.comment("Render if F1 is pressed").define("render_without_gui", false);
+			heightAbove = builder.define("height_above_mob", 0.6);
+			drawBackground = builder.define("draw_background", true);
+			backgroundPadding = builder.define("background_padding", 2);
+			backgroundHeight = builder.define("background_height", 6);
+			barHeight = builder.define("health_bar_height", 4);
+			plateSize = builder.define("plate_size", 25);
+			plateSizeBoss = builder.define("plate_size_boss", 50);
+			showAttributes = builder.define("show_attributes", true);
+			showArmor = builder.define("show_armor", true);
+			groupArmor = builder.comment("Condense 5 iron icons into 1 diamond icon").define("group_armor", true);
+			colorByType = builder.comment("Color health bar by type instead of health percentage").define("color_health_bar_by_type", false);
+			hpTextHeight = builder.define("hp_text_height", 14);
+			showMaxHP = builder.define("show_max_hp", true);
+			showCurrentHP = builder.define("show_current_hp", true);
+			showPercentage = builder.define("show_hp_percentage", true);
+			showOnPlayers = builder.define("display_on_players", true);
+			showOnBosses = builder.define("display_on_bosses", true);
+			showOnlyFocused = builder.define("only_health_bar_for_target", false);
+			showFullHealth = builder.define("show_entity_full_health", true);
+			enableDebugInfo = builder.define("show_debug_with_f3", true);
 			blacklist = builder.comment("Blacklist uses entity IDs, not their display names. Use F3 to see them in the Neat bar.")
-					.defineList("Blacklist", NeatConfig.DEFAULT_DISABLED, a -> true);
+					.defineList("blacklist", NeatConfig.DEFAULT_DISABLED, a -> true);
 
 			builder.pop();
 		}

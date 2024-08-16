@@ -17,11 +17,4 @@ public class NeatForgeInitializer {
 		NeatForgeConfig.init(modContainer);
 	}
 
-	@EventBusSubscriber(modid = NeatConfig.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-	public static class ClientEventHandler {
-		@SubscribeEvent
-		public static void registerKey(RegisterKeyMappingsEvent event) {
-			event.register(ToggleKeybind.KEY);
-		}
-	}
 }
