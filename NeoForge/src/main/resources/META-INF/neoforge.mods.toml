@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[45,)"
+loaderVersion="[4,)"
 issueTrackerURL="https://github.com/VazkiiMods/Neat"
 license="MIT AND CC-BY-NC-SA-3.0"  # Code is MIT, assets are CC
 
@@ -7,10 +7,18 @@ license="MIT AND CC-BY-NC-SA-3.0"  # Code is MIT, assets are CC
 modId="neat"
 displayName="Neat"
 version="${version}"
-authors="Vazkii"
+authors="Vazkii, Uraneptus"
 description="Minimalistic Functional Unit Plates for the modern Minecrafter"
 
 [[dependencies.neat]]
-modId="forge"
-mandatory=true
-versionRange="[45.0.40,)"
+modId="neoforge"
+type="required"
+versionRange="[21.0.143,)"
+
+[[dependencies.neat]]
+modId="minecraft"
+type="required"
+versionRange="[1.21,)"
+
+[[mixins]]
+config="neat.mixins.json"

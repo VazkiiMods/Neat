@@ -1,0 +1,66 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'net.neoforged.gradle.userdev'
+    id 'eclipse'
+}
+
+version = "${project.mc_version}-${project.build_number}-NEOFORGE"
+
+def accesstransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+if (accesstransformer.exists()) {
+    minecraft.accessTransformers.file accesstransformer
+}
+
+runs {
+    configureEach {
+        workingDirectory project.file('../run')
+        systemProperty 'forge.logging.console.level', 'debug'
+        modSource project.sourceSets.main
+    }
+
+    client {
+    }
+
+    server {
+        programArgument '--nogui'
+    }
+}
+
+dependencies {
+    implementation "net.neoforged:neoforge:${neoforge_version}"
+    implementation project(":Xplat")
+}
+
+compileJava {
+    source(project(":Xplat").sourceSets.main.allSource)
+    options.compilerArgs << "-Xlint:all,-classfile,-processing,-deprecation,-serial" << "-Werror"
+}
+
+sourcesJar {
+    from project(":Xplat").sourceSets.main.allJava
+}
+
+processResources {
+    from project(":Xplat").sourceSets.main.resources
+    inputs.property "version", project.version
+
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": project.version
+    }
+}
+
+jar {
+     manifest {
+        attributes([
+            "Specification-Title": "${project.mod_id}",
+            "Specification-Vendor": "vazkii",
+            "Specification-Version": "1", // We are version 1 of ourselves
+            "Implementation-Title": "${project.mod_id}",
+            "Implementation-Version": "${project.version}",
+            "Implementation-Vendor" :"vazkii",
+        ])
+    }
+}
+
+defaultTasks 'clean', 'build'

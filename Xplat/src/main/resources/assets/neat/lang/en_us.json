@@ -1,3 +1,27 @@
 {
-  "neat.keybind.toggle": "Toggle Health Bars"
+  "neat.keybind.toggle": "Toggle Health Bars",
+  "neat.configuration.display_on_bosses": "Display on Bosses",
+  "neat.configuration.draw_background": "Draw Background",
+  "neat.configuration.background_padding": "Background Padding",
+  "neat.configuration.show_armor": "Show Armor",
+  "neat.configuration.max_distance": "Max Distance",
+  "neat.configuration.plate_size": "Plate Size",
+  "neat.configuration.show_hp_percentage": "Show HP Percentage",
+  "neat.configuration.group_armor": "Group Armor",
+  "neat.configuration.show_entity_full_health": "Show entities with full health",
+  "neat.configuration.show_max_hp": "Show Max HP",
+  "neat.configuration.only_health_bar_for_target": "Only show the health bar for targeted entity",
+  "neat.configuration.general": "General",
+  "neat.configuration.height_above_mob": "Height Above Mob",
+  "neat.configuration.show_debug_with_f3": "Show Debug Info with F3",
+  "neat.configuration.display_on_players": "Display on Players",
+  "neat.configuration.background_height": "Background Height",
+  "neat.configuration.hp_text_height": "HP Text Height",
+  "neat.configuration.render_without_gui": "Render with GUI hidden",
+  "neat.configuration.health_bar_height": "Health Bar Height",
+  "neat.configuration.plate_size_boss": "Boss Plate Size",
+  "neat.configuration.show_attributes": "Show Attributes",
+  "neat.configuration.color_health_bar_by_type": "Color Health Bar by Type",
+  "neat.configuration.show_current_hp": "Show Current HP",
+  "neat.configuration.blacklist": "Blacklist"
 }
