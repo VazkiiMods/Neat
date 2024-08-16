@@ -215,12 +215,25 @@ public class HealthBarRenderer {
 		poseStack.pushPose();
 		poseStack.translate(0, living.getBbHeight() + NeatConfig.instance.heightAbove(), 0);
 		poseStack.mulPose(cameraOrientation);
+		poseStack.mulPose(Axis.YP.rotationDegrees(180));
 
 		// Plate background, bars, and text operate with globalScale, but icons don't
 		poseStack.pushPose();
 		poseStack.scale(-globalScale, -globalScale, globalScale);
 
 		VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
+
+		// Background
+		if (NeatConfig.instance.drawBackground()) {
+			float padding = NeatConfig.instance.backgroundPadding();
+			int bgHeight = NeatConfig.instance.backgroundHeight();
+
+
+			builder.addVertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.0F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.5F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), halfSize + padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 60).setUv(1.0F, 0.5F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), halfSize + padding, -bgHeight, 0.01F).setColor(0, 0, 0, 60).setUv(1.0F, 0.0F).setLight(light);
+		}
 
 		// Health Bar
 		{
@@ -232,34 +245,25 @@ public class HealthBarRenderer {
 			// can temporarily exceed the max health.
 			float maxHealth = Math.max(living.getHealth(), living.getMaxHealth());
 			float healthHalfSize = halfSize * (living.getHealth() / maxHealth);
-    		//TODO fix health bar reducing from left to right instead of right to left
-			builder.addVertex(poseStack.last().pose(), -halfSize, 0, 0.001F).setColor(r, g, b, 160).setUv(0.0F, 0.75F).setLight(light);
-			builder.addVertex(poseStack.last().pose(), -halfSize, barHeight, 0.001F).setColor(r, g, b, 160).setUv(0.0F, 1.0F).setLight(light);
-			builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).setColor(r, g, b, 160).setUv(1.0F, 1.0F).setLight(light);
-			builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, 0, 0.001F).setColor(r, g, b, 160).setUv(1.0F, 0.75F).setLight(light);
+
+			//VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
+			//VertexConsumer builder = buffers.getBuffer(RenderType.LINES);
+			builder.addVertex(poseStack.last().pose(), -halfSize, 0, 0.001F).setColor(r, g, b, 127).setUv(0.0F, 0.75F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), -halfSize, barHeight, 0.001F).setColor(r, g, b, 127).setUv(0.0F, 1.0F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).setColor(r, g, b, 127).setUv(1.0F, 1.0F).setLight(light);
+			builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, 0, 0.001F).setColor(r, g, b, 127).setUv(1.0F, 0.75F).setLight(light);
 
 			// Blank part of the bar
 			if (healthHalfSize < halfSize) {
-				builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, 0, 0.001F).setColor(0, 0, 0, 64).setUv(0.0F, 0.5F).setLight(light);
-				builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).setColor(0, 0, 0, 64).setUv(0.0F, 0.75F).setLight(light);
-				builder.addVertex(poseStack.last().pose(), halfSize, barHeight, 0.001F).setColor(0, 0, 0, 64).setUv(1.0F, 0.75F).setLight(light);
-				builder.addVertex(poseStack.last().pose(), halfSize, 0, 0.001F).setColor(0, 0, 0, 64).setUv(1.0F, 0.5F).setLight(light);
+				builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, 0, 0.001F).setColor(0, 0, 0, 127).setUv(0.0F, 0.5F).setLight(light);
+				builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).setColor(0, 0, 0, 127).setUv(0.0F, 0.75F).setLight(light);
+				builder.addVertex(poseStack.last().pose(), halfSize, barHeight, 0.001F).setColor(0, 0, 0, 127).setUv(1.0F, 0.75F).setLight(light);
+				builder.addVertex(poseStack.last().pose(), halfSize, 0, 0.001F).setColor(0, 0, 0, 127).setUv(1.0F, 0.5F).setLight(light);
 			}
 		}
 
-		// Background
-		if (NeatConfig.instance.drawBackground()) {
-			float padding = NeatConfig.instance.backgroundPadding();
-			int bgHeight = NeatConfig.instance.backgroundHeight();
-
-			builder.addVertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.0F).setLight(light);
-			builder.addVertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.5F).setLight(light);
-			builder.addVertex(poseStack.last().pose(), halfSize + padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 60).setUv(1.0F, 0.5F).setLight(light);
-			builder.addVertex(poseStack.last().pose(), halfSize + padding, -bgHeight, 0.01F).setColor(0, 0, 0, 60).setUv(1.0F, 0.0F).setLight(light);
-		}
-
 		// Text
-		{//TODO fix text not rendering
+		{
 			final int white = 0xFFFFFF;
 			final int black = 0;
 
