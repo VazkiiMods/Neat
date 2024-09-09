@@ -113,12 +113,10 @@ public class HealthBarRenderer {
 				r = 128;
 				g = 0;
 				b = 128;
-			}
-			if (entity instanceof Monster) {
+			} else if (entity instanceof Monster) {
 				r = 255;
 				g = 0;
-				b = 0;
-			}
+            }
 			return 0xff000000 | r << 16 | g << 8 | b;
 		} else {
 			float health = Mth.clamp(entity.getHealth(), 0.0F, entity.getMaxHealth());
