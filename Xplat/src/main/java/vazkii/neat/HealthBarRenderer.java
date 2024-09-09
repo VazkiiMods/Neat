@@ -170,6 +170,10 @@ public class HealthBarRenderer {
 			return false;
 		}
 
+		if (living.hasPassenger(cameraEntity)) {
+			return false;
+		}
+
 		boolean visible = true;
 		if (cameraEntity instanceof Player cameraPlayer
 				&& living.isInvisibleTo(cameraPlayer)) {
@@ -220,7 +224,9 @@ public class HealthBarRenderer {
 		final float textScale = 0.5F;
 		final int barHeight = NeatConfig.instance.barHeight();
 		final boolean boss = isBoss(living);
-		final String name = living.getDisplayName().getString();
+		final String name = living.hasCustomName()
+				? ChatFormatting.ITALIC + living.getCustomName().getString()
+				: living.getDisplayName().getString();
 		final float nameLen = mc.font.width(name) * textScale;
 		final float halfSize = Math.max(NeatConfig.instance.plateSize(), nameLen / 2.0F + 10.0F);
 
