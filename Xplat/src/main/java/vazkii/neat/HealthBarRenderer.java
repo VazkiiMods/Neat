@@ -242,6 +242,9 @@ public class HealthBarRenderer {
 		if (NeatConfig.instance.drawBackground()) {
 			float padding = NeatConfig.instance.backgroundPadding();
 			int bgHeight = NeatConfig.instance.backgroundHeight();
+			if (!NeatConfig.instance.showEntityName()) {
+				bgHeight -= (int) 4F;
+			}
 			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
 			builder.vertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.0F).uv2(light).endVertex();
 			builder.vertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).color(0, 0, 0, 64).uv(0.0F, 0.5F).uv2(light).endVertex();
@@ -282,11 +285,13 @@ public class HealthBarRenderer {
 
 			// Name
 			{
-				poseStack.pushPose();
-				poseStack.translate(-halfSize, -4.5F, 0F);
-				poseStack.scale(textScale, textScale, textScale);
-				mc.font.drawInBatch(name, 0, 0, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
-				poseStack.popPose();
+				if (NeatConfig.instance.showEntityName()) {
+					poseStack.pushPose();
+					poseStack.translate(-halfSize, -4.5F, 0F);
+					poseStack.scale(textScale, textScale, textScale);
+					mc.font.drawInBatch(name, 0, 0, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					poseStack.popPose();
+				}
 			}
 
 			// Health values (and debug ID)

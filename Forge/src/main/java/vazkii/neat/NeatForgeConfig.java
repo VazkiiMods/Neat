@@ -41,6 +41,7 @@ public class NeatForgeConfig {
 		private final ConfigValue<Boolean> showOnlyFocused;
 		private final ConfigValue<Boolean> showFullHealth;
 		private final ConfigValue<Boolean> enableDebugInfo;
+		private final ConfigValue<Boolean> showEntityName;
 		private final ConfigValue<List<? extends String>> blacklist;
 
 		public ForgeNeatConfig(ForgeConfigSpec.Builder builder) {
@@ -70,6 +71,7 @@ public class NeatForgeConfig {
 			showOnlyFocused = builder.define("Only show the health bar for the entity looked at", false);
 			showFullHealth = builder.define("Show entities with full health", true);
 			enableDebugInfo = builder.define("Show Debug Info with F3", true);
+			showEntityName = builder.define("show_entity_name", true);
 			blacklist = builder.comment("Blacklist uses entity IDs, not their display names. Use F3 to see them in the Neat bar.")
 					.defineList("Blacklist", NeatConfig.DEFAULT_DISABLED, a -> true);
 
@@ -194,6 +196,11 @@ public class NeatForgeConfig {
 		@Override
 		public boolean enableDebugInfo() {
 			return enableDebugInfo.get();
+		}
+
+		@Override
+		public boolean showEntityName() {
+			return showEntityName.get();
 		}
 
 		@SuppressWarnings("unchecked")

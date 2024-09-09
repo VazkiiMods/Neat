@@ -32,6 +32,7 @@ public class NeatConfig {
 		boolean showOnlyFocused();
 		boolean showFullHealth();
 		boolean enableDebugInfo();
+		boolean showEntityName();
 		List<String> blacklist();
 	}
 

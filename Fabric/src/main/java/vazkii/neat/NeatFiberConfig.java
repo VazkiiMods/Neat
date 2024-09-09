@@ -77,6 +77,7 @@ public final class NeatFiberConfig {
 		private final PropertyMirror<Boolean> showOnlyFocused = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showFullHealth = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> enableDebugInfo = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Boolean> showEntityName = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<List<String>> blacklist = PropertyMirror.create(ConfigTypes.makeList(STRING));
 
 		public ConfigTree configure(ConfigTreeBuilder builder) {
@@ -175,6 +176,10 @@ public final class NeatFiberConfig {
 					.beginValue("enableDebugInfo", BOOLEAN, true)
 					.withComment("Show extra debug info on the bar when F3 is enabled")
 					.finishValue(enableDebugInfo::mirror)
+
+					.beginValue("showEntityName", BOOLEAN, true)
+					.withComment("Show entity name")
+					.finishValue(showEntityName::mirror)
 
 					.beginValue("blacklist", ConfigTypes.makeList(STRING), NeatConfig.DEFAULT_DISABLED)
 					.withComment("Entity ID's that should not have bars rendered")
@@ -301,6 +306,11 @@ public final class NeatFiberConfig {
 		@Override
 		public boolean enableDebugInfo() {
 			return enableDebugInfo.getValue();
+		}
+
+		@Override
+		public boolean showEntityName() {
+			return showEntityName.getValue();
 		}
 
 		@Override
