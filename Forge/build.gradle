@@ -10,8 +10,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:6.0.6'
-        classpath 'org.spongepowered:mixingradle:0.7.33'
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.25'
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 
