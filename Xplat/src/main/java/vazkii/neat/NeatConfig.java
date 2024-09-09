@@ -33,6 +33,7 @@ public class NeatConfig {
 		boolean showFullHealth();
 		boolean enableDebugInfo();
 		boolean showEntityName();
+		boolean disableNameTag();
 		List<String> blacklist();
 	}
 

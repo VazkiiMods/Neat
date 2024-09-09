@@ -42,6 +42,7 @@ public class NeatForgeConfig {
 		private final ConfigValue<Boolean> showFullHealth;
 		private final ConfigValue<Boolean> enableDebugInfo;
 		private final ConfigValue<Boolean> showEntityName;
+		private final ConfigValue<Boolean> disableNameTag;
 		private final ConfigValue<List<? extends String>> blacklist;
 
 		public ForgeNeatConfig(ForgeConfigSpec.Builder builder) {
@@ -72,6 +73,7 @@ public class NeatForgeConfig {
 			showFullHealth = builder.define("Show entities with full health", true);
 			enableDebugInfo = builder.define("Show Debug Info with F3", true);
 			showEntityName = builder.define("show_entity_name", true);
+			disableNameTag = builder.comment("Disables the rendering of the vanilla name tag").define("disable_name_tag", false);
 			blacklist = builder.comment("Blacklist uses entity IDs, not their display names. Use F3 to see them in the Neat bar.")
 					.defineList("Blacklist", NeatConfig.DEFAULT_DISABLED, a -> true);
 
@@ -201,6 +203,11 @@ public class NeatForgeConfig {
 		@Override
 		public boolean showEntityName() {
 			return showEntityName.get();
+		}
+
+		@Override
+		public boolean disableNameTag() {
+			return disableNameTag.get();
 		}
 
 		@SuppressWarnings("unchecked")

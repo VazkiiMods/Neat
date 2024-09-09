@@ -78,6 +78,7 @@ public final class NeatFiberConfig {
 		private final PropertyMirror<Boolean> showFullHealth = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> enableDebugInfo = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showEntityName = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Boolean> disableNameTag = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<List<String>> blacklist = PropertyMirror.create(ConfigTypes.makeList(STRING));
 
 		public ConfigTree configure(ConfigTreeBuilder builder) {
@@ -180,6 +181,10 @@ public final class NeatFiberConfig {
 					.beginValue("showEntityName", BOOLEAN, true)
 					.withComment("Show entity name")
 					.finishValue(showEntityName::mirror)
+
+					.beginValue("disableNameTag", BOOLEAN, false)
+					.withComment("Disables the rendering of the vanilla name tag")
+					.finishValue(disableNameTag::mirror)
 
 					.beginValue("blacklist", ConfigTypes.makeList(STRING), NeatConfig.DEFAULT_DISABLED)
 					.withComment("Entity ID's that should not have bars rendered")
@@ -311,6 +316,11 @@ public final class NeatFiberConfig {
 		@Override
 		public boolean showEntityName() {
 			return showEntityName.getValue();
+		}
+
+		@Override
+		public boolean disableNameTag() {
+			return disableNameTag.getValue();
 		}
 
 		@Override
