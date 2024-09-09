@@ -99,6 +99,8 @@ public class HealthBarRenderer {
 			return new ItemStack(Items.SPIDER_EYE);
 		} else if (type == MobType.UNDEAD) {
 			return new ItemStack(Items.ROTTEN_FLESH);
+		} else if (type == MobType.ILLAGER) {
+			return new ItemStack(Items.IRON_AXE);
 		} else {
 			return ItemStack.EMPTY;
 		}
