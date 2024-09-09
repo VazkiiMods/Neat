@@ -31,6 +31,7 @@ public class NeatForgeConfig {
 		private final ConfigValue<Boolean> showArmor;
 		private final ConfigValue<Boolean> groupArmor;
 		private final ConfigValue<Boolean> colorByType;
+		private final ConfigValue<String> textColor;
 		private final ConfigValue<Integer> hpTextHeight;
 		private final ConfigValue<Boolean> showMaxHP;
 		private final ConfigValue<Boolean> showCurrentHP;
@@ -59,6 +60,7 @@ public class NeatForgeConfig {
 			showArmor = builder.define("Show Armor", true);
 			groupArmor = builder.define("Group Armor (condense 5 iron icons into 1 diamond icon)", true);
 			colorByType = builder.define("Color Health Bar by Type (instead of health percentage)", false);
+			textColor = builder.comment("Text color in hex code format").define("text_color", "FFFFFF");
 			hpTextHeight = builder.define("HP Text Height", 14);
 			showMaxHP = builder.define("Show Max HP", true);
 			showCurrentHP = builder.define("Show Current HP", true);
@@ -142,6 +144,11 @@ public class NeatForgeConfig {
 		@Override
 		public boolean colorByType() {
 			return colorByType.get();
+		}
+
+		@Override
+		public String textColor() {
+			return textColor.get();
 		}
 
 		@Override

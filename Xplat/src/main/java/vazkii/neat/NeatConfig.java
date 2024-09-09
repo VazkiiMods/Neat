@@ -22,6 +22,7 @@ public class NeatConfig {
 		boolean showArmor();
 		boolean groupArmor();
 		boolean colorByType();
+		String textColor();
 		int hpTextHeight();
 		boolean showMaxHP();
 		boolean showCurrentHP();

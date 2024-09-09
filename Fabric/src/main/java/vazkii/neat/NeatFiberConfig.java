@@ -67,6 +67,7 @@ public final class NeatFiberConfig {
 		private final PropertyMirror<Boolean> showArmor = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> groupArmor = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> colorByType = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<String> textColor = PropertyMirror.create(STRING);
 		private final PropertyMirror<Integer> hpTextHeight = PropertyMirror.create(INTEGER);
 		private final PropertyMirror<Boolean> showMaxHP = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showCurrentHP = PropertyMirror.create(BOOLEAN);
@@ -134,6 +135,10 @@ public final class NeatFiberConfig {
 					.beginValue("colorByType", BOOLEAN, false)
 					.withComment("Color the bar differently depending on whether the entity is hostile or is a boss")
 					.finishValue(colorByType::mirror)
+
+					.beginValue("textColor", STRING, "FFFFFF")
+					.withComment("Text color in hex code format")
+					.finishValue(textColor::mirror)
 
 					.beginValue("hpTextHeight", INTEGER, 14)
 					.withComment("Height of the text on the health bar")
@@ -246,6 +251,11 @@ public final class NeatFiberConfig {
 		@Override
 		public boolean colorByType() {
 			return colorByType.getValue();
+		}
+
+		@Override
+		public String textColor() {
+			return textColor.getValue();
 		}
 
 		@Override

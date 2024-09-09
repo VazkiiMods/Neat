@@ -275,7 +275,7 @@ public class HealthBarRenderer {
 
 		// Text
 		{
-			final int white = 0xFFFFFF;
+			final var textColor = HexFormat.fromHexDigits(NeatConfig.instance.textColor());
 			final int black = 0;
 
 			// Name
@@ -283,7 +283,7 @@ public class HealthBarRenderer {
 				poseStack.pushPose();
 				poseStack.translate(-halfSize, -4.5F, 0F);
 				poseStack.scale(textScale, textScale, textScale);
-				mc.font.drawInBatch(name, 0, 0, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+				mc.font.drawInBatch(name, 0, 0, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				poseStack.popPose();
 			}
 
@@ -298,19 +298,19 @@ public class HealthBarRenderer {
 
 				if (NeatConfig.instance.showCurrentHP()) {
 					String hpStr = HEALTH_FORMAT.format(living.getHealth());
-					mc.font.drawInBatch(hpStr, 2, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					mc.font.drawInBatch(hpStr, 2, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.showMaxHP()) {
 					String maxHpStr = ChatFormatting.BOLD + HEALTH_FORMAT.format(living.getMaxHealth());
-					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.showPercentage()) {
 					String percStr = (int) (100 * living.getHealth() / living.getMaxHealth()) + "%";
-					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.enableDebugInfo() && mc.options.renderDebug) {
 					var id = BuiltInRegistries.ENTITY_TYPE.getKey(living.getType());
-					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				poseStack.popPose();
 			}
