@@ -214,7 +214,8 @@ public class HealthBarRenderer {
 			return;
 		}
 
-		if (!shouldShowPlate(living, mc.gameRenderer.getMainCamera().getEntity())) {
+		//This was previously mc.gameRenderer.getMainCamera().getEntity() but that caused an incompatibility with RealCamera
+		if (!shouldShowPlate(living, mc.cameraEntity)) {
 			return;
 		}
 
