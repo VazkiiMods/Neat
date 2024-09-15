@@ -37,7 +37,7 @@ public class NeatConfig {
 		List<String> blacklist();
 	}
 
-	public static final List<String> DEFAULT_DISABLED = List.of("minecraft:shulker", "minecraft:armor_stand", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish", "minecraft:tropical_fish");
+	public static final List<String> DEFAULT_DISABLED = List.of("minecraft:shulker", "minecraft:armor_stand", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish", "minecraft:tropical_fish", "minecraft:tadpole");
 
 	public static ConfigAccess instance;
 }
