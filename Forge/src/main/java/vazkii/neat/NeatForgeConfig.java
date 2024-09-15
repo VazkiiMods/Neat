@@ -1,5 +1,7 @@
 package vazkii.neat;
 
+import com.google.common.base.Enums;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -36,6 +38,8 @@ public class NeatForgeConfig {
 		private final ConfigValue<Boolean> showMaxHP;
 		private final ConfigValue<Boolean> showCurrentHP;
 		private final ConfigValue<Boolean> showPercentage;
+		private final ConfigValue<Boolean> showOnPassive;
+		private final ConfigValue<Boolean> showOnHostile;
 		private final ConfigValue<Boolean> showOnPlayers;
 		private final ConfigValue<Boolean> showOnBosses;
 		private final ConfigValue<Boolean> showOnlyFocused;
@@ -67,6 +71,8 @@ public class NeatForgeConfig {
 			showMaxHP = builder.define("Show Max HP", true);
 			showCurrentHP = builder.define("Show Current HP", true);
 			showPercentage = builder.define("Show HP Percentage", true);
+			showOnPassive = builder.comment("Whether bars on passive mobs should be shown").define("showOnPassive", true);
+			showOnHostile = builder.comment("Whether bars on hostile mobs should be shown (does not include bosses)").define("showOnHostile", true);
 			showOnPlayers = builder.define("Display on Players", true);
 			showOnBosses = builder.define("Display on Bosses", true);
 			showOnlyFocused = builder.define("Only show the health bar for the entity looked at", false);
@@ -173,6 +179,16 @@ public class NeatForgeConfig {
 		@Override
 		public boolean showPercentage() {
 			return showPercentage.get();
+		}
+
+		@Override
+		public boolean showOnPassive() {
+			return showOnPassive.get();
+		}
+
+		@Override
+		public boolean showOnHostile() {
+			return showOnHostile.get();
 		}
 
 		@Override

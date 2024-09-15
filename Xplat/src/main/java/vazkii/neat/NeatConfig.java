@@ -1,5 +1,7 @@
 package vazkii.neat;
 
+import net.minecraft.world.entity.MobCategory;
+
 import java.util.List;
 
 public class NeatConfig {
@@ -27,6 +29,8 @@ public class NeatConfig {
 		boolean showMaxHP();
 		boolean showCurrentHP();
 		boolean showPercentage();
+		boolean showOnPassive();
+		boolean showOnHostile();
 		boolean showOnPlayers();
 		boolean showOnBosses();
 		boolean showOnlyFocused();

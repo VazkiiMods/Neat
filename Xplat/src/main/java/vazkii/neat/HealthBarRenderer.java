@@ -169,6 +169,12 @@ public class HealthBarRenderer {
 		if (NeatConfig.instance.showOnlyFocused() && getEntityLookedAt(cameraEntity) != living) {
 			return false;
 		}
+		if (!NeatConfig.instance.showOnPassive() && living.getType().getCategory().isFriendly()) {
+			return false;
+		}
+		if (!NeatConfig.instance.showOnHostile() && (!living.getType().getCategory().isFriendly() && !isBoss(living))) {
+			return false;
+		}
 
 		if (living.hasPassenger(cameraEntity)) {
 			return false;

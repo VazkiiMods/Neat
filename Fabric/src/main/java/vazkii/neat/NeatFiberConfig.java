@@ -1,5 +1,6 @@
 package vazkii.neat;
 
+import net.minecraft.world.entity.MobCategory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -72,6 +73,8 @@ public final class NeatFiberConfig {
 		private final PropertyMirror<Boolean> showMaxHP = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showCurrentHP = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showPercentage = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Boolean> showOnPassive = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Boolean> showOnHostile = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showOnPlayers = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showOnBosses = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showOnlyFocused = PropertyMirror.create(BOOLEAN);
@@ -80,6 +83,7 @@ public final class NeatFiberConfig {
 		private final PropertyMirror<Boolean> showEntityName = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> disableNameTag = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<List<String>> blacklist = PropertyMirror.create(ConfigTypes.makeList(STRING));
+		private final PropertyMirror<MobCategory> mobCategoryBlacklist = PropertyMirror.create(ConfigTypes.makeEnum(MobCategory.class));
 
 		public ConfigTree configure(ConfigTreeBuilder builder) {
 			builder.beginValue("maxDistance", INTEGER, 24)
@@ -157,6 +161,14 @@ public final class NeatFiberConfig {
 					.beginValue("showPercentage", BOOLEAN, true)
 					.withComment("Whether the percentage health of the mob should be shown")
 					.finishValue(showPercentage::mirror)
+
+					.beginValue("showOnPassive", BOOLEAN, true)
+					.withComment("Whether bars on passive mobs should be shown")
+					.finishValue(showOnPassive::mirror)
+
+					.beginValue("showOnHostile", BOOLEAN, true)
+					.withComment("Whether bars on hostile mobs should be shown (does not include bosses)")
+					.finishValue(showOnHostile::mirror)
 
 					.beginValue("showOnPlayers", BOOLEAN, true)
 					.withComment("Whether bars on players should be shown")
@@ -286,6 +298,16 @@ public final class NeatFiberConfig {
 		@Override
 		public boolean showPercentage() {
 			return showPercentage.getValue();
+		}
+
+		@Override
+		public boolean showOnPassive() {
+			return showOnPassive.getValue();
+		}
+
+		@Override
+		public boolean showOnHostile() {
+			return showOnHostile.getValue();
 		}
 
 		@Override
