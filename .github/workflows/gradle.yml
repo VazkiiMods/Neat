@@ -23,7 +23,7 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew pmdMain spotlessJavaCheck build
     - name: PMD report
-      uses: jwgmeligmeyling/pmd-github-action@v2
+      uses: jwgmeligmeyling/pmd-github-action@v1
       if: failure()
       with:
         path: '**/reports/pmd/main.xml'
