@@ -1,7 +1,5 @@
 package vazkii.neat;
 
-import net.minecraft.world.entity.MobCategory;
-
 import java.util.List;
 
 public class NeatConfig {

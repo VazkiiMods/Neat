@@ -1,7 +1,5 @@
 package vazkii.neat;
 
-import com.google.common.base.Enums;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.ModLoadingContext;
