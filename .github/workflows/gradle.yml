@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v2
     - name: Set up JDK
       uses: actions/setup-java@v2
       with:
@@ -48,14 +48,14 @@ jobs:
         gpg --local-user "Violet Moon Signing Key" --armor \
           --detach-sign ${{ steps.calculate_artifact_names.outputs.fabric }}
     - name: Archive Forge Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Forge
         path: |
           ${{ steps.calculate_artifact_names.outputs.forge }}
           ${{ steps.calculate_artifact_names.outputs.forge }}.asc
     - name: Archive Fabric Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: Fabric
         path: |
