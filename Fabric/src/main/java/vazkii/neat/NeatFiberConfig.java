@@ -84,7 +84,6 @@ public final class NeatFiberConfig {
 		private final PropertyMirror<Boolean> showEntityName = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> disableNameTag = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<List<String>> blacklist = PropertyMirror.create(ConfigTypes.makeList(STRING));
-		private final PropertyMirror<MobCategory> mobCategoryBlacklist = PropertyMirror.create(ConfigTypes.makeEnum(MobCategory.class));
 
 		public ConfigTree configure(ConfigTreeBuilder builder) {
 			builder.beginValue("maxDistance", INTEGER, 24)
