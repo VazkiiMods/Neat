@@ -98,6 +98,8 @@ public class HealthBarRenderer {
 			return new ItemStack(Items.SPIDER_EYE);
 		} else if (type.is(EntityTypeTags.UNDEAD)) {
 			return new ItemStack(Items.ROTTEN_FLESH);
+		} else if (type.is(EntityTypeTags.ILLAGER)) {
+			return new ItemStack(Items.IRON_AXE);
 		} else {
 			return ItemStack.EMPTY;
 		}
@@ -112,11 +114,9 @@ public class HealthBarRenderer {
 				r = 128;
 				g = 0;
 				b = 128;
-			}
-			if (entity instanceof Monster) {
+			} else if (!entity.getType().getCategory().isFriendly()) {
 				r = 255;
 				g = 0;
-				b = 0;
 			}
 			return 0xff000000 | r << 16 | g << 8 | b;
 		} else {
@@ -126,14 +126,11 @@ public class HealthBarRenderer {
 		}
 	}
 
-	private static final TagKey<EntityType<?>> FORGE_BOSS_TAG =
-			TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("forge", "bosses"));
-
-	private static final TagKey<EntityType<?>> FABRIC_BOSS_TAG =
+	private static final TagKey<EntityType<?>> BOSS_TAG =
 			TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("c", "bosses"));
 
 	private static boolean isBoss(Entity entity) {
-		return entity.getType().is(FORGE_BOSS_TAG) || entity.getType().is(FABRIC_BOSS_TAG);
+		return entity.getType().is(BOSS_TAG);
 	}
 
 	private static boolean shouldShowPlate(LivingEntity living, Entity cameraEntity) {
@@ -152,7 +149,8 @@ public class HealthBarRenderer {
 
 		float distance = living.distanceTo(cameraEntity);
 		if (distance > NeatConfig.instance.maxDistance()
-				|| !living.hasLineOfSight(cameraEntity)) {
+				|| (distance > NeatConfig.instance.maxDistanceWithoutLineOfSight()
+				&& !living.hasLineOfSight(cameraEntity))) {
 			return false;
 		}
 		if (!NeatConfig.instance.showOnBosses() && isBoss(living)) {
@@ -167,10 +165,34 @@ public class HealthBarRenderer {
 		if (NeatConfig.instance.showOnlyFocused() && getEntityLookedAt(cameraEntity) != living) {
 			return false;
 		}
+		if (!NeatConfig.instance.showOnPassive() && living.getType().getCategory().isFriendly()) {
+			return false;
+		}
+		if (!NeatConfig.instance.showOnHostile() && (!living.getType().getCategory().isFriendly() && !isBoss(living))) {
+			return false;
+		}
+
+		if (living.hasPassenger(cameraEntity)) {
+			return false;
+		}
 
 		boolean visible = true;
-		if (cameraEntity instanceof Player cameraPlayer) {
-			visible = !living.isInvisibleTo(cameraPlayer);
+		if (cameraEntity instanceof Player cameraPlayer
+				&& living.isInvisibleTo(cameraPlayer)) {
+			boolean wearingThings = false;
+			for (ItemStack armorSlot : living.getArmorSlots()) {
+				if (!armorSlot.isEmpty()) {
+					wearingThings = true;
+				}
+			}
+			for (ItemStack handSlot : living.getHandSlots()) {
+				if (!handSlot.isEmpty()) {
+					wearingThings = true;
+				}
+			}
+			if (!wearingThings) {
+				visible = false;
+			}
 		}
 		Team livingTeam = living.getTeam();
 		Team cameraTeam = cameraEntity.getTeam();
@@ -190,12 +212,12 @@ public class HealthBarRenderer {
 			Quaternionf cameraOrientation) {
 		final Minecraft mc = Minecraft.getInstance();
 
-		if (!(entity instanceof LivingEntity living) || (!living.getPassengers().isEmpty() && living.getPassengers().get(0) instanceof LivingEntity)) {
-			// TODO handle mob stacks properly
+		if (!(entity instanceof LivingEntity living)) {
 			return;
 		}
 
-		if (!shouldShowPlate(living, mc.gameRenderer.getMainCamera().getEntity())) {
+		//This was previously mc.gameRenderer.getMainCamera().getEntity() but that caused an incompatibility with RealCamera
+		if (!shouldShowPlate(living, mc.cameraEntity)) {
 			return;
 		}
 
@@ -226,6 +248,9 @@ public class HealthBarRenderer {
 		if (NeatConfig.instance.drawBackground()) {
 			float padding = NeatConfig.instance.backgroundPadding();
 			int bgHeight = NeatConfig.instance.backgroundHeight();
+			if (!NeatConfig.instance.showEntityName()) {
+				bgHeight -= (int) 4F;
+			}
 
 			builder.addVertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.0F).setLight(light);
 			builder.addVertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.5F).setLight(light);
@@ -262,16 +287,18 @@ public class HealthBarRenderer {
 
 		// Text
 		{
-			final int white = 0xFFFFFF;
+			final int textColor = HexFormat.fromHexDigits(NeatConfig.instance.textColor());
 			final int black = 0;
 
 			// Name
 			{
-				poseStack.pushPose();
-				poseStack.translate(-halfSize, -4.5F, 0F);
-				poseStack.scale(textScale, textScale, textScale);
-				mc.font.drawInBatch(name, 0, 0, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
-				poseStack.popPose();
+				if (NeatConfig.instance.showEntityName()) {
+					poseStack.pushPose();
+					poseStack.translate(-halfSize, -4.5F, 0F);
+					poseStack.scale(textScale, textScale, textScale);
+					mc.font.drawInBatch(name, 0, 0, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					poseStack.popPose();
+				}
 			}
 
 			// Health values (and debug ID)
@@ -285,19 +312,19 @@ public class HealthBarRenderer {
 
 				if (NeatConfig.instance.showCurrentHP()) {
 					String hpStr = HEALTH_FORMAT.format(living.getHealth());
-					mc.font.drawInBatch(hpStr, 2, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					mc.font.drawInBatch(hpStr, 2, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.showMaxHP()) {
 					String maxHpStr = ChatFormatting.BOLD + HEALTH_FORMAT.format(living.getMaxHealth());
-					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.showPercentage()) {
 					String percStr = (int) (100 * living.getHealth() / living.getMaxHealth()) + "%";
-					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.enableDebugInfo() && mc.getDebugOverlay().showDebugScreen()) {
 					var id = BuiltInRegistries.ENTITY_TYPE.getKey(living.getType());
-					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				poseStack.popPose();
 			}
