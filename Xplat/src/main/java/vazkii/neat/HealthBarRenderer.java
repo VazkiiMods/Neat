@@ -17,7 +17,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -150,7 +149,7 @@ public class HealthBarRenderer {
 		float distance = living.distanceTo(cameraEntity);
 		if (distance > NeatConfig.instance.maxDistance()
 				|| (distance > NeatConfig.instance.maxDistanceWithoutLineOfSight()
-				&& !living.hasLineOfSight(cameraEntity))) {
+						&& !living.hasLineOfSight(cameraEntity))) {
 			return false;
 		}
 		if (!NeatConfig.instance.showOnBosses() && isBoss(living)) {
