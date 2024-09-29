@@ -4,9 +4,11 @@ import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -208,15 +210,14 @@ public class HealthBarRenderer {
 	}
 
 	public static void hookRender(Entity entity, PoseStack poseStack, MultiBufferSource buffers,
-			Quaternionf cameraOrientation) {
+								  Camera camera, EntityRenderer<? super Entity> entityRenderer,
+								  float partialTicks, double x, double y, double z) {
 		final Minecraft mc = Minecraft.getInstance();
-
 		if (!(entity instanceof LivingEntity living)) {
 			return;
 		}
-
 		//This was previously mc.gameRenderer.getMainCamera().getEntity() but that caused an incompatibility with RealCamera
-		if (!shouldShowPlate(living, mc.cameraEntity)) {
+		if (!shouldShowPlate(living, camera.getEntity())) {
 			return;
 		}
 
@@ -232,16 +233,22 @@ public class HealthBarRenderer {
 		final float nameLen = mc.font.width(name) * textScale;
 		final float halfSize = Math.max(NeatConfig.instance.plateSize(), nameLen / 2.0F + 10.0F);
 
+		Vec3 vec3 = entityRenderer.getRenderOffset(entity, partialTicks);
+		double d2 = x + vec3.x();
+		double d3 = y + vec3.y();
+		double d0 = z + vec3.z();
+
 		poseStack.pushPose();
+		poseStack.translate(d2, d3, d0);
 		poseStack.translate(0, living.getBbHeight() + NeatConfig.instance.heightAbove(), 0);
-		poseStack.mulPose(cameraOrientation);
+		poseStack.mulPose(camera.rotation());
 		poseStack.mulPose(Axis.YP.rotationDegrees(180));
 
 		// Plate background, bars, and text operate with globalScale, but icons don't
 		poseStack.pushPose();
 		poseStack.scale(-globalScale, -globalScale, globalScale);
 
-		VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
+
 
 		// Background
 		if (NeatConfig.instance.drawBackground()) {
@@ -250,7 +257,7 @@ public class HealthBarRenderer {
 			if (!NeatConfig.instance.showEntityName()) {
 				bgHeight -= (int) 4F;
 			}
-
+			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
 			builder.addVertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.0F).setLight(light);
 			builder.addVertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.5F).setLight(light);
 			builder.addVertex(poseStack.last().pose(), halfSize + padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 60).setUv(1.0F, 0.5F).setLight(light);
@@ -268,8 +275,7 @@ public class HealthBarRenderer {
 			float maxHealth = Math.max(living.getHealth(), living.getMaxHealth());
 			float healthHalfSize = halfSize * (living.getHealth() / maxHealth);
 
-			//VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
-			//VertexConsumer builder = buffers.getBuffer(RenderType.LINES);
+			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
 			builder.addVertex(poseStack.last().pose(), -halfSize, 0, 0.001F).setColor(r, g, b, 127).setUv(0.0F, 0.75F).setLight(light);
 			builder.addVertex(poseStack.last().pose(), -halfSize, barHeight, 0.001F).setColor(r, g, b, 127).setUv(0.0F, 1.0F).setLight(light);
 			builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).setColor(r, g, b, 127).setUv(1.0F, 1.0F).setLight(light);

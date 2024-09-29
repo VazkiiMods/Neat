@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.world.entity.Entity;
 
 import org.joml.Quaternionf;
@@ -33,6 +34,6 @@ public abstract class EntityRenderDispatcherMixin {
 		)
 	)
 	private void neat_renderHealthBar(Entity entity, double worldX, double worldY, double worldZ, float entityYRot, float partialTicks, PoseStack poseStack, MultiBufferSource buffers, int light, CallbackInfo ci) {
-		HealthBarRenderer.hookRender(entity, poseStack, buffers, cameraOrientation());
+		//HealthBarRenderer.hookRender(entity, poseStack, buffers, cameraOrientation());
 	}
 }

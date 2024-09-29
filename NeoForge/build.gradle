@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'idea'
-    id 'net.neoforged.gradle.userdev'
+    id 'net.neoforged.gradle.userdev' version '7.0.165'
     id 'eclipse'
 }
 
@@ -24,6 +24,12 @@ runs {
 
     server {
         programArgument '--nogui'
+    }
+}
+
+repositories {
+    maven {
+        url "https://cursemaven.com"
     }
 }
 

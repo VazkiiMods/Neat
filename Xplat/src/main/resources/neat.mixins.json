@@ -7,8 +7,8 @@
   ],
   "client": [
     "AccessorRenderType",
-    "EntityRenderDispatcherMixin",
     "EntityRendererMixin",
+    "LevelRendererMixin",
     "MinecraftMixin"
   ],
   "injectors": {
