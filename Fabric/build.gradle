@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.7.2'
+    id 'fabric-loom' version '1.8.9'
 }
 
 version = "${mc_version}-${build_number}-FABRIC"
@@ -31,8 +31,8 @@ dependencies {
     minecraft "com.mojang:minecraft:${mc_version}"
     mappings loom.officialMojangMappings()
 
-    modImplementation "net.fabricmc:fabric-loader:0.16.0"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.100.8+1.21"
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
     compileOnly project(":Xplat")
 

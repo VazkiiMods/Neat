@@ -24,7 +24,7 @@ function release_github() {
 	gh release upload "${TAGNAME}" "${FABRIC_JAR}.asc#Fabric Signature"
 	echo >&2 'Uploading NeoForge Jar and Signature to GitHub'
 	gh release upload "${TAGNAME}" "${NEOFORGE_JAR}#NeoForge Jar"
-	gh release upload "${TAGNAME}" "${NEOFORGE_JAR}.asc#Forge Signature"
+	gh release upload "${TAGNAME}" "${NEOFORGE_JAR}.asc#NeoForge Signature"
 }
 
 function release_modrinth() {
@@ -142,7 +142,7 @@ $CURSEFORGE_GAME_VERSION]"
 		 -F "file=@$FABRIC_JAR"
 	# TODO: Upload the asc as an 'Additional file'
 
-	echo >&2 'Uploading Forge Jar to CurseForge'
+	echo >&2 'Uploading NeoForge Jar to CurseForge'
 	local CURSEFORGE_NEOFORGE_SPEC
 	CURSEFORGE_NEOFORGE_SPEC=$(cat <<EOF
 {

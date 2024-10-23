@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -54,7 +55,7 @@ public class HealthBarRenderer {
 		for (Entity entity : entitiesInBoundingBox) {
 			Entity lookedEntity = null;
 			if (entity.isPickable()) {
-				AABB collisionBox = entity.getBoundingBoxForCulling();
+				AABB collisionBox = entity.getBoundingBox();
 				Optional<Vec3> interceptPosition = collisionBox.clip(positionVector, reachVector);
 
 				if (collisionBox.contains(positionVector)) {
@@ -206,8 +207,8 @@ public class HealthBarRenderer {
 		return visible;
 	}
 
-	public static void hookRender(Entity entity, PoseStack poseStack, MultiBufferSource buffers,
-			Camera camera, EntityRenderer<? super Entity> entityRenderer,
+	public static <E extends Entity, S extends EntityRenderState> void hookRender(Entity entity, PoseStack poseStack, MultiBufferSource buffers,
+			Camera camera, EntityRenderer<? super E, S> entityRenderer,
 			float partialTicks, double x, double y, double z) {
 		final Minecraft mc = Minecraft.getInstance();
 		if (!(entity instanceof LivingEntity living)) {
@@ -230,7 +231,8 @@ public class HealthBarRenderer {
 		final float nameLen = mc.font.width(name) * textScale;
 		final float halfSize = Math.max(NeatConfig.instance.plateSize(), nameLen / 2.0F + 10.0F);
 
-		Vec3 vec3 = entityRenderer.getRenderOffset(entity, partialTicks);
+		S renderState = entityRenderer.createRenderState();
+		Vec3 vec3 = entityRenderer.getRenderOffset(renderState);
 		double d2 = x + vec3.x();
 		double d3 = y + vec3.y();
 		double d0 = z + vec3.z();

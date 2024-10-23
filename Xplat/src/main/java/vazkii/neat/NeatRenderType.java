@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
+import net.minecraft.util.TriState;
 import vazkii.neat.mixin.AccessorRenderType;
 
 import static com.mojang.blaze3d.vertex.DefaultVertexFormat.*;
@@ -23,7 +24,7 @@ public class NeatRenderType extends RenderStateShard {
 	private static RenderType getHealthBarType() {
 		RenderType.CompositeState renderTypeState = RenderType.CompositeState.builder()
 				.setShaderState(POSITION_COLOR_TEX_LIGHTMAP_SHADER)
-				.setTextureState(new TextureStateShard(NeatRenderType.HEALTH_BAR_TEXTURE, false, false))
+				.setTextureState(new TextureStateShard(NeatRenderType.HEALTH_BAR_TEXTURE, TriState.FALSE, false))
 				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
 				.setCullState(NO_CULL)
 				.setLightmapState(LIGHTMAP)
