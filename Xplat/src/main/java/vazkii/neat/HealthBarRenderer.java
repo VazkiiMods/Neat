@@ -32,8 +32,6 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 
-import org.joml.Quaternionf;
-
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -214,8 +212,8 @@ public class HealthBarRenderer {
 	}
 
 	public static void hookRender(Entity entity, PoseStack poseStack, MultiBufferSource buffers,
-								  Camera camera, EntityRenderer<? super Entity> entityRenderer,
-								  float partialTicks, double x, double y, double z) {
+			Camera camera, EntityRenderer<? super Entity> entityRenderer,
+			float partialTicks, double x, double y, double z) {
 		final Minecraft mc = Minecraft.getInstance();
 
 		if (!(entity instanceof LivingEntity living)) {

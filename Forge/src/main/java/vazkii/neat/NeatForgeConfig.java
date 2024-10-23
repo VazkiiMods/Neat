@@ -236,14 +236,17 @@ public class NeatForgeConfig {
 		public boolean disableNameTagIfHealthbar() {
 			return disableNameTagIfHealthbar.get();
 		}
+
 		@Override
 		public double iconOffsetX() {
 			return iconOffsetX.get();
 		}
+
 		@Override
 		public double iconOffsetY() {
 			return iconOffsetY.get();
 		}
+
 		@Override
 		public String decimalFormat() {
 			return decimalFormat.get();
