@@ -34,7 +34,6 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 public class HealthBarRenderer {
-	private static final DecimalFormat HEALTH_FORMAT = new DecimalFormat("#.##");
 
 	private static Entity getEntityLookedAt(Entity e) {
 		Entity foundEntity = null;
@@ -128,7 +127,7 @@ public class HealthBarRenderer {
 	private static final TagKey<EntityType<?>> BOSS_TAG =
 			TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("c", "bosses"));
 
-	private static boolean isBoss(Entity entity) {
+	public static boolean isBoss(Entity entity) {
 		return entity.getType().is(BOSS_TAG);
 	}
 
@@ -310,13 +309,14 @@ public class HealthBarRenderer {
 				poseStack.scale(healthValueTextScale, healthValueTextScale, healthValueTextScale);
 
 				int h = NeatConfig.instance.hpTextHeight();
+				DecimalFormat health_format = new DecimalFormat(NeatConfig.instance.decimalFormat());
 
 				if (NeatConfig.instance.showCurrentHP()) {
-					String hpStr = HEALTH_FORMAT.format(living.getHealth());
+					String hpStr = health_format.format(living.getHealth());
 					mc.font.drawInBatch(hpStr, 2, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.showMaxHP()) {
-					String maxHpStr = ChatFormatting.BOLD + HEALTH_FORMAT.format(living.getMaxHealth());
+					String maxHpStr = ChatFormatting.BOLD + health_format.format(living.getMaxHealth());
 					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.showPercentage()) {
@@ -388,11 +388,11 @@ public class HealthBarRenderer {
 			// halfSize and co. are units operating under the assumption of globalScale,
 			// but in the icon rendering section we don't use globalScale, so we need
 			// to manually multiply it in to ensure the units line up.
-			float dx = (halfSize - leftShift) * globalScale;
-			float dy = 3F * globalScale;
-			float dz = zShift * globalScale;
+			double dx = (halfSize - leftShift) * globalScale + NeatConfig.instance.iconOffsetX();
+			double dy = 3F * globalScale;
+			double dz = zShift * globalScale;
 			// Need to negate X due to our rotation below
-			poseStack.translate(-dx, dy, dz);
+			poseStack.translate(-dx, dy + NeatConfig.instance.iconOffsetY(), dz);
 			poseStack.scale(iconScale, iconScale, iconScale);
 			poseStack.mulPose(Axis.YP.rotationDegrees(180F));
 			Minecraft.getInstance().getItemRenderer()

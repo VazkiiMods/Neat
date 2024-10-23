@@ -23,5 +23,15 @@
   "neat.configuration.show_attributes": "Show Attributes",
   "neat.configuration.color_health_bar_by_type": "Color Health Bar by Type",
   "neat.configuration.show_current_hp": "Show Current HP",
+  "neat.configuration.disable_name_tag": "Disable Name Tag",
+  "neat.configuration.show_on_hostile": "Show on Hostile",
+  "neat.configuration.text_color": "Text Color",
+  "neat.configuration.disable_name_tag_if_healthbar": "Disable Name Tag if Healthbar rendered",
+  "neat.configuration.max_distance_without_line_of_sight": "Max distance without LOS",
+  "neat.configuration.show_entity_name": "Show Entity Name",
+  "neat.configuration.icon_offset_y": "Icon Offset Y",
+  "neat.configuration.decimal_format": "Decimal Format",
+  "neat.configuration.show_on_passive": "Show on Passive",
+  "neat.configuration.icon_offset_x": "Icon Offset X",
   "neat.configuration.blacklist": "Blacklist"
 }
