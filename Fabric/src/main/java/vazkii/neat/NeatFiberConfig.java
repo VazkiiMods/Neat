@@ -83,6 +83,10 @@ public final class NeatFiberConfig {
 		private final PropertyMirror<Boolean> enableDebugInfo = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showEntityName = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> disableNameTag = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Boolean> disableNameTagIfHealthbar = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Double> iconOffsetX = PropertyMirror.create(DOUBLE);
+		private final PropertyMirror<Double> iconOffsetY = PropertyMirror.create(DOUBLE);
+		private final PropertyMirror<String> decimalFormat = PropertyMirror.create(STRING);
 		private final PropertyMirror<List<String>> blacklist = PropertyMirror.create(ConfigTypes.makeList(STRING));
 
 		public ConfigTree configure(ConfigTreeBuilder builder) {
@@ -99,7 +103,7 @@ public final class NeatFiberConfig {
 					.finishValue(renderInF1::mirror)
 
 					.beginValue("heightAbove", DOUBLE, 0.6)
-					.withComment("How far above the mob health bars should render")
+					.withComment("How far above the mob the health bars should render")
 					.finishValue(heightAbove::mirror)
 
 					.beginValue("drawBackground", BOOLEAN, true)
@@ -139,7 +143,7 @@ public final class NeatFiberConfig {
 					.finishValue(groupArmor::mirror)
 
 					.beginValue("colorByType", BOOLEAN, false)
-					.withComment("Color the bar differently depending on whether the entity is hostile or is a boss")
+					.withComment("Color health bar by mob type instead of health percentage")
 					.finishValue(colorByType::mirror)
 
 					.beginValue("textColor", STRING, "FFFFFF")
@@ -197,6 +201,22 @@ public final class NeatFiberConfig {
 					.beginValue("disableNameTag", BOOLEAN, false)
 					.withComment("Disables the rendering of the vanilla name tag")
 					.finishValue(disableNameTag::mirror)
+
+					.beginValue("disableNameTagIfHealthbar", BOOLEAN, true)
+					.withComment("If this is enabled and the \"disableNameTag\" option is true, the vanilla nametag is only hidden if the mob has a Neat healthbar rendered")
+					.finishValue(disableNameTagIfHealthbar::mirror)
+
+					.beginValue("iconOffsetX", DOUBLE, 0.0)
+					.withComment("Offsets the healtbar icons on the x axis")
+					.finishValue(iconOffsetX::mirror)
+
+					.beginValue("iconOffsetY", DOUBLE, 0.0)
+					.withComment("Offsets the healtbar icons on the y axis")
+					.finishValue(iconOffsetY::mirror)
+
+					.beginValue("decimalFormat", STRING, "#.##")
+					.withComment("This value changes the decimal format of the HP. Only change this value if you are familiar with how the decimal format works!")
+					.finishValue(decimalFormat::mirror)
 
 					.beginValue("blacklist", ConfigTypes.makeList(STRING), NeatConfig.DEFAULT_DISABLED)
 					.withComment("Entity ID's that should not have bars rendered")
@@ -343,6 +363,26 @@ public final class NeatFiberConfig {
 		@Override
 		public boolean disableNameTag() {
 			return disableNameTag.getValue();
+		}
+
+		@Override
+		public boolean disableNameTagIfHealthbar() {
+			return disableNameTagIfHealthbar.getValue();
+		}
+
+		@Override
+		public double iconOffsetX() {
+			return iconOffsetX.getValue();
+		}
+
+		@Override
+		public double iconOffsetY() {
+			return iconOffsetY.getValue();
+		}
+
+		@Override
+		public String decimalFormat() {
+			return decimalFormat.getValue();
 		}
 
 		@Override

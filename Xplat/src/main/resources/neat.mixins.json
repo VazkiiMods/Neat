@@ -4,11 +4,11 @@
   "compatibilityLevel": "JAVA_17",
   "package": "vazkii.neat.mixin",
   "mixins": [
-    "EntityRendererMixin"
   ],
   "client": [
     "AccessorRenderType",
-    "EntityRenderDispatcherMixin",
+    "EntityRendererMixin",
+    "LevelRendererMixin",
     "MinecraftMixin"
   ],
   "injectors": {

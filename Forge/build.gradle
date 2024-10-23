@@ -46,6 +46,12 @@ minecraft {
     }
 }
 
+repositories {
+    maven {
+        url "https://cursemaven.com"
+    }
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:${project.mc_version}-${project.forge_version}"
     compileOnly project(":Xplat")

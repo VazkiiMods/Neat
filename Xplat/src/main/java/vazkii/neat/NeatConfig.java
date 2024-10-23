@@ -36,6 +36,10 @@ public class NeatConfig {
 		boolean enableDebugInfo();
 		boolean showEntityName();
 		boolean disableNameTag();
+		boolean disableNameTagIfHealthbar();
+		double iconOffsetX();
+		double iconOffsetY();
+		String decimalFormat();
 		List<String> blacklist();
 	}
 
