@@ -4,10 +4,11 @@ import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -18,7 +19,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -30,13 +30,10 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 
-import org.joml.Quaternionf;
-
 import java.text.DecimalFormat;
 import java.util.*;
 
 public class HealthBarRenderer {
-	private static final DecimalFormat HEALTH_FORMAT = new DecimalFormat("#.##");
 
 	private static Entity getEntityLookedAt(Entity e) {
 		Entity foundEntity = null;
@@ -99,6 +96,8 @@ public class HealthBarRenderer {
 			return new ItemStack(Items.SPIDER_EYE);
 		} else if (type.is(EntityTypeTags.UNDEAD)) {
 			return new ItemStack(Items.ROTTEN_FLESH);
+		} else if (type.is(EntityTypeTags.ILLAGER)) {
+			return new ItemStack(Items.IRON_AXE);
 		} else {
 			return ItemStack.EMPTY;
 		}
@@ -113,11 +112,9 @@ public class HealthBarRenderer {
 				r = 128;
 				g = 0;
 				b = 128;
-			}
-			if (entity instanceof Monster) {
+			} else if (!entity.getType().getCategory().isFriendly()) {
 				r = 255;
 				g = 0;
-				b = 0;
 			}
 			return 0xff000000 | r << 16 | g << 8 | b;
 		} else {
@@ -127,14 +124,11 @@ public class HealthBarRenderer {
 		}
 	}
 
-	private static final TagKey<EntityType<?>> FORGE_BOSS_TAG =
-			TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("forge", "bosses"));
-
-	private static final TagKey<EntityType<?>> FABRIC_BOSS_TAG =
+	private static final TagKey<EntityType<?>> BOSS_TAG =
 			TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("c", "bosses"));
 
-	private static boolean isBoss(Entity entity) {
-		return entity.getType().is(FORGE_BOSS_TAG) || entity.getType().is(FABRIC_BOSS_TAG);
+	public static boolean isBoss(Entity entity) {
+		return entity.getType().is(BOSS_TAG);
 	}
 
 	private static boolean shouldShowPlate(LivingEntity living, Entity cameraEntity) {
@@ -153,7 +147,8 @@ public class HealthBarRenderer {
 
 		float distance = living.distanceTo(cameraEntity);
 		if (distance > NeatConfig.instance.maxDistance()
-				|| !living.hasLineOfSight(cameraEntity)) {
+				|| (distance > NeatConfig.instance.maxDistanceWithoutLineOfSight()
+						&& !living.hasLineOfSight(cameraEntity))) {
 			return false;
 		}
 		if (!NeatConfig.instance.showOnBosses() && isBoss(living)) {
@@ -168,10 +163,34 @@ public class HealthBarRenderer {
 		if (NeatConfig.instance.showOnlyFocused() && getEntityLookedAt(cameraEntity) != living) {
 			return false;
 		}
+		if (!NeatConfig.instance.showOnPassive() && living.getType().getCategory().isFriendly()) {
+			return false;
+		}
+		if (!NeatConfig.instance.showOnHostile() && (!living.getType().getCategory().isFriendly() && !isBoss(living))) {
+			return false;
+		}
+
+		if (living.hasPassenger(cameraEntity)) {
+			return false;
+		}
 
 		boolean visible = true;
-		if (cameraEntity instanceof Player cameraPlayer) {
-			visible = !living.isInvisibleTo(cameraPlayer);
+		if (cameraEntity instanceof Player cameraPlayer
+				&& living.isInvisibleTo(cameraPlayer)) {
+			boolean wearingThings = false;
+			for (ItemStack armorSlot : living.getArmorSlots()) {
+				if (!armorSlot.isEmpty()) {
+					wearingThings = true;
+				}
+			}
+			for (ItemStack handSlot : living.getHandSlots()) {
+				if (!handSlot.isEmpty()) {
+					wearingThings = true;
+				}
+			}
+			if (!wearingThings) {
+				visible = false;
+			}
 		}
 		Team livingTeam = living.getTeam();
 		Team cameraTeam = cameraEntity.getTeam();
@@ -188,15 +207,14 @@ public class HealthBarRenderer {
 	}
 
 	public static void hookRender(Entity entity, PoseStack poseStack, MultiBufferSource buffers,
-			Quaternionf cameraOrientation) {
+			Camera camera, EntityRenderer<? super Entity> entityRenderer,
+			float partialTicks, double x, double y, double z) {
 		final Minecraft mc = Minecraft.getInstance();
-
-		if (!(entity instanceof LivingEntity living) || (!living.getPassengers().isEmpty() && living.getPassengers().get(0) instanceof LivingEntity)) {
-			// TODO handle mob stacks properly
+		if (!(entity instanceof LivingEntity living)) {
 			return;
 		}
-
-		if (!shouldShowPlate(living, mc.gameRenderer.getMainCamera().getEntity())) {
+		//This was previously mc.gameRenderer.getMainCamera().getEntity() but that caused an incompatibility with RealCamera
+		if (!shouldShowPlate(living, camera.getEntity())) {
 			return;
 		}
 
@@ -212,23 +230,29 @@ public class HealthBarRenderer {
 		final float nameLen = mc.font.width(name) * textScale;
 		final float halfSize = Math.max(NeatConfig.instance.plateSize(), nameLen / 2.0F + 10.0F);
 
+		Vec3 vec3 = entityRenderer.getRenderOffset(entity, partialTicks);
+		double d2 = x + vec3.x();
+		double d3 = y + vec3.y();
+		double d0 = z + vec3.z();
+
 		poseStack.pushPose();
+		poseStack.translate(d2, d3, d0);
 		poseStack.translate(0, living.getBbHeight() + NeatConfig.instance.heightAbove(), 0);
-		poseStack.mulPose(cameraOrientation);
+		poseStack.mulPose(camera.rotation());
 		poseStack.mulPose(Axis.YP.rotationDegrees(180));
 
 		// Plate background, bars, and text operate with globalScale, but icons don't
 		poseStack.pushPose();
 		poseStack.scale(-globalScale, -globalScale, globalScale);
 
-		VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
-
 		// Background
 		if (NeatConfig.instance.drawBackground()) {
 			float padding = NeatConfig.instance.backgroundPadding();
 			int bgHeight = NeatConfig.instance.backgroundHeight();
-
-
+			if (!NeatConfig.instance.showEntityName()) {
+				bgHeight -= (int) 4F;
+			}
+			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
 			builder.addVertex(poseStack.last().pose(), -halfSize - padding, -bgHeight, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.0F).setLight(light);
 			builder.addVertex(poseStack.last().pose(), -halfSize - padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 60).setUv(0.0F, 0.5F).setLight(light);
 			builder.addVertex(poseStack.last().pose(), halfSize + padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 60).setUv(1.0F, 0.5F).setLight(light);
@@ -246,8 +270,7 @@ public class HealthBarRenderer {
 			float maxHealth = Math.max(living.getHealth(), living.getMaxHealth());
 			float healthHalfSize = halfSize * (living.getHealth() / maxHealth);
 
-			//VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
-			//VertexConsumer builder = buffers.getBuffer(RenderType.LINES);
+			VertexConsumer builder = buffers.getBuffer(NeatRenderType.BAR_TEXTURE_TYPE);
 			builder.addVertex(poseStack.last().pose(), -halfSize, 0, 0.001F).setColor(r, g, b, 127).setUv(0.0F, 0.75F).setLight(light);
 			builder.addVertex(poseStack.last().pose(), -halfSize, barHeight, 0.001F).setColor(r, g, b, 127).setUv(0.0F, 1.0F).setLight(light);
 			builder.addVertex(poseStack.last().pose(), -halfSize + 2 * healthHalfSize, barHeight, 0.001F).setColor(r, g, b, 127).setUv(1.0F, 1.0F).setLight(light);
@@ -264,16 +287,18 @@ public class HealthBarRenderer {
 
 		// Text
 		{
-			final int white = 0xFFFFFF;
+			final int textColor = HexFormat.fromHexDigits(NeatConfig.instance.textColor());
 			final int black = 0;
 
 			// Name
 			{
-				poseStack.pushPose();
-				poseStack.translate(-halfSize, -4.5F, 0F);
-				poseStack.scale(textScale, textScale, textScale);
-				mc.font.drawInBatch(name, 0, 0, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
-				poseStack.popPose();
+				if (NeatConfig.instance.showEntityName()) {
+					poseStack.pushPose();
+					poseStack.translate(-halfSize, -4.5F, 0F);
+					poseStack.scale(textScale, textScale, textScale);
+					mc.font.drawInBatch(name, 0, 0, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					poseStack.popPose();
+				}
 			}
 
 			// Health values (and debug ID)
@@ -284,22 +309,23 @@ public class HealthBarRenderer {
 				poseStack.scale(healthValueTextScale, healthValueTextScale, healthValueTextScale);
 
 				int h = NeatConfig.instance.hpTextHeight();
+				DecimalFormat health_format = new DecimalFormat(NeatConfig.instance.decimalFormat());
 
 				if (NeatConfig.instance.showCurrentHP()) {
-					String hpStr = HEALTH_FORMAT.format(living.getHealth());
-					mc.font.drawInBatch(hpStr, 2, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					String hpStr = health_format.format(living.getHealth());
+					mc.font.drawInBatch(hpStr, 2, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.showMaxHP()) {
-					String maxHpStr = ChatFormatting.BOLD + HEALTH_FORMAT.format(living.getMaxHealth());
-					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					String maxHpStr = ChatFormatting.BOLD + health_format.format(living.getMaxHealth());
+					mc.font.drawInBatch(maxHpStr, (int) (halfSize / healthValueTextScale * 2) - mc.font.width(maxHpStr) - 2, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.showPercentage()) {
 					String percStr = (int) (100 * living.getHealth() / living.getMaxHealth()) + "%";
-					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					mc.font.drawInBatch(percStr, (int) (halfSize / healthValueTextScale) - mc.font.width(percStr) / 2.0F, h, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				if (NeatConfig.instance.enableDebugInfo() && mc.getDebugOverlay().showDebugScreen()) {
 					var id = BuiltInRegistries.ENTITY_TYPE.getKey(living.getType());
-					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, white, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
+					mc.font.drawInBatch("ID: \"" + id + "\"", 0, h + 16, textColor, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, black, light);
 				}
 				poseStack.popPose();
 			}
@@ -362,11 +388,11 @@ public class HealthBarRenderer {
 			// halfSize and co. are units operating under the assumption of globalScale,
 			// but in the icon rendering section we don't use globalScale, so we need
 			// to manually multiply it in to ensure the units line up.
-			float dx = (halfSize - leftShift) * globalScale;
-			float dy = 3F * globalScale;
-			float dz = zShift * globalScale;
+			double dx = (halfSize - leftShift) * globalScale + NeatConfig.instance.iconOffsetX();
+			double dy = 3F * globalScale;
+			double dz = zShift * globalScale;
 			// Need to negate X due to our rotation below
-			poseStack.translate(-dx, dy, dz);
+			poseStack.translate(-dx, dy + NeatConfig.instance.iconOffsetY(), dz);
 			poseStack.scale(iconScale, iconScale, iconScale);
 			poseStack.mulPose(Axis.YP.rotationDegrees(180F));
 			Minecraft.getInstance().getItemRenderer()

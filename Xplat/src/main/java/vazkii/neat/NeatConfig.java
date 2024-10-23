@@ -9,6 +9,7 @@ public class NeatConfig {
 
 	public interface ConfigAccess {
 		int maxDistance();
+		int maxDistanceWithoutLineOfSight();
 		boolean renderInF1();
 		double heightAbove();
 		boolean drawBackground();
@@ -21,19 +22,28 @@ public class NeatConfig {
 		boolean showArmor();
 		boolean groupArmor();
 		boolean colorByType();
+		String textColor();
 		int hpTextHeight();
 		boolean showMaxHP();
 		boolean showCurrentHP();
 		boolean showPercentage();
+		boolean showOnPassive();
+		boolean showOnHostile();
 		boolean showOnPlayers();
 		boolean showOnBosses();
 		boolean showOnlyFocused();
 		boolean showFullHealth();
 		boolean enableDebugInfo();
+		boolean showEntityName();
+		boolean disableNameTag();
+		boolean disableNameTagIfHealthbar();
+		double iconOffsetX();
+		double iconOffsetY();
+		String decimalFormat();
 		List<String> blacklist();
 	}
 
-	public static final List<String> DEFAULT_DISABLED = List.of("minecraft:shulker", "minecraft:armor_stand", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish", "minecraft:tropical_fish");
+	public static final List<String> DEFAULT_DISABLED = List.of("minecraft:shulker", "minecraft:armor_stand", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish", "minecraft:tropical_fish", "minecraft:tadpole");
 
 	public static ConfigAccess instance;
 }

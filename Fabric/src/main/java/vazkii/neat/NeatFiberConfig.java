@@ -54,6 +54,7 @@ public final class NeatFiberConfig {
 
 	private static class Client implements NeatConfig.ConfigAccess {
 		private final PropertyMirror<Integer> maxDistance = PropertyMirror.create(INTEGER);
+		private final PropertyMirror<Integer> maxDistanceWithoutLineOfSight = PropertyMirror.create(INTEGER);
 		private final PropertyMirror<Boolean> renderInF1 = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Double> heightAbove = PropertyMirror.create(DOUBLE);
 		private final PropertyMirror<Boolean> drawBackground = PropertyMirror.create(BOOLEAN);
@@ -66,15 +67,24 @@ public final class NeatFiberConfig {
 		private final PropertyMirror<Boolean> showArmor = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> groupArmor = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> colorByType = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<String> textColor = PropertyMirror.create(STRING);
 		private final PropertyMirror<Integer> hpTextHeight = PropertyMirror.create(INTEGER);
 		private final PropertyMirror<Boolean> showMaxHP = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showCurrentHP = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showPercentage = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Boolean> showOnPassive = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Boolean> showOnHostile = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showOnPlayers = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showOnBosses = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showOnlyFocused = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showFullHealth = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> enableDebugInfo = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Boolean> showEntityName = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Boolean> disableNameTag = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Boolean> disableNameTagIfHealthbar = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<Double> iconOffsetX = PropertyMirror.create(DOUBLE);
+		private final PropertyMirror<Double> iconOffsetY = PropertyMirror.create(DOUBLE);
+		private final PropertyMirror<String> decimalFormat = PropertyMirror.create(STRING);
 		private final PropertyMirror<List<String>> blacklist = PropertyMirror.create(ConfigTypes.makeList(STRING));
 
 		public ConfigTree configure(ConfigTreeBuilder builder) {
@@ -82,12 +92,16 @@ public final class NeatFiberConfig {
 					.withComment("Maximum distance in blocks at which health bars should render")
 					.finishValue(maxDistance::mirror)
 
+					.beginValue("maxDistanceWithoutLineOfSight", INTEGER, 8)
+					.withComment("Maximum distance in blocks at which health bars should render without line of sight")
+					.finishValue(maxDistanceWithoutLineOfSight::mirror)
+
 					.beginValue("renderInF1", BOOLEAN, false)
 					.withComment("Whether health bars should render when the HUD is disabled with F1")
 					.finishValue(renderInF1::mirror)
 
 					.beginValue("heightAbove", DOUBLE, 0.6)
-					.withComment("How far above the mob health bars should render")
+					.withComment("How far above the mob the health bars should render")
 					.finishValue(heightAbove::mirror)
 
 					.beginValue("drawBackground", BOOLEAN, true)
@@ -127,8 +141,12 @@ public final class NeatFiberConfig {
 					.finishValue(groupArmor::mirror)
 
 					.beginValue("colorByType", BOOLEAN, false)
-					.withComment("Color the bar differently depending on whether the entity is hostile or is a boss")
+					.withComment("Color health bar by mob type instead of health percentage")
 					.finishValue(colorByType::mirror)
+
+					.beginValue("textColor", STRING, "FFFFFF")
+					.withComment("Text color in hex code format")
+					.finishValue(textColor::mirror)
 
 					.beginValue("hpTextHeight", INTEGER, 14)
 					.withComment("Height of the text on the health bar")
@@ -145,6 +163,14 @@ public final class NeatFiberConfig {
 					.beginValue("showPercentage", BOOLEAN, true)
 					.withComment("Whether the percentage health of the mob should be shown")
 					.finishValue(showPercentage::mirror)
+
+					.beginValue("showOnPassive", BOOLEAN, true)
+					.withComment("Whether bars on passive mobs should be shown")
+					.finishValue(showOnPassive::mirror)
+
+					.beginValue("showOnHostile", BOOLEAN, true)
+					.withComment("Whether bars on hostile mobs should be shown (does not include bosses)")
+					.finishValue(showOnHostile::mirror)
 
 					.beginValue("showOnPlayers", BOOLEAN, true)
 					.withComment("Whether bars on players should be shown")
@@ -166,6 +192,30 @@ public final class NeatFiberConfig {
 					.withComment("Show extra debug info on the bar when F3 is enabled")
 					.finishValue(enableDebugInfo::mirror)
 
+					.beginValue("showEntityName", BOOLEAN, true)
+					.withComment("Show entity name")
+					.finishValue(showEntityName::mirror)
+
+					.beginValue("disableNameTag", BOOLEAN, false)
+					.withComment("Disables the rendering of the vanilla name tag")
+					.finishValue(disableNameTag::mirror)
+
+					.beginValue("disableNameTagIfHealthbar", BOOLEAN, true)
+					.withComment("If this is enabled and the \"disableNameTag\" option is true, the vanilla nametag is only hidden if the mob has a Neat healthbar rendered")
+					.finishValue(disableNameTagIfHealthbar::mirror)
+
+					.beginValue("iconOffsetX", DOUBLE, 0.0)
+					.withComment("Offsets the healtbar icons on the x axis")
+					.finishValue(iconOffsetX::mirror)
+
+					.beginValue("iconOffsetY", DOUBLE, 0.0)
+					.withComment("Offsets the healtbar icons on the y axis")
+					.finishValue(iconOffsetY::mirror)
+
+					.beginValue("decimalFormat", STRING, "#.##")
+					.withComment("This value changes the decimal format of the HP. Only change this value if you are familiar with how the decimal format works!")
+					.finishValue(decimalFormat::mirror)
+
 					.beginValue("blacklist", ConfigTypes.makeList(STRING), NeatConfig.DEFAULT_DISABLED)
 					.withComment("Entity ID's that should not have bars rendered")
 					.finishValue(blacklist::mirror);
@@ -176,6 +226,11 @@ public final class NeatFiberConfig {
 		@Override
 		public int maxDistance() {
 			return maxDistance.getValue();
+		}
+
+		@Override
+		public int maxDistanceWithoutLineOfSight() {
+			return maxDistanceWithoutLineOfSight.getValue();
 		}
 
 		@Override
@@ -239,6 +294,11 @@ public final class NeatFiberConfig {
 		}
 
 		@Override
+		public String textColor() {
+			return textColor.getValue();
+		}
+
+		@Override
 		public int hpTextHeight() {
 			return hpTextHeight.getValue();
 		}
@@ -256,6 +316,16 @@ public final class NeatFiberConfig {
 		@Override
 		public boolean showPercentage() {
 			return showPercentage.getValue();
+		}
+
+		@Override
+		public boolean showOnPassive() {
+			return showOnPassive.getValue();
+		}
+
+		@Override
+		public boolean showOnHostile() {
+			return showOnHostile.getValue();
 		}
 
 		@Override
@@ -281,6 +351,36 @@ public final class NeatFiberConfig {
 		@Override
 		public boolean enableDebugInfo() {
 			return enableDebugInfo.getValue();
+		}
+
+		@Override
+		public boolean showEntityName() {
+			return showEntityName.getValue();
+		}
+
+		@Override
+		public boolean disableNameTag() {
+			return disableNameTag.getValue();
+		}
+
+		@Override
+		public boolean disableNameTagIfHealthbar() {
+			return disableNameTagIfHealthbar.getValue();
+		}
+
+		@Override
+		public double iconOffsetX() {
+			return iconOffsetX.getValue();
+		}
+
+		@Override
+		public double iconOffsetY() {
+			return iconOffsetY.getValue();
+		}
+
+		@Override
+		public String decimalFormat() {
+			return decimalFormat.getValue();
 		}
 
 		@Override
