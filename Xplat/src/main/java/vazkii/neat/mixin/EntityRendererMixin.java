@@ -30,16 +30,21 @@ public class EntityRendererMixin {
 
 	@Unique
 	public boolean neat$allowNameTagDisable(Entity entity) {
-		if (!(entity instanceof LivingEntity))
+		if (!(entity instanceof LivingEntity)) {
 			return false;
-		if (entity instanceof Player && !NeatConfig.instance.showOnPlayers())
+		}
+		if (entity instanceof Player && !NeatConfig.instance.showOnPlayers()) {
 			return false;
-		if (HealthBarRenderer.isBoss(entity) && !NeatConfig.instance.showOnBosses())
+		}
+		if (HealthBarRenderer.isBoss(entity) && !NeatConfig.instance.showOnBosses()) {
 			return false;
-		if (entity.getType().getCategory().isFriendly() && !NeatConfig.instance.showOnPassive())
+		}
+		if (entity.getType().getCategory().isFriendly() && !NeatConfig.instance.showOnPassive()) {
 			return false;
-		if ((!entity.getType().getCategory().isFriendly() && !HealthBarRenderer.isBoss(entity)) && !NeatConfig.instance.showOnHostile())
+		}
+		if ((!entity.getType().getCategory().isFriendly() && !HealthBarRenderer.isBoss(entity)) && !NeatConfig.instance.showOnHostile()) {
 			return false;
+		}
 		var id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
 		return !NeatConfig.instance.blacklist().contains(id.toString()) && NeatConfig.draw;
 	}
