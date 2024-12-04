@@ -29,7 +29,7 @@ public class EntityRendererMixin {
 
 	@Inject(method = "render(Lnet/minecraft/client/renderer/entity/state/EntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderer;renderNameTag(Lnet/minecraft/client/renderer/entity/state/EntityRenderState;Lnet/minecraft/network/chat/Component;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"), cancellable = true)
 	private void neat_disableNameTag(EntityRenderState renderState, PoseStack $$1, MultiBufferSource $$2, int $$3, CallbackInfo ci) {
-		if (NeatConfig.instance.disableNameTag() /*&& (!NeatConfig.instance.disableNameTagIfHealthbar() TODO || neat$allowNameTagDisable(renderState)))*/) {
+		if (NeatConfig.instance.disableNameTag() /*&& (!NeatConfig.instance.disableNameTagIfHealthbar() TODO || neat$allowNameTagDisable(renderState)))*/ ) {
 			ci.cancel();
 		}
 	}
