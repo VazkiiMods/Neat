@@ -1,29 +1,48 @@
 plugins {
     id 'java-library'
     id 'idea'
-    id 'net.neoforged.gradle.userdev' version '7.0.165'
+    id 'net.neoforged.moddev' version '2.0.72'
     id 'eclipse'
 }
 
 version = "${project.mc_version}-${project.build_number}-NEOFORGE"
 
-def accesstransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-if (accesstransformer.exists()) {
-    minecraft.accessTransformers.file accesstransformer
-}
+neoForge {
+    version = project.neoforge_version
+    validateAccessTransformers = true
+    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
 
-runs {
-    configureEach {
-        workingDirectory project.file('../run')
-        systemProperty 'forge.logging.console.level', 'debug'
-        modSource project.sourceSets.main
+    parchment {
+        mappingsVersion = project.mapping_version
+        minecraftVersion = project.mc_version
     }
 
-    client {
+    runs {
+        configureEach {
+            gameDirectory = project.file('../run')
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+        client {
+            client()
+        }
+        data {
+            clientData()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
     }
 
-    server {
-        programArgument '--nogui'
+    mods {
+        // define mod <-> source bindings
+        // these are used to tell the game which sources are for which mod
+        // mostly optional in a single mod project
+        // but multi mod projects should define one per mod
+        "${mod_id}" {
+            sourceSet(project.sourceSets.main)
+        }
     }
 }
 
@@ -34,7 +53,6 @@ repositories {
 }
 
 dependencies {
-    implementation "net.neoforged:neoforge:${neoforge_version}"
     implementation project(":Xplat")
 }
 

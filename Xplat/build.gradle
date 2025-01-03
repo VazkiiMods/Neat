@@ -1,18 +1,33 @@
 plugins {
     id('java')
-    // Unfortunately, VG has not published a new non-SNAPSHOT version since 2021.
-    // This may break if this snapshot gets garbage-collected. In that case, visit
-    // https://repo.spongepowered.org/service/rest/repository/browse/maven-public/org/spongepowered/vanillagradle/
-    // (or wherever their maven is now) and pick another snapshot version.
-    id('org.spongepowered.gradle.vanilla') version '0.2.1-20230603.203956-54' 
+    id 'net.neoforged.moddev' version '2.0.72'
 }
 
 archivesBaseName = "${project.mod_name}-xplat"
 version = "${project.mc_version}-${project.build_number}"
 
-minecraft {
-    version(project.mc_version)
-    accessWideners 'src/main/resources/neat_xplat.accesswidener'
+neoForge {
+    neoFormVersion = "1.21.4-20241203.161809"
+
+    validateAccessTransformers = true
+    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer_xplat.cfg')
+
+    parchment {
+        mappingsVersion = project.mapping_version
+        minecraftVersion = project.mc_version
+    }
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+        data {
+            clientData()
+        }
+    }
 }
 
 dependencies {

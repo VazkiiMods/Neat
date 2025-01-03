@@ -9,6 +9,8 @@
     "AccessorRenderType",
     "EntityRendererMixin",
     "LevelRendererMixin",
+    "LivingEntityRendererMixin",
+    "LivingEntityRenderStateMixin",
     "MinecraftMixin"
   ],
   "injectors": {
