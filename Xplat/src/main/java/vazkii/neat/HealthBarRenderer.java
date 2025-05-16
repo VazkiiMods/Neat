@@ -19,6 +19,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -179,13 +180,13 @@ public class HealthBarRenderer {
 		if (cameraEntity instanceof Player cameraPlayer
 				&& living.isInvisibleTo(cameraPlayer)) {
 			boolean wearingThings = false;
-			for (ItemStack armorSlot : living.getArmorSlots()) {
-				if (!armorSlot.isEmpty()) {
+			for (EquipmentSlot armourSlot : Arrays.stream(EquipmentSlot.values()).filter(EquipmentSlot::isArmor).toList()) {
+				if (!living.getItemBySlot(armourSlot).isEmpty()) {
 					wearingThings = true;
 				}
 			}
-			for (ItemStack handSlot : living.getHandSlots()) {
-				if (!handSlot.isEmpty()) {
+			for (EquipmentSlot handSlot : Arrays.stream(EquipmentSlot.values()).filter(slot -> slot.getType().equals(EquipmentSlot.Type.HAND)).toList()) {
+				if (!living.getItemBySlot(handSlot).isEmpty()) {
 					wearingThings = true;
 				}
 			}

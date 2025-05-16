@@ -1,5 +1,7 @@
 package vazkii.neat;
 
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
 import net.minecraft.client.renderer.RenderStateShard;
@@ -23,12 +25,18 @@ public class NeatRenderType extends RenderStateShard {
 
 	private static RenderType getHealthBarType() {
 		RenderType.CompositeState renderTypeState = RenderType.CompositeState.builder()
-				.setShaderState(POSITION_COLOR_TEX_LIGHTMAP_SHADER)
 				.setTextureState(new TextureStateShard(NeatRenderType.HEALTH_BAR_TEXTURE, TriState.FALSE, false))
-				.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-				.setCullState(NO_CULL)
 				.setLightmapState(LIGHTMAP)
 				.createCompositeState(false);
-		return AccessorRenderType.neat_create("neat_health_bar", POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS, 256, true, false, renderTypeState);
+		RenderPipeline renderPipeline = RenderPipeline.builder()
+				.withVertexFormat(POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.QUADS)
+				.withCull(false)
+				.withLocation("")
+				.withVertexShader(RenderType.guiOverlay().getRenderPipeline().getVertexShader())
+				.withFragmentShader(RenderType.guiOverlay().getRenderPipeline().getFragmentShader())
+				.withBlend(BlendFunction.TRANSLUCENT)
+				.build();
+
+		return AccessorRenderType.neat_create("neat_health_bar", 256, true, false, renderPipeline, renderTypeState);
 	}
 }
