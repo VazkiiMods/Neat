@@ -9,8 +9,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.TriState;
 
-import vazkii.neat.mixin.AccessorRenderType;
-
 import static com.mojang.blaze3d.vertex.DefaultVertexFormat.*;
 
 public class NeatRenderType extends RenderStateShard {
@@ -37,6 +35,6 @@ public class NeatRenderType extends RenderStateShard {
 				.withBlend(BlendFunction.TRANSLUCENT)
 				.build();
 
-		return AccessorRenderType.neat_create("neat_health_bar", 256, true, false, renderPipeline, renderTypeState);
+		return RenderType.create("neat_health_bar", 256, true, false, renderPipeline, renderTypeState);
 	}
 }
