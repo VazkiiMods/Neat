@@ -18,7 +18,7 @@ versionRange="[21.2.0-beta,)"
 [[dependencies.neat]]
 modId="minecraft"
 type="required"
-versionRange="[1.21.2,)"
+versionRange="[1.21.5,)"
 
 [[mixins]]
 config="neat.mixins.json"

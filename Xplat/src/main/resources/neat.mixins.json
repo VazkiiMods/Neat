@@ -6,7 +6,6 @@
   "mixins": [
   ],
   "client": [
-    "AccessorRenderType",
     "EntityRendererMixin",
     "LevelRendererMixin",
     "LivingEntityRendererMixin",
