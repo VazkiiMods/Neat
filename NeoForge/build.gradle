@@ -53,6 +53,9 @@ repositories {
 }
 
 dependencies {
+    implementation "curse.maven:sodium-394468:6382663"
+    implementation "curse.maven:irisshaders-455508:6213645"
+
     implementation project(":Xplat")
 }
 
