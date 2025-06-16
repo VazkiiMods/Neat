@@ -13,12 +13,12 @@ description="Minimalistic Functional Unit Plates for the modern Minecrafter"
 [[dependencies.neat]]
 modId="neoforge"
 type="required"
-versionRange="[21.2.0-beta,)"
+versionRange="[21.5.0,)"
 
 [[dependencies.neat]]
 modId="minecraft"
 type="required"
-versionRange="[1.21.2,)"
+versionRange="[1.21.5,)"
 
 [[mixins]]
 config="neat.mixins.json"

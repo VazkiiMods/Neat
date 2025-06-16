@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.8.9'
+    id 'fabric-loom' version '1.10-SNAPSHOT'
 }
 
 version = "${mc_version}-${build_number}-FABRIC"

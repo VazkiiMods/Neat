@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.72'
+    id 'net.neoforged.moddev' version '2.0.94'
     id 'eclipse'
 }
 
@@ -53,8 +53,8 @@ repositories {
 }
 
 dependencies {
-    implementation "curse.maven:sodium-394468:6382663"
-    implementation "curse.maven:irisshaders-455508:6213645"
+    implementation "curse.maven:sodium-394468:6382666"
+    implementation "curse.maven:irisshaders-455508:6369434"
 
     implementation project(":Xplat")
 }
