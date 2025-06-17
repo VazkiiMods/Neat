@@ -19,7 +19,7 @@ public class NeatRenderType extends RenderStateShard {
 
 	private static RenderType getBackgroundRenderType() {
 		RenderType.CompositeState renderTypeState = RenderType.CompositeState.builder()
-				.setTextureState(new RenderStateShard.TextureStateShard(NeatRenderType.HEALTH_BAR_TEXTURE, TriState.FALSE, false))
+				.setTextureState(new RenderStateShard.TextureStateShard(NeatRenderType.HEALTH_BAR_TEXTURE, false))
 				.setLightmapState(LIGHTMAP)
 				.setOverlayState(OVERLAY)
 				.createCompositeState(false);
@@ -28,7 +28,7 @@ public class NeatRenderType extends RenderStateShard {
 
 	private static RenderType getBarRenderType() {
 		RenderType.CompositeState renderTypeState = RenderType.CompositeState.builder()
-				.setTextureState(new RenderStateShard.TextureStateShard(NeatRenderType.HEALTH_BAR_TEXTURE, TriState.FALSE, false))
+				.setTextureState(new RenderStateShard.TextureStateShard(NeatRenderType.HEALTH_BAR_TEXTURE, false))
 				.setLightmapState(LIGHTMAP)
 				.setOverlayState(OVERLAY)
 				.createCompositeState(false);

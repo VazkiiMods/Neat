@@ -67,7 +67,7 @@ public class NeatNeoForgeConfig {
 			showArmor = builder.comment("Show armor points").define("show_armor", true);
 			groupArmor = builder.comment("Group 5 iron icons into 1 diamond icon").define("group_armor", true);
 			colorByType = builder.comment("Color health bar by mob type instead of health percentage").define("color_health_bar_by_type", false);
-			textColor = builder.comment("Text color in hex code format").define("text_color", "FFFFFF");
+			textColor = builder.comment("Text color in hex code format").define("text_color", "FFFFFFFF");
 			hpTextHeight = builder.comment("Height of the text on the health bar").define("hp_text_height", 14);
 			showMaxHP = builder.comment("Whether the maximum health of the mob should be shown").define("show_max_hp", true);
 			showCurrentHP = builder.comment("Whether the current health of the mob should be shown").define("show_current_hp", true);

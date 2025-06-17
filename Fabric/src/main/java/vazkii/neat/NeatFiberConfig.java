@@ -144,7 +144,7 @@ public final class NeatFiberConfig {
 					.withComment("Color health bar by mob type instead of health percentage")
 					.finishValue(colorByType::mirror)
 
-					.beginValue("textColor", STRING, "FFFFFF")
+					.beginValue("textColor", STRING, "FFFFFFFF")
 					.withComment("Text color in hex code format")
 					.finishValue(textColor::mirror)
 
