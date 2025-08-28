@@ -80,8 +80,7 @@ public final class NeatFiberConfig {
 		private final PropertyMirror<Boolean> showFullHealth = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> enableDebugInfo = PropertyMirror.create(BOOLEAN);
 		private final PropertyMirror<Boolean> showEntityName = PropertyMirror.create(BOOLEAN);
-		private final PropertyMirror<Boolean> disableNameTag = PropertyMirror.create(BOOLEAN);
-		private final PropertyMirror<Boolean> disableNameTagIfHealthbar = PropertyMirror.create(BOOLEAN);
+		private final PropertyMirror<NeatConfig.NameTagRenderBehavior> nameTagRenderBehavior = PropertyMirror.create(ConfigTypes.makeEnum(NeatConfig.NameTagRenderBehavior.class));
 		private final PropertyMirror<Double> iconOffsetX = PropertyMirror.create(DOUBLE);
 		private final PropertyMirror<Double> iconOffsetY = PropertyMirror.create(DOUBLE);
 		private final PropertyMirror<String> decimalFormat = PropertyMirror.create(STRING);
@@ -100,7 +99,7 @@ public final class NeatFiberConfig {
 					.withComment("Whether health bars should render when the HUD is disabled with F1")
 					.finishValue(renderInF1::mirror)
 
-					.beginValue("heightAbove", DOUBLE, 0.6)
+					.beginValue("heightAbove", DOUBLE, 0.4)
 					.withComment("How far above the mob the health bars should render")
 					.finishValue(heightAbove::mirror)
 
@@ -196,13 +195,9 @@ public final class NeatFiberConfig {
 					.withComment("Show entity name")
 					.finishValue(showEntityName::mirror)
 
-					.beginValue("disableNameTag", BOOLEAN, false)
-					.withComment("Disables the rendering of the vanilla name tag")
-					.finishValue(disableNameTag::mirror)
-
-					.beginValue("disableNameTagIfHealthbar", BOOLEAN, true)
-					.withComment("If this is enabled and the \"disableNameTag\" option is true, the vanilla nametag is only hidden if the mob has a Neat healthbar rendered")
-					.finishValue(disableNameTagIfHealthbar::mirror)
+					.beginValue("nameTagRenderBehavior", ConfigTypes.makeEnum(NeatConfig.NameTagRenderBehavior.class), NeatConfig.NameTagRenderBehavior.ALWAYS)
+					.withComment("Changes when the vanilla name tag should be rendered")
+					.finishValue(nameTagRenderBehavior::mirror)
 
 					.beginValue("iconOffsetX", DOUBLE, 0.0)
 					.withComment("Offsets the healtbar icons on the x axis")
@@ -359,13 +354,8 @@ public final class NeatFiberConfig {
 		}
 
 		@Override
-		public boolean disableNameTag() {
-			return disableNameTag.getValue();
-		}
-
-		@Override
-		public boolean disableNameTagIfHealthbar() {
-			return disableNameTagIfHealthbar.getValue();
+		public NeatConfig.NameTagRenderBehavior nameTagRenderBehavior() {
+			return nameTagRenderBehavior.getValue();
 		}
 
 		@Override

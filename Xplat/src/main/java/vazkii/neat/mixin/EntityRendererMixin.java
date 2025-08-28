@@ -23,13 +23,16 @@ public class EntityRendererMixin {
 
 	@Inject(method = "render(Lnet/minecraft/world/entity/Entity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderer;renderNameTag(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/network/chat/Component;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IF)V"), cancellable = true)
 	private void neat_disableNameTag(Entity entity, float $$1, float $$2, PoseStack $$3, MultiBufferSource $$4, int $$5, CallbackInfo ci) {
-		if (NeatConfig.instance.disableNameTag() && (!NeatConfig.instance.disableNameTagIfHealthbar() || neat$allowNameTagDisable(entity))) {
+		NeatConfig.NameTagRenderBehavior renderBehavior = NeatConfig.instance.nameTagRenderBehavior();
+		if (renderBehavior != NeatConfig.NameTagRenderBehavior.ALWAYS &&
+				(renderBehavior == NeatConfig.NameTagRenderBehavior.FOR_NO_HEALTHBAR && neat$entityHasHealthbar(entity)) ||
+				renderBehavior == NeatConfig.NameTagRenderBehavior.NEVER) {
 			ci.cancel();
 		}
 	}
 
 	@Unique
-	public boolean neat$allowNameTagDisable(Entity entity) {
+	public boolean neat$entityHasHealthbar(Entity entity) {
 		if (!(entity instanceof LivingEntity))
 			return false;
 		if (entity instanceof Player && !NeatConfig.instance.showOnPlayers())

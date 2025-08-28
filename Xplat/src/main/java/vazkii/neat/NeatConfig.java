@@ -35,8 +35,7 @@ public class NeatConfig {
 		boolean showFullHealth();
 		boolean enableDebugInfo();
 		boolean showEntityName();
-		boolean disableNameTag();
-		boolean disableNameTagIfHealthbar();
+		NameTagRenderBehavior nameTagRenderBehavior();
 		double iconOffsetX();
 		double iconOffsetY();
 		String decimalFormat();
@@ -44,6 +43,12 @@ public class NeatConfig {
 	}
 
 	public static final List<String> DEFAULT_DISABLED = List.of("minecraft:shulker", "minecraft:armor_stand", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish", "minecraft:tropical_fish", "minecraft:tadpole");
+
+	public enum NameTagRenderBehavior {
+		ALWAYS,
+		NEVER,
+		FOR_NO_HEALTHBAR
+	}
 
 	public static ConfigAccess instance;
 }
