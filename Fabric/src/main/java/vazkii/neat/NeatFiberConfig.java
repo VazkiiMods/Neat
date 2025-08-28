@@ -195,7 +195,7 @@ public final class NeatFiberConfig {
 					.withComment("Show entity name")
 					.finishValue(showEntityName::mirror)
 
-					.beginValue("nameTagRenderBehavior", ConfigTypes.makeEnum(NeatConfig.NameTagRenderBehavior.class), NeatConfig.NameTagRenderBehavior.ALWAYS)
+					.beginValue("nameTagRenderBehavior", ConfigTypes.makeEnum(NeatConfig.NameTagRenderBehavior.class), NeatConfig.NameTagRenderBehavior.FOR_NO_HEALTHBAR)
 					.withComment("Changes when the vanilla name tag should be rendered")
 					.finishValue(nameTagRenderBehavior::mirror)
 

@@ -79,7 +79,7 @@ public class NeatNeoForgeConfig {
 			showFullHealth = builder.comment("Show bars for mobs that are at full health").define("show_entity_full_health", true);
 			enableDebugInfo = builder.comment("Show extra debug info on the bar when F3 is enabled").define("show_debug_with_f3", true);
 			showEntityName = builder.comment("Show entity name").define("show_entity_name", true);
-			nameTagRenderBehavior = builder.comment("Changes when the vanilla name tag should be rendered").defineEnum("name_tag_render_behavior", NeatConfig.NameTagRenderBehavior.ALWAYS);
+			nameTagRenderBehavior = builder.comment("Changes when the vanilla name tag should be rendered").defineEnum("name_tag_render_behavior", NeatConfig.NameTagRenderBehavior.FOR_NO_HEALTHBAR);
 			iconOffsetX = builder.comment("Offsets the healtbar icons on the x axis").define("icon_offset_x", 0.0);
 			iconOffsetY = builder.comment("Offsets the healtbar icons on the y axis").define("icon_offset_y", 0.0);
 			decimalFormat = builder.comment("This value changes the decimal format of the HP. Only change this value if you are familiar with how the decimal format works!").define("decimal_format", "#.##");
