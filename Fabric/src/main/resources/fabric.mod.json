@@ -8,7 +8,8 @@
   "authors": [
     "Vazkii",
     "williewillus",
-    "Alwinfy"
+    "Alwinfy",
+    "Uraneptus"
   ],
   "contact": {
     "irc": "ircs://irc.esper.net:6697/vazkii",
@@ -23,6 +24,9 @@
   "entrypoints": {
     "client": [
       "vazkii.neat.NeatFabricInitializer"
+    ],
+    "modmenu": [
+      "vazkii.neat.NeatModMenuImpl"
     ]
   },
   "mixins": [

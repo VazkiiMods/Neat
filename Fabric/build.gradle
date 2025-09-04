@@ -25,6 +25,10 @@ repositories {
             includeGroup "me.zeroeightsix"
         }
     }
+    maven {
+        name = "Terraformers"
+        url = "https://maven.terraformersmc.com/"
+    }
 }
 
 dependencies {
@@ -41,6 +45,8 @@ dependencies {
 
     modImplementation "me.zeroeightsix:fiber:0.23.0-2"
     include "me.zeroeightsix:fiber:0.23.0-2"
+
+    modImplementation("com.terraformersmc:modmenu:7.2.2")
 }
 
 compileJava {
