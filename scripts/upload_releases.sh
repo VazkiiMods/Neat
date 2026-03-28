@@ -36,6 +36,10 @@ function release_modrinth() {
 		{
 			"project_id": "P7dR8mSH",
 			"dependency_type": "required"
+		},
+		{
+		  "project_id": "9s6osm5g",
+      "dependency_type": "required"
 		}
 	],
 	"version_type": "release",
@@ -119,7 +123,11 @@ function release_curseforge() {
 			{
 				"slug": "fabric-api",
 				"type": "requiredDependency"
-			}
+			},
+      {
+        "slug": "cloth-config",
+        "type": "requiredDependency"
+      }
 		]
 	}
 }

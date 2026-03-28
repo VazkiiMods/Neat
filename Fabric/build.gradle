@@ -18,12 +18,10 @@ loom {
 }
 
 repositories {
+    maven { url "https://maven.shedaniel.me/" }
     maven {
-        name = "Modmuss"
-        url = "https://maven.modmuss50.me/"
-        content {
-            includeGroup "me.zeroeightsix"
-        }
+        name = "Terraformers"
+        url = "https://maven.terraformersmc.com/"
     }
 }
 
@@ -36,8 +34,10 @@ dependencies {
 
     compileOnly project(":Xplat")
 
-    modImplementation "me.zeroeightsix:fiber:0.23.0-2"
-    include "me.zeroeightsix:fiber:0.23.0-2"
+    modApi("me.shedaniel.cloth:cloth-config-fabric:15.0.140") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    modImplementation("com.terraformersmc:modmenu:11.0.3")
 }
 
 compileJava {

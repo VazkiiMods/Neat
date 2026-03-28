@@ -1,6 +1,14 @@
 # Neat
 Functional minimalistic Unit Frames for the modern Minecrafter
 
+## Support plan
+Due to Mojangs fast version changing, it's impossible to support all versions at the same time.
+Because of this Neat will from now on only support two Minecraft Versions simultaneously, a Long-Term-Support (LTS) version and the newest available version.
+I will choose the LTS version myself based on what feels like the currently most popular version.
+The two supported versions are currently:
+- LTS: 1.21.1
+- Newest: 26.1 (currently wip)
+
 ## Release Process
 Neat's release process is mostly automated. Here's the steps:
 

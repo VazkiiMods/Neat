@@ -9,6 +9,7 @@ displayName="Neat"
 version="${version}"
 authors="Vazkii, Uraneptus"
 description="Minimalistic Functional Unit Plates for the modern Minecrafter"
+logoFile="assets/neat/icon.png"
 
 [[dependencies.neat]]
 modId="neoforge"

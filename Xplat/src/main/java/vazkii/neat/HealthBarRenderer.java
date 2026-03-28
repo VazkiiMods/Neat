@@ -17,6 +17,7 @@ import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityAttachment;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -235,9 +236,11 @@ public class HealthBarRenderer {
 		double d3 = y + vec3.y();
 		double d0 = z + vec3.z();
 
+		Vec3 attachmentPoint = entity.getAttachments().get(EntityAttachment.NAME_TAG, 0, entity.getViewYRot(partialTicks));
+
 		poseStack.pushPose();
 		poseStack.translate(d2, d3, d0);
-		poseStack.translate(0, living.getBbHeight() + NeatConfig.instance.heightAbove(), 0);
+		poseStack.translate(attachmentPoint.x, attachmentPoint.y + NeatConfig.instance.heightAbove(), attachmentPoint.z);
 		poseStack.mulPose(camera.rotation());
 		poseStack.mulPose(Axis.YP.rotationDegrees(180));
 

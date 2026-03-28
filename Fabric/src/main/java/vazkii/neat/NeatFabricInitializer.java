@@ -6,7 +6,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 public class NeatFabricInitializer implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		NeatFiberConfig.setup();
+		NeatFabricConfig.init();
 		KeyBindingHelper.registerKeyBinding(ToggleKeybind.KEY);
 	}
 }
