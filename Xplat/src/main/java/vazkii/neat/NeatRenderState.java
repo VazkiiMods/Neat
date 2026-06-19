@@ -1,6 +1,9 @@
 package vazkii.neat;
 
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.util.FormattedCharSequence;
+
+import java.util.List;
 
 public interface NeatRenderState {
 	boolean neat$isBoss();
@@ -17,8 +20,12 @@ public interface NeatRenderState {
 	void neat$setHealth(float value);
 	float neat$getMaxHealth();
 	void neat$setMaxHealth(float value);
-	NeatTypeIcon neat$getTypeIcon();
-	void neat$setTypeIcon(NeatTypeIcon value);
 	int neat$getArmorValue();
 	void neat$setArmorValue(int value);
+	List<ItemStackRenderState> neat$ironArmorIcons();
+	void neat$addIronArmorIcons(ItemStackRenderState renderState);
+	List<ItemStackRenderState> neat$diamondArmorIcons();
+	void neat$addDiamondArmorIcons(ItemStackRenderState renderState);
+	ItemStackRenderState neat$getTypeIconState();
+	void neat$setTypeIconState(ItemStackRenderState renderState);
 }

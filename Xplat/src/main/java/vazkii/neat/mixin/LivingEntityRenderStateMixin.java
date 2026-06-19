@@ -1,13 +1,16 @@
 package vazkii.neat.mixin;
 
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.util.FormattedCharSequence;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 import vazkii.neat.NeatRenderState;
-import vazkii.neat.NeatTypeIcon;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Mixin(LivingEntityRenderState.class)
 public class LivingEntityRenderStateMixin implements NeatRenderState {
@@ -26,9 +29,13 @@ public class LivingEntityRenderStateMixin implements NeatRenderState {
 	@Unique
 	public float neat$maxHealth;
 	@Unique
-	public NeatTypeIcon neat$typeIcon;
-	@Unique
 	public int neat$armorValue;
+	@Unique
+	public List<ItemStackRenderState> neat$ironArmorIcons = new ArrayList<>();
+	@Unique
+	public List<ItemStackRenderState> neat$diamondArmorIcons = new ArrayList<>();
+	@Unique
+	public ItemStackRenderState neat$typeIconState;
 
 	@Override
 	public boolean neat$isBoss() {
@@ -101,16 +108,6 @@ public class LivingEntityRenderStateMixin implements NeatRenderState {
 	}
 
 	@Override
-	public NeatTypeIcon neat$getTypeIcon() {
-		return neat$typeIcon;
-	}
-
-	@Override
-	public void neat$setTypeIcon(NeatTypeIcon value) {
-		this.neat$typeIcon = value;
-	}
-
-	@Override
 	public int neat$getArmorValue() {
 		return this.neat$armorValue;
 	}
@@ -118,5 +115,35 @@ public class LivingEntityRenderStateMixin implements NeatRenderState {
 	@Override
 	public void neat$setArmorValue(int value) {
 		this.neat$armorValue = value;
+	}
+
+	@Override
+	public List<ItemStackRenderState> neat$ironArmorIcons() {
+		return this.neat$ironArmorIcons;
+	}
+
+	@Override
+	public void neat$addIronArmorIcons(ItemStackRenderState renderState) {
+		this.neat$ironArmorIcons.add(renderState);
+	}
+
+	@Override
+	public List<ItemStackRenderState> neat$diamondArmorIcons() {
+		return this.neat$diamondArmorIcons;
+	}
+
+	@Override
+	public void neat$addDiamondArmorIcons(ItemStackRenderState renderState) {
+		this.neat$diamondArmorIcons.add(renderState);
+	}
+
+	@Override
+	public ItemStackRenderState neat$getTypeIconState() {
+		return this.neat$typeIconState;
+	}
+
+	@Override
+	public void neat$setTypeIconState(ItemStackRenderState renderState) {
+		this.neat$typeIconState = renderState;
 	}
 }

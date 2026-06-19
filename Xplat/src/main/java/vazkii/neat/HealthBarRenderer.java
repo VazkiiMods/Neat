@@ -20,10 +20,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -78,13 +74,9 @@ public class HealthBarRenderer {
 		final float nameLen = mc.font.width(name) * textScale;
 		final float halfSize = Math.max(NeatConfig.instance.plateSize(), nameLen / 2.0F + 10.0F);
 
-		Level level = mc.level; //todo check which level is best
-
-		//Vec3 attachmentPoint = entity.getAttachments().get(EntityAttachment.NAME_TAG, 0, entity.getViewYRot(partialTicks));
-
 		poseStack.pushPose();
 		//poseStack.translate(x, y, z); since moving to dispatcher
-		poseStack.translate(0, livingState.boundingBoxHeight + NeatConfig.instance.heightAbove(), 0);
+		poseStack.translate(0, livingState.boundingBoxHeight + 0.4F + NeatConfig.instance.heightAbove(), 0);
 		poseStack.mulPose(camera.orientation);
 		poseStack.mulPose(Axis.YP.rotationDegrees(180));
 
@@ -202,8 +194,8 @@ public class HealthBarRenderer {
 			float iconOffset = 2.85F;
 			float zShift = 0F;
 			if (NeatConfig.instance.showAttributes()) {
-				var icon = neatRenderState.neat$getTypeIcon().getIcon();
-				renderIcon(level, icon, poseStack,
+				var icon = neatRenderState.neat$getTypeIconState();
+				submitIcon(nodeCollector, icon, poseStack,
 						globalScale, halfSize, iconOffset, zShift);
 				iconOffset += 5F;
 				zShift += zBump;
@@ -211,24 +203,17 @@ public class HealthBarRenderer {
 
 			int armor = neatRenderState.neat$getArmorValue();
 			if (armor > 0 && NeatConfig.instance.showArmor()) {
-				int ironArmor = armor % 5;
-				int diamondArmor = armor / 5;
-				if (!NeatConfig.instance.groupArmor()) {
-					ironArmor = armor;
-					diamondArmor = 0;
-				}
-
-				var iron = new ItemStack(Items.IRON_CHESTPLATE);
-				for (int i = 0; i < ironArmor; i++) {
-					renderIcon(level, iron, poseStack,
+				var iron = neatRenderState.neat$ironArmorIcons();
+				for (ItemStackRenderState state : iron) {
+					submitIcon(nodeCollector, state, poseStack,
 							globalScale, halfSize, iconOffset, zShift);
 					iconOffset += 1F;
 					zShift += zBump;
 				}
 
-				var diamond = new ItemStack(Items.DIAMOND_CHESTPLATE);
-				for (int i = 0; i < diamondArmor; i++) {
-					renderIcon(level, diamond, poseStack,
+				var diamond = neatRenderState.neat$diamondArmorIcons();
+				for (ItemStackRenderState state : diamond) {
+					submitIcon(nodeCollector, state, poseStack,
 							globalScale, halfSize, iconOffset, zShift);
 					iconOffset += 1F;
 					zShift += zBump;
@@ -241,24 +226,20 @@ public class HealthBarRenderer {
 		poseStack.popPose();
 	}
 
-	private static void renderIcon(Level level, ItemStack icon, PoseStack poseStack, float globalScale, float halfSize, float leftShift, float zShift) { //todo use the node collector here too
-		if (!icon.isEmpty()) {
-			final float iconScale = 0.12F;
-			poseStack.pushPose();
-			// halfSize and co. are units operating under the assumption of globalScale,
-			// but in the icon rendering section we don't use globalScale, so we need
-			// to manually multiply it in to ensure the units line up.
-			double dx = (halfSize - leftShift) * globalScale + NeatConfig.instance.iconOffsetX();
-			double dy = 3F * globalScale;
-			double dz = zShift * globalScale;
-			// Need to negate X due to our rotation below
-			poseStack.translate(-dx, dy + NeatConfig.instance.iconOffsetY(), dz);
-			poseStack.scale(iconScale, iconScale, iconScale);
-			poseStack.mulPose(Axis.YP.rotationDegrees(180F));
-			ItemStackRenderState renderState = new ItemStackRenderState();
-			Minecraft.getInstance().getItemModelResolver()
-					.updateForTopItem(renderState, icon, ItemDisplayContext.NONE, level, null, 0);
-			poseStack.popPose();
-		}
+	private static void submitIcon(SubmitNodeCollector nodeCollector, ItemStackRenderState renderState, PoseStack poseStack, float globalScale, float halfSize, float leftShift, float zShift) { //todo use the node collector here too
+		final float iconScale = 0.12F;
+		poseStack.pushPose();
+		// halfSize and co. are units operating under the assumption of globalScale,
+		// but in the icon rendering section we don't use globalScale, so we need
+		// to manually multiply it in to ensure the units line up.
+		double dx = (halfSize - leftShift) * globalScale + NeatConfig.instance.iconOffsetX();
+		double dy = 3F * globalScale;
+		double dz = zShift * globalScale;
+		// Need to negate X due to our rotation below
+		poseStack.translate(-dx, dy + NeatConfig.instance.iconOffsetY(), dz);
+		poseStack.scale(iconScale, iconScale, iconScale);
+		poseStack.mulPose(Axis.YP.rotationDegrees(180F));
+		renderState.submit(poseStack, nodeCollector, 0xF000F0, OverlayTexture.NO_OVERLAY, 0);
+		poseStack.popPose();
 	}
 }

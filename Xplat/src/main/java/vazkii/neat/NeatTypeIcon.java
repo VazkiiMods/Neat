@@ -21,7 +21,7 @@ public enum NeatTypeIcon {
 		this(new ItemStack(item));
 	}
 
-	ItemStack getIcon() {
+	public ItemStack getIcon() {
 		return item;
 	}
 }
