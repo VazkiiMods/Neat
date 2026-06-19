@@ -94,10 +94,10 @@ public class HealthBarRenderer {
 					bgHeight -= (int) 4F;
 				}
 
-				consumer.addVertex(pose.pose(), -halfSize - padding, -bgHeight, 0.01F).setColor(0, 0, 0, 35).setUv(0.0F, 0.0F).setLight(light).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0.0F, 0.0F, 0.0F);
-				consumer.addVertex(pose.pose(), -halfSize - padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 35).setUv(0.0F, 0.5F).setLight(light).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0.0F, 0.0F, 0.0F);
-				consumer.addVertex(pose.pose(), halfSize + padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 35).setUv(1.0F, 0.5F).setLight(light).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0.0F, 0.0F, 0.0F);
-				consumer.addVertex(pose.pose(), halfSize + padding, -bgHeight, 0.01F).setColor(0, 0, 0, 35).setUv(1.0F, 0.0F).setLight(light).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0.0F, 0.0F, 0.0F);
+				consumer.addVertex(pose.pose(), -halfSize - padding, -bgHeight, 0.01F).setColor(0, 0, 0, 45).setUv(0.0F, 0.0F).setLight(light).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0.0F, 0.0F, 0.0F);
+				consumer.addVertex(pose.pose(), -halfSize - padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 45).setUv(0.0F, 0.5F).setLight(light).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0.0F, 0.0F, 0.0F);
+				consumer.addVertex(pose.pose(), halfSize + padding, barHeight + padding, 0.01F).setColor(0, 0, 0, 45).setUv(1.0F, 0.5F).setLight(light).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0.0F, 0.0F, 0.0F);
+				consumer.addVertex(pose.pose(), halfSize + padding, -bgHeight, 0.01F).setColor(0, 0, 0, 45).setUv(1.0F, 0.0F).setLight(light).setOverlay(OverlayTexture.NO_OVERLAY).setNormal(pose, 0.0F, 0.0F, 0.0F);
 			}));
 
 		}
