@@ -5,7 +5,7 @@ plugins {
     id 'eclipse'
 }
 
-version = "${project.mc_version}-${project.build_number}-NEOFORGE"
+version = "${project.minecraft_version}-${project.build_number}-NEOFORGE"
 
 neoForge {
     version = project.neoforge_version

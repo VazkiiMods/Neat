@@ -4,7 +4,7 @@ plugins {
 }
 
 base.archivesName = "${project.mod_name}-xplat"
-version = "${project.mc_version}-${project.build_number}"
+version = "${project.minecraft_version}-${project.build_number}"
 
 neoForge {
     neoFormVersion = project.neo_form_version
