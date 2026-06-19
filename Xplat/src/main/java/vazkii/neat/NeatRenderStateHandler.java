@@ -23,8 +23,8 @@ public class NeatRenderStateHandler {
 		if (living == cameraEntity) {
 			return false;
 		}
-
-		if ((!NeatConfig.instance.renderInF1() && !Minecraft.renderNames()) || !NeatConfig.draw) {
+        boolean hudHidden = Minecraft.getInstance().gameRenderer.gameRenderState().guiRenderState.isHudHidden;
+		if ((!NeatConfig.instance.renderInF1() && hudHidden) || !NeatConfig.draw) {
 			return false;
 		}
 

@@ -195,7 +195,7 @@ public class HealthBarRenderer {
 			float zShift = 0F;
 			if (NeatConfig.instance.showAttributes()) {
 				var icon = neatRenderState.neat$getTypeIconState();
-				submitIcon(nodeCollector, icon, poseStack,
+				submitIcon(nodeCollector, icon, poseStack, livingState.lightCoords,
 						globalScale, halfSize, iconOffset, zShift);
 				iconOffset += 5F;
 				zShift += zBump;
@@ -205,7 +205,7 @@ public class HealthBarRenderer {
 			if (armor > 0 && NeatConfig.instance.showArmor()) {
 				var iron = neatRenderState.neat$ironArmorIcons();
 				for (ItemStackRenderState state : iron) {
-					submitIcon(nodeCollector, state, poseStack,
+					submitIcon(nodeCollector, state, poseStack, livingState.lightCoords,
 							globalScale, halfSize, iconOffset, zShift);
 					iconOffset += 1F;
 					zShift += zBump;
@@ -213,7 +213,7 @@ public class HealthBarRenderer {
 
 				var diamond = neatRenderState.neat$diamondArmorIcons();
 				for (ItemStackRenderState state : diamond) {
-					submitIcon(nodeCollector, state, poseStack,
+					submitIcon(nodeCollector, state, poseStack, livingState.lightCoords,
 							globalScale, halfSize, iconOffset, zShift);
 					iconOffset += 1F;
 					zShift += zBump;
@@ -226,7 +226,7 @@ public class HealthBarRenderer {
 		poseStack.popPose();
 	}
 
-	private static void submitIcon(SubmitNodeCollector nodeCollector, ItemStackRenderState renderState, PoseStack poseStack, float globalScale, float halfSize, float leftShift, float zShift) { //todo use the node collector here too
+	private static void submitIcon(SubmitNodeCollector nodeCollector, ItemStackRenderState renderState, PoseStack poseStack, int lightCoords, float globalScale, float halfSize, float leftShift, float zShift) { //todo use the node collector here too
 		final float iconScale = 0.12F;
 		poseStack.pushPose();
 		// halfSize and co. are units operating under the assumption of globalScale,
@@ -239,7 +239,7 @@ public class HealthBarRenderer {
 		poseStack.translate(-dx, dy + NeatConfig.instance.iconOffsetY(), dz);
 		poseStack.scale(iconScale, iconScale, iconScale);
 		poseStack.mulPose(Axis.YP.rotationDegrees(180F));
-		renderState.submit(poseStack, nodeCollector, 0xF000F0, OverlayTexture.NO_OVERLAY, 0);
+		renderState.submit(poseStack, nodeCollector, lightCoords, OverlayTexture.NO_OVERLAY, 0);
 		poseStack.popPose();
 	}
 }

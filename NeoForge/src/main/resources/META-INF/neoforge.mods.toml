@@ -14,12 +14,12 @@ logoFile="assets/neat/icon.png"
 [[dependencies.neat]]
 modId="neoforge"
 type="required"
-versionRange="[26.1.0.1-beta,)"
+versionRange="[26.2.0.0-beta,)"
 
 [[dependencies.neat]]
 modId="minecraft"
 type="required"
-versionRange="[26.1, 26.2)"
+versionRange="[26.2, 26.3)"
 
 [[mixins]]
 config="neat.mixins.json"

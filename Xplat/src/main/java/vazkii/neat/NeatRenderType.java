@@ -13,7 +13,7 @@ public class NeatRenderType {
 			.withTexture("Sampler0", HEALTH_BAR_TEXTURE)
 			.useLightmap()
 			.useOverlay()
-			.bufferSize(1536)
+			//.bufferSize(1536)
 			.affectsCrumbling()
 			.createRenderSetup();
 
@@ -21,7 +21,7 @@ public class NeatRenderType {
 			.withTexture("Sampler0", HEALTH_BAR_TEXTURE)
 			.useLightmap()
 			.useOverlay()
-			.bufferSize(1536)
+			//.bufferSize(1536)
 			.affectsCrumbling()
 			.createRenderSetup();
 
