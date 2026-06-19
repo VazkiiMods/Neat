@@ -1,6 +1,7 @@
 package vazkii.neat;
 
 import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.AutoConfigClient;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
@@ -20,7 +21,7 @@ public class NeatFabricConfig {
 	}
 
 	public static Supplier<Screen> getConfigScreen(Screen parent) {
-		return AutoConfig.getConfigScreen(Client.class, parent);
+		return AutoConfigClient.getConfigScreen(Client.class, parent);
 	}
 
 	@Config(name = "neat-client")

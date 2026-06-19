@@ -1,29 +1,40 @@
 plugins {
     id 'java-library'
     id 'idea'
-    id 'net.neoforged.gradle.userdev' version '7.0.165'
+    id 'net.neoforged.moddev'
     id 'eclipse'
 }
 
 version = "${project.mc_version}-${project.build_number}-NEOFORGE"
 
-def accesstransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-if (accesstransformer.exists()) {
-    minecraft.accessTransformers.file accesstransformer
-}
+neoForge {
+    version = project.neoforge_version
+    /*
+    validateAccessTransformers = true
+    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
 
-runs {
-    configureEach {
-        workingDirectory project.file('../run')
-        systemProperty 'forge.logging.console.level', 'debug'
-        modSource project.sourceSets.main
+     */
+
+    runs {
+        configureEach {
+            gameDirectory = project.file('../run')
+        }
+        client {
+            client()
+        }
+        data {
+            clientData()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
     }
 
-    client {
-    }
-
-    server {
-        programArgument '--nogui'
+    mods {
+        "${mod_id}" {
+            sourceSet(project.sourceSets.main)
+        }
     }
 }
 

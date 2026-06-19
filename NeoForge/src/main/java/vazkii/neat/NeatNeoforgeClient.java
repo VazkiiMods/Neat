@@ -11,7 +11,7 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 @Mod(value = NeatConfig.MOD_ID, dist = Dist.CLIENT)
-@EventBusSubscriber(modid = NeatConfig.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = NeatConfig.MOD_ID, value = Dist.CLIENT)
 public class NeatNeoforgeClient {
 
 	public NeatNeoforgeClient(IEventBus bus, ModContainer modContainer) {
