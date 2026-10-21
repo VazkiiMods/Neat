@@ -10,7 +10,7 @@ neoForge {
     neoFormVersion = project.neo_form_version
 
     validateAccessTransformers = true
-    accessTransformers = project.files('src/main/resources/META-INF/accesstransformer_xplat.cfg')
+    //todo accessTransformers = project.files('src/main/resources/META-INF/accesstransformer_xplat.cfg')
 }
 
 dependencies {
